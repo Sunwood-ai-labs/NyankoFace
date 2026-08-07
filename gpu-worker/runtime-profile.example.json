@@ -1,0 +1,9 @@
+{
+  "repositories": [],
+  "share_namespaces": false,
+  "metadata_mount": {
+    "source": "",
+    "target": "",
+    "read_only": true
+  }
+}

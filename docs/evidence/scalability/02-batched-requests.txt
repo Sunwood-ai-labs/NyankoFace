@@ -1,0 +1,12 @@
+NyankoFace Spaces directory request verification
+Captured: 2026-07-14T12:33Z
+
+PAGE_STATUS=200
+FRONTEND_BATCH_METRICS=1
+FRONTEND_LIST_SPACES=1
+FRONTEND_SINGLE_METRICS=0
+FRONTEND_SINGLE_STATUS=0
+
+Runner access log evidence:
+POST /api/metrics/repos/batch HTTP/1.1 200 OK
+GET /api/spaces HTTP/1.1 200 OK

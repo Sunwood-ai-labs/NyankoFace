@@ -1,0 +1,3277 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+  --nyankoface-ui-font: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", "Noto Sans JP", "Meiryo UI", Meiryo, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--nyankoface-ui-font);
+}
+
+details > summary {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: #fafafa;
+  font-family: inherit;
+}
+
+/* Route changes keep the shared shell visible while providing immediate,
+   non-blocking feedback. The clicked link responds before a server component
+   or loading boundary can stream its first byte. */
+.nyankoface-navigation-progress {
+  pointer-events: none;
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 120;
+  height: 3px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.nyankoface-navigation-progress > span {
+  display: block;
+  width: 38%;
+  height: 100%;
+  transform: translateX(-110%);
+  background: linear-gradient(90deg, #06b6d4, #d946ef, #f59e0b);
+  box-shadow: 0 0 14px rgb(34 211 238 / 55%);
+}
+
+.nyankoface-navigation-progress--visible { opacity: 1; }
+.nyankoface-navigation-progress--visible > span {
+  animation: nyankoface-navigation-sweep 1.05s ease-in-out infinite;
+}
+
+@keyframes nyankoface-navigation-sweep {
+  to { transform: translateX(370%); }
+}
+
+a[data-nyankoface-navigation-pending="true"] {
+  cursor: progress;
+  opacity: 0.72;
+  outline: 2px solid rgb(6 182 212 / 55%);
+  outline-offset: 3px;
+}
+
+.nyankoface-navigation-timeout {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 121;
+  display: flex;
+  max-width: min(30rem, calc(100vw - 2rem));
+  align-items: center;
+  gap: .75rem;
+  border: 1px solid rgb(244 63 94 / 35%);
+  border-radius: .875rem;
+  background: rgb(255 255 255 / 96%);
+  padding: .85rem 1rem;
+  color: #18181b;
+  box-shadow: 0 16px 45px rgb(0 0 0 / 20%);
+  backdrop-filter: blur(16px);
+}
+
+.nyankoface-navigation-timeout p { margin-top: .15rem; color: #52525b; font-size: .8rem; }
+.nyankoface-navigation-timeout button {
+  flex: none;
+  border-radius: .5rem;
+  border: 1px solid #d4d4d8;
+  padding: .4rem .65rem;
+  font-weight: 700;
+}
+
+.dark .nyankoface-navigation-timeout {
+  border-color: rgb(251 113 133 / 45%);
+  background: rgb(9 9 11 / 96%);
+  color: #fafafa;
+}
+.dark .nyankoface-navigation-timeout p { color: #a1a1aa; }
+.dark .nyankoface-navigation-timeout button { border-color: #3f3f46; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nyankoface-navigation-progress,
+  .nyankoface-navigation-progress > span,
+  a[data-nyankoface-navigation-pending="true"] {
+    animation: none !important;
+    transition: none !important;
+  }
+  .nyankoface-navigation-progress--visible > span {
+    width: 72%;
+    transform: none;
+  }
+  .nyankoface-route-skeleton .animate-pulse { animation: none !important; }
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Editorial serif is retained for English, while Japanese headings use one
+   consistent UI Gothic face across navigation, cards, and long-form pages. */
+.font-serif:lang(ja),
+.font-mono:lang(ja) {
+  font-family: inherit;
+  letter-spacing: normal;
+}
+
+/* One predictable safe area for every portal page. Individual page
+   components may add their own editorial spacing, but no content begins at
+   the viewport edge. Full-screen Space apps opt out below. */
+.nyankoface-page-frame {
+  box-sizing: border-box;
+  padding-inline: 32px;
+}
+
+@media (max-width: 767px) {
+  .nyankoface-page-frame {
+    padding-inline: 20px;
+  }
+}
+
+/* The image-generated cat identity is shared by the navbar, hero, footer,
+   favicon, and touch icon. The wrapper only supplies crisp UI framing. */
+.nyankoface-brand-mark {
+  display: inline-block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid rgb(20 222 225 / 34%);
+  background: #06132e;
+  box-shadow: 0 2px 9px rgb(3 15 42 / 18%);
+}
+
+.nyankoface-brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nyankoface-mobile-menu-toggle {
+  -webkit-tap-highlight-color: transparent;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+header details[open] > .nyankoface-mobile-menu-toggle {
+  border-color: #18181b !important;
+  background: #18181b !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 3px rgb(24 24 27 / 13%);
+}
+
+/* Mobile navigation uses an explicit current-page treatment instead of a
+   sticky touch-hover. This avoids iOS leaving a white hover rectangle behind
+   after navigation, especially when the cyberpunk palette is active. */
+.nyankoface-mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #3f3f46;
+  text-decoration: none;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+@media (hover: hover) {
+  .nyankoface-mobile-nav-link:hover {
+    background: #f4f4f5;
+    color: #18181b;
+  }
+}
+
+/* WCAG-stable status badges: do not let OS dark-mode utilities invert text only. */
+.space-status-header--running {
+  border-color: #a7f3d0 !important;
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+}
+
+.space-status-header--building {
+  border-color: #fde68a !important;
+  background-color: #fffbeb !important;
+  color: #92400e !important;
+}
+
+.space-status-header--error {
+  border-color: #fecaca !important;
+  background-color: #fef2f2 !important;
+  color: #991b1b !important;
+}
+
+.space-status-header--stopped {
+  border-color: #d4d4d8 !important;
+  background-color: #f4f4f5 !important;
+  color: #52525b !important;
+}
+
+.nyankoface-mobile-nav-link:active {
+  transform: translateX(1px);
+}
+
+.nyankoface-mobile-nav-link:focus-visible {
+  outline: 2px solid #18181b;
+  outline-offset: 2px;
+}
+
+.nyankoface-mobile-nav-link[aria-current="page"] {
+  border-color: #27272a;
+  background: #18181b;
+  color: #fff;
+  box-shadow: inset 3px 0 0 #f5b800;
+  font-weight: 650;
+}
+
+/* A single icon cycles through the three portal themes. Keeping this control
+   square leaves the dense navigation room to breathe on every viewport. */
+.nyankoface-theme-selector {
+  position: relative;
+  display: inline-grid;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-items: center;
+  padding: 0;
+  border: 1px solid #e4e4e7;
+  border-radius: 9px;
+  background: #fff;
+  color: #52525b;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.nyankoface-language-selector {
+  display: inline-flex;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  border: 1px solid rgb(212 212 216);
+  border-radius: .55rem;
+  padding-inline: .55rem;
+  color: rgb(82 82 91);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.nyankoface-language-selector:hover {
+  border-color: rgb(13 148 136);
+  color: rgb(15 118 110);
+  background: rgb(240 253 250);
+}
+
+.nyankoface-language-selector:disabled {
+  opacity: .55;
+}
+
+@media (prefers-color-scheme: dark) {
+  .nyankoface-language-selector {
+    border-color: rgb(63 63 70);
+    color: rgb(212 212 216);
+  }
+
+  .nyankoface-language-selector:hover {
+    border-color: rgb(45 212 191);
+    color: rgb(94 234 212);
+    background: rgb(19 78 74 / 25%);
+  }
+}
+
+.nyankoface-theme-selector:hover {
+  border-color: #a1a1aa;
+  color: #18181b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 9%);
+}
+
+.nyankoface-theme-selector:focus-visible {
+  outline: 2px solid #18181b;
+  outline-offset: 2px;
+}
+
+.nyankoface-theme-selector svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nyankoface-theme-selector .nyankoface-theme-icon-fill {
+  fill: currentColor;
+  stroke: none;
+  opacity: .18;
+}
+
+/* -------------------------------------------------------------------------
+   Solarpunk — warm paper, botanical greens, and sunlit citrus. The rules
+   intentionally recolor existing utility-driven surfaces without requiring
+   every individual card component to know about themes. */
+html[data-nyankoface-theme="solarpunk"] body {
+  color: #173b2c;
+  background:
+    radial-gradient(circle at 92% -8%, rgb(255 201 83 / 42%) 0 15%, transparent 15.2%),
+    radial-gradient(circle at -4% 60%, rgb(118 196 139 / 18%) 0 18%, transparent 18.2%),
+    #f2f4e9;
+}
+
+html[data-nyankoface-theme="solarpunk"] body::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  opacity: .24;
+  background-image: linear-gradient(90deg, transparent 49.5%, rgb(38 91 61 / 12%) 50%, transparent 50.5%);
+  background-size: 48px 48px;
+}
+
+html[data-nyankoface-theme="solarpunk"] header,
+html[data-nyankoface-theme="solarpunk"] .bg-white,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-repo-header,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-space-runner,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-space-runner-toolbar {
+  background-color: #fbfcf5 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .bg-zinc-50,
+html[data-nyankoface-theme="solarpunk"] .bg-zinc-100 {
+  background-color: #edf3e7 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .border-zinc-100,
+html[data-nyankoface-theme="solarpunk"] .border-zinc-200,
+html[data-nyankoface-theme="solarpunk"] .border-zinc-300 {
+  border-color: #b9cfad !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .text-zinc-900,
+html[data-nyankoface-theme="solarpunk"] .text-zinc-950,
+html[data-nyankoface-theme="solarpunk"] .text-zinc-800,
+html[data-nyankoface-theme="solarpunk"] .text-zinc-700 {
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .text-zinc-600,
+html[data-nyankoface-theme="solarpunk"] .text-zinc-500,
+html[data-nyankoface-theme="solarpunk"] .text-zinc-400 {
+  color: #52715d !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .bg-zinc-900,
+html[data-nyankoface-theme="solarpunk"] .bg-zinc-950 {
+  background-color: #1f583c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .bg-accent {
+  background-color: #ffcb4f !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-character-primary-action {
+  background-color: #ffcb4f !important;
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-character-primary-action:hover {
+  background-color: #ffdc7d !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] header details[open] > .nyankoface-mobile-menu-toggle {
+  border-color: #2f6b47 !important;
+  background: #24583b !important;
+  color: #f7ffe9 !important;
+  box-shadow: 0 0 0 3px rgb(79 124 80 / 18%);
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mobile-nav-link {
+  color: #315b43;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mobile-nav-link[aria-current="page"] {
+  border-color: #527f55;
+  background: #24583b;
+  color: #f7ffe9 !important;
+  box-shadow: inset 3px 0 0 #ffcb4f;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-theme-selector {
+  border-color: #94b889;
+  background: #e7f0dc;
+  color: #1f583c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-theme-selector:hover {
+  border-color: #527f55;
+  box-shadow: 0 4px 14px rgb(66 111 70 / 18%);
+}
+
+/* Solarpunk intentionally keeps its header light even when the OS requests
+   dark mode, so this control must not inherit the generic dark-mode text. */
+html[data-nyankoface-theme="solarpunk"] .nyankoface-language-selector {
+  border-color: #94b889;
+  background: #f5f8ef;
+  color: #24583b;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-language-selector:hover {
+  border-color: #527f55;
+  background: #e7f0dc;
+  color: #173b2c;
+}
+
+/* -------------------------------------------------------------------------
+   Cyberpunk — ink-black panels over a restrained electric grid. Bright
+   cyan and magenta are reserved for interactive accents and identity. */
+html[data-nyankoface-theme="cyberpunk"] body {
+  color: #e9f8ff;
+  background-color: #080a16;
+  background-image:
+    linear-gradient(rgb(40 226 255 / 8%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(40 226 255 / 8%) 1px, transparent 1px),
+    radial-gradient(circle at 85% 5%, rgb(255 49 164 / 18%), transparent 22%),
+    radial-gradient(circle at 8% 90%, rgb(37 225 201 / 13%), transparent 26%);
+  background-size: 36px 36px, 36px 36px, auto, auto;
+}
+
+html[data-nyankoface-theme="cyberpunk"] header,
+html[data-nyankoface-theme="cyberpunk"] .bg-white,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-repo-header,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-space-runner,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-space-runner-toolbar {
+  background-color: rgb(10 13 29 / 94%) !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] header {
+  backdrop-filter: blur(14px);
+  border-color: rgb(40 226 255 / 35%) !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .bg-zinc-50,
+html[data-nyankoface-theme="cyberpunk"] .bg-zinc-100,
+html[data-nyankoface-theme="cyberpunk"] .bg-rose-50 {
+  background-color: #11162b !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .border-rose-100 {
+  border-color: rgb(255 90 180 / 38%) !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-space-app-header,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-space-app-header h1,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-space-app-header nav,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-space-app-header [class*="min-h-12"] {
+  background-color: #0a0d1d !important;
+}
+
+/* A few homepage collections assemble their surface class dynamically, so
+   Tailwind does not always emit a stable `bg-white` utility for them. Keep
+   their panel treatment explicit to preserve contrast in neon mode. */
+html[data-nyankoface-theme="cyberpunk"] article,
+html[data-nyankoface-theme="cyberpunk"] .divide-y {
+  background-color: rgb(13 19 39 / 96%) !important;
+  background-image: none !important;
+  box-shadow: 0 0 0 1px rgb(40 226 255 / 10%), 0 12px 30px rgb(0 0 0 / 18%);
+}
+
+html[data-nyankoface-theme="cyberpunk"] .divide-y > * {
+  border-color: rgb(55 204 237 / 22%) !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .border-zinc-100,
+html[data-nyankoface-theme="cyberpunk"] .border-zinc-200,
+html[data-nyankoface-theme="cyberpunk"] .border-zinc-300 {
+  border-color: rgb(55 204 237 / 38%) !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .text-zinc-900,
+html[data-nyankoface-theme="cyberpunk"] .text-zinc-950,
+html[data-nyankoface-theme="cyberpunk"] .text-zinc-800,
+html[data-nyankoface-theme="cyberpunk"] .text-zinc-700 {
+  color: #e9f8ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .text-zinc-600,
+html[data-nyankoface-theme="cyberpunk"] .text-zinc-500,
+html[data-nyankoface-theme="cyberpunk"] .text-zinc-400 {
+  color: #8fb9cf !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .bg-zinc-900,
+html[data-nyankoface-theme="cyberpunk"] .bg-zinc-950 {
+  background-color: #1b1035 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-character-primary-action {
+  background-color: #67e8f9 !important;
+  color: #08111f !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-signup-action {
+  background-color: #67e8f9 !important;
+  color: #08111f !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-character-primary-action:hover {
+  background-color: #a5f3fc !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-signup-action:hover {
+  background-color: #a5f3fc !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-signup-action {
+  background-color: #1f583c !important;
+  color: #ffffff !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-signup-action:hover {
+  background-color: #17472f !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .bg-accent {
+  background-color: #25e1c9 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] header details[open] > .nyankoface-mobile-menu-toggle {
+  border-color: #43eaff !important;
+  background: #102342 !important;
+  color: #7cecff !important;
+  box-shadow: 0 0 0 3px rgb(44 231 255 / 14%), 0 0 18px rgb(44 231 255 / 22%);
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mobile-nav-link {
+  color: #c2d9e7 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mobile-nav-link[aria-current="page"] {
+  border-color: rgb(67 234 255 / 58%);
+  background: #102342 !important;
+  color: #9ff4ff !important;
+  box-shadow: inset 3px 0 0 #ff4eaa, 0 0 16px rgb(44 231 255 / 10%);
+}
+
+/* Forms appear on repository creation, filters, search, and settings. They
+   need an explicit surface because browsers otherwise keep their light native
+   fill even when the surrounding portal is in neon mode. */
+html[data-nyankoface-theme="cyberpunk"] input:not([type="checkbox"]):not([type="radio"]),
+html[data-nyankoface-theme="cyberpunk"] textarea,
+html[data-nyankoface-theme="cyberpunk"] select {
+  border-color: rgb(55 204 237 / 48%) !important;
+  background-color: #0d1327 !important;
+  color: #e9f8ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] input::placeholder,
+html[data-nyankoface-theme="cyberpunk"] textarea::placeholder {
+  color: #6f91aa !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] input[type="checkbox"],
+html[data-nyankoface-theme="cyberpunk"] input[type="radio"] {
+  accent-color: #25e1c9;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-theme-selector {
+  border-color: #2ce7ff;
+  background: #101d38;
+  color: #dffbff;
+  box-shadow: 0 0 18px rgb(44 231 255 / 20%);
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-theme-selector:hover {
+  color: #ff7ac3;
+  box-shadow: 0 0 22px rgb(44 231 255 / 34%);
+}
+
+/* The Docs library owns an editorial palette. Keep it isolated from the
+   broad compatibility remaps above so OS color-scheme and app theme never
+   combine into low-contrast text. */
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory {
+  background: #f7f5e7 !important;
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .bg-white,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory [class*="dark:bg-zinc-900"] {
+  background: #fffdf3 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory h1,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory h2,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory dd,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory strong,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory [class*="text-zinc-9"] {
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .text-zinc-600,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .text-zinc-500,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .text-zinc-400,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .text-zinc-300 {
+  color: #46624f !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .nyankoface-docs-primary-action {
+  background: #173b2c !important;
+  color: #fffdf3 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .nyankoface-docs-create {
+  background: #173b2c !important;
+  color: #fffdf3 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .text-teal-800,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .text-teal-900,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory [class*="dark:text-teal-300"] {
+  color: #1d5c43 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .nyankoface-docs-format-active {
+  border-color: #173b2c !important;
+  background: #173b2c !important;
+  color: #fffdf3 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .nyankoface-docs-news-active {
+  color: #8b1644 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding {
+  background: #f0edda !important;
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding h2,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding h3 {
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding p {
+  color: #46624f !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory {
+  background: #05070d !important;
+  color: #f4f7ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory h1,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory h2,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory dd,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory strong,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory [class*="text-zinc-9"] {
+  color: #f4f7ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .text-zinc-600,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .text-zinc-500,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .text-zinc-400 {
+  color: #a9bdd3 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .text-zinc-300,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory [class*="dark:text-zinc-700"] {
+  color: #8298b0 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .text-orange-700,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory [class*="dark:text-orange-400"] {
+  color: #ff9b4a !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .text-teal-800,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .text-teal-900,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory [class*="dark:text-teal-300"] {
+  color: #45e4e7 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-primary-action {
+  background: #45e4e7 !important;
+  color: #061014 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-create {
+  background: #45e4e7 !important;
+  color: #061014 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-section-pill {
+  border-color: rgb(69 228 231 / 28%) !important;
+  background: #0d1327 !important;
+  color: #f4f7ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-format-active {
+  border-color: #45e4e7 !important;
+  background: #45e4e7 !important;
+  color: #061014 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-news-active {
+  color: #ff83bd !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding {
+  background: #0d1327 !important;
+  color: #f4f7ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding h2,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding h3 {
+  color: #f4f7ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding p {
+  color: #a9bdd3 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-docs-directory .nyankoface-docs-onboarding code {
+  background: #05070d !important;
+  color: #f4f7ff !important;
+}
+
+.nyankoface-doc-row:hover {
+  background: color-mix(in srgb, #0f766e 5%, transparent);
+}
+
+.nyankoface-doc-emoji,
+.nyankoface-article-emoji {
+  box-shadow: inset 0 0 0 1px rgb(15 118 110 / 10%);
+}
+
+.nyankoface-article-hero {
+  background: #edf5f4;
+}
+
+.nyankoface-article-emoji {
+  background: #fff;
+  box-shadow: 0 16px 40px rgb(15 118 110 / 10%), inset 0 0 0 1px rgb(15 118 110 / 12%);
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-doc-emoji,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-article-emoji {
+  background: #f7f1d8;
+  box-shadow: 0 16px 40px rgb(55 94 64 / 12%), inset 0 0 0 1px rgb(55 94 64 / 16%);
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-article-hero {
+  background: #e9efdb;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-knowledge-article .nyankoface-article-hero .text-teal-800,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-knowledge-article .nyankoface-article-hero [class*="dark:text-teal-300"] {
+  color: #1f583c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-hero-actions > :first-child {
+  border-color: #1f583c !important;
+  background: #1f583c !important;
+  color: #fff !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-docs-onboarding .text-orange-700 {
+  color: #a6380a !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-doc-emoji,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-article-emoji {
+  background: #111a33;
+  box-shadow: 0 0 32px rgb(34 211 238 / 16%), inset 0 0 0 1px rgb(34 211 238 / 35%);
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-article-hero {
+  background: linear-gradient(135deg, #0b1023, #15102d 72%, #29112e);
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-doc-feature,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-doc-row {
+  border-color: #243555;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-doc-feature-art {
+  background: linear-gradient(145deg, #0b2941, #30113c);
+  color: #67e8f9;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-nyankoface-theme]) .nyankoface-doc-emoji,
+  html[data-nyankoface-theme="standard"] .nyankoface-doc-emoji,
+  html:not([data-nyankoface-theme]) .nyankoface-article-emoji,
+  html[data-nyankoface-theme="standard"] .nyankoface-article-emoji {
+    background: #20252d;
+    color: #fff;
+    box-shadow: 0 16px 40px rgb(0 0 0 / 20%), inset 0 0 0 1px rgb(94 234 212 / 18%);
+  }
+}
+
+@media (max-width: 639px) {
+  .nyankoface-docs-hero-grid {
+    gap: 1.25rem;
+    padding-block: 1.75rem;
+  }
+
+  .nyankoface-docs-hero h1 {
+    font-size: 2.25rem;
+    line-height: 1.05;
+  }
+
+  .nyankoface-docs-hero-copy {
+    margin-top: 1.1rem;
+    font-size: .875rem;
+    line-height: 1.45rem;
+  }
+
+  .nyankoface-docs-hero-actions {
+    margin-top: 1.15rem;
+  }
+
+  .nyankoface-docs-hero-stats {
+    padding-block: .75rem;
+  }
+
+  .nyankoface-docs-hero-stats dd {
+    margin-top: .25rem;
+    font-size: 1.75rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #18181b;
+  }
+}
+
+html:not([data-nyankoface-theme]) .bg-zinc-900 .text-zinc-500,
+html[data-nyankoface-theme="standard"] .bg-zinc-900 .text-zinc-500 {
+  color: #a1a1aa !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .bg-zinc-900 .text-zinc-500 {
+  color: #e6f4dc !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .bg-orange-50,
+html[data-nyankoface-theme="cyberpunk"] .bg-orange-100,
+html[data-nyankoface-theme="cyberpunk"] .bg-violet-100 {
+  background-color: #1b2945 !important;
+  color: #9ff4ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] summary {
+  background-color: #0d1327;
+}
+
+html[data-nyankoface-theme="cyberpunk"] details[open] > summary {
+  background-color: #0d1327 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-nyankoface-theme]) .bg-orange-50,
+  html:not([data-nyankoface-theme]) .bg-orange-100,
+  html:not([data-nyankoface-theme]) .bg-violet-100,
+  html[data-nyankoface-theme="standard"] .bg-orange-50,
+  html[data-nyankoface-theme="standard"] .bg-orange-100,
+  html[data-nyankoface-theme="standard"] .bg-violet-100 {
+    background-color: #3f2d18 !important;
+    color: #fde68a !important;
+  }
+
+  html:not([data-nyankoface-theme]) summary,
+  html[data-nyankoface-theme="standard"] summary {
+    background-color: #18181b;
+  }
+
+  html:not([data-nyankoface-theme]) details[open] > summary,
+  html[data-nyankoface-theme="standard"] details[open] > summary {
+    background-color: #18181b !important;
+  }
+
+  html[data-nyankoface-theme="solarpunk"] .bg-orange-50,
+  html[data-nyankoface-theme="solarpunk"] .bg-orange-100,
+  html[data-nyankoface-theme="solarpunk"] .bg-violet-100,
+  html[data-nyankoface-theme="solarpunk"] [class*="dark:text-orange-"],
+  html[data-nyankoface-theme="solarpunk"] [class*="dark:text-violet-"] {
+    background-color: #e5eedf !important;
+    color: #315b43 !important;
+  }
+}
+
+/* Character compatibility panels deliberately use a dark technical surface.
+   Keep their supporting copy independent from utility recoloring performed by
+   portal themes and OS color-scheme rules. */
+html body .nyankoface-character-format-panel .nyankoface-character-panel-copy {
+  color: #d4d4d8 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] body .nyankoface-character-format-panel .nyankoface-character-panel-copy {
+  color: #e7f0dc !important;
+}
+
+/* Final cascade guard for status badges across explicit and OS-driven themes. */
+html body span.space-status-header.space-status-header--running.inline-flex {
+  border-color: #a7f3d0 !important;
+  background-color: #ecfdf5 !important;
+  color: #065f46 !important;
+}
+
+html body span.space-status-header.space-status-header--building.inline-flex {
+  border-color: #fde68a !important;
+  background-color: #fffbeb !important;
+  color: #92400e !important;
+}
+
+html body span.space-status-header.space-status-header--error.inline-flex {
+  border-color: #fecaca !important;
+  background-color: #fef2f2 !important;
+  color: #991b1b !important;
+}
+
+html body span.space-status-header.space-status-header--stopped.inline-flex {
+  border-color: #d4d4d8 !important;
+  background-color: #f4f4f5 !important;
+  color: #52525b !important;
+}
+
+.prose-nyankoface {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+  line-height: 1.75;
+}
+
+.prose-nyankoface h1,
+.prose-nyankoface h2,
+.prose-nyankoface h3 {
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose-nyankoface h1 {
+  font-size: 1.75rem;
+  border-bottom: 1px solid rgb(228 228 231);
+  padding-bottom: 0.3em;
+}
+
+.prose-nyankoface h2 {
+  font-size: 1.4rem;
+  border-bottom: 1px solid rgb(228 228 231);
+  padding-bottom: 0.3em;
+}
+
+.prose-nyankoface h3 {
+  font-size: 1.15rem;
+}
+
+.prose-nyankoface p {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+}
+
+.prose-nyankoface ul,
+.prose-nyankoface ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.5em;
+}
+
+.prose-nyankoface ul {
+  list-style-type: disc;
+}
+
+.prose-nyankoface ol {
+  list-style-type: decimal;
+}
+
+.prose-nyankoface a {
+  color: #b45309;
+  text-decoration: underline;
+}
+
+.prose-nyankoface code {
+  background-color: rgb(244 244 245);
+  border-radius: 0.25rem;
+  padding: 0.15em 0.4em;
+  font-size: 0.9em;
+}
+
+.prose-nyankoface pre {
+  background-color: rgb(24 24 27);
+  color: rgb(244 244 245);
+  border-radius: 0.75rem;
+  padding: 1em;
+  overflow-x: auto;
+}
+
+.prose-nyankoface pre code {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+@media (max-width: 640px) {
+  .prose-nyankoface {
+    min-width: 0;
+  }
+
+  .prose-nyankoface pre {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .prose-nyankoface pre code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+/* Final contrast layer: keep these rules last so component-level color
+   utilities cannot undo the selected palette. Standard intentionally stores
+   no data attribute, hence the paired :not() selector. */
+html:not([data-nyankoface-theme]) .text-zinc-300,
+html:not([data-nyankoface-theme]) .text-zinc-400,
+html:not([data-nyankoface-theme]) .text-zinc-500,
+html[data-nyankoface-theme="standard"] .text-zinc-300,
+html[data-nyankoface-theme="standard"] .text-zinc-400,
+html[data-nyankoface-theme="standard"] .text-zinc-500 {
+  color: #52525b !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] [class*="dark:bg-zinc-800"],
+html[data-nyankoface-theme="solarpunk"] [class*="dark:bg-zinc-700"] {
+  background-color: #e5eedf !important;
+  color: #315b43 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] [class*="dark:bg-zinc-800"],
+html[data-nyankoface-theme="cyberpunk"] [class*="dark:bg-zinc-700"] {
+  background-color: #11162b !important;
+  color: #9ff4ff !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-nyankoface-theme]) body,
+  html[data-nyankoface-theme="standard"] body {
+    color: #e4e4e7;
+    background-color: #09090b;
+  }
+
+  html:not([data-nyankoface-theme]) header,
+  html:not([data-nyankoface-theme]) .bg-white,
+  html:not([data-nyankoface-theme]) article,
+  html:not([data-nyankoface-theme]) .divide-y,
+  html:not([data-nyankoface-theme]) .nyankoface-repo-header,
+  html:not([data-nyankoface-theme]) .nyankoface-space-runner,
+  html:not([data-nyankoface-theme]) .nyankoface-space-runner-toolbar,
+  html[data-nyankoface-theme="standard"] header,
+  html[data-nyankoface-theme="standard"] .bg-white,
+  html[data-nyankoface-theme="standard"] article,
+  html[data-nyankoface-theme="standard"] .divide-y,
+  html[data-nyankoface-theme="standard"] .nyankoface-repo-header,
+  html[data-nyankoface-theme="standard"] .nyankoface-space-runner,
+  html[data-nyankoface-theme="standard"] .nyankoface-space-runner-toolbar {
+    background-color: #18181b !important;
+  }
+
+  html:not([data-nyankoface-theme]) .bg-zinc-50,
+  html:not([data-nyankoface-theme]) .bg-zinc-100,
+  html[data-nyankoface-theme="standard"] .bg-zinc-50,
+  html[data-nyankoface-theme="standard"] .bg-zinc-100 {
+    background-color: #27272a !important;
+  }
+
+  html:not([data-nyankoface-theme]) .text-zinc-950,
+  html:not([data-nyankoface-theme]) .text-zinc-900,
+  html:not([data-nyankoface-theme]) .text-zinc-800,
+  html:not([data-nyankoface-theme]) .text-zinc-700,
+  html[data-nyankoface-theme="standard"] .text-zinc-950,
+  html[data-nyankoface-theme="standard"] .text-zinc-900,
+  html[data-nyankoface-theme="standard"] .text-zinc-800,
+  html[data-nyankoface-theme="standard"] .text-zinc-700 {
+    color: #fafafa !important;
+  }
+
+  html:not([data-nyankoface-theme]) .text-zinc-600,
+  html:not([data-nyankoface-theme]) .text-zinc-500,
+  html:not([data-nyankoface-theme]) .text-zinc-400,
+  html:not([data-nyankoface-theme]) .text-zinc-300,
+  html[data-nyankoface-theme="standard"] .text-zinc-600,
+  html[data-nyankoface-theme="standard"] .text-zinc-500,
+  html[data-nyankoface-theme="standard"] .text-zinc-400,
+  html[data-nyankoface-theme="standard"] .text-zinc-300 {
+    color: #b4b4bd !important;
+  }
+
+  html:not([data-nyankoface-theme]) .ring-inset,
+  html[data-nyankoface-theme="standard"] .ring-inset {
+    background-color: #27272a !important;
+    color: #d4d4d8 !important;
+  }
+
+  html:not([data-nyankoface-theme]) .bg-rose-50,
+  html[data-nyankoface-theme="standard"] .bg-rose-50 {
+    background-color: #3f1d2b !important;
+  }
+
+  html:not([data-nyankoface-theme]) [class*="text-violet-"],
+  html:not([data-nyankoface-theme]) [class*="text-indigo-"],
+  html[data-nyankoface-theme="standard"] [class*="text-violet-"],
+  html[data-nyankoface-theme="standard"] [class*="text-indigo-"] {
+    color: #c4b5fd !important;
+  }
+
+  html:not([data-nyankoface-theme]) [class*="text-cyan-"],
+  html:not([data-nyankoface-theme]) [class*="text-blue-"],
+  html[data-nyankoface-theme="standard"] [class*="text-cyan-"],
+  html[data-nyankoface-theme="standard"] [class*="text-blue-"] {
+    color: #67e8f9 !important;
+  }
+
+  html:not([data-nyankoface-theme]) [class*="text-orange-"],
+  html:not([data-nyankoface-theme]) [class*="text-amber-"],
+  html[data-nyankoface-theme="standard"] [class*="text-orange-"],
+  html[data-nyankoface-theme="standard"] [class*="text-amber-"] {
+    color: #fcd34d !important;
+  }
+
+  html:not([data-nyankoface-theme]) [class*="text-rose-"],
+  html[data-nyankoface-theme="standard"] [class*="text-rose-"] {
+    color: #fda4af !important;
+  }
+
+  html:not([data-nyankoface-theme]) [class*="text-emerald-"],
+  html[data-nyankoface-theme="standard"] [class*="text-emerald-"] {
+    color: #6ee7b7 !important;
+  }
+}
+
+/* Automation and Pages actions are semantic surfaces. Keep their foreground
+   and background paired when an explicit app theme and the OS color scheme
+   disagree; generic utility remaps must not split the pair. */
+@media (prefers-color-scheme: dark) {
+  html:not([data-nyankoface-theme]) .nyankoface-automation-primary,
+  html[data-nyankoface-theme="standard"] .nyankoface-automation-primary,
+  html:not([data-nyankoface-theme]) .nyankoface-pages-primary,
+  html[data-nyankoface-theme="standard"] .nyankoface-pages-primary {
+    background: #f4f4f5 !important;
+    color: #18181b !important;
+  }
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-header,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-metric,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-source {
+  border-color: #b9cfad !important;
+  background-color: #fffdf3 !important;
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-metrics {
+  border-color: #b9cfad !important;
+  background-color: #b9cfad !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight .text-zinc-950,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight .text-zinc-800,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight .text-zinc-700,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight [class*="dark:text-zinc-"] {
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight .text-zinc-600,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight .text-zinc-500,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight .text-zinc-400 {
+  color: #52715d !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-preflight [class*="text-emerald-"] {
+  color: #126242 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-status[data-state="passed"] {
+  background: #d8f3df !important;
+  color: #126242 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-automation-status[data-state="blocked"] {
+  background: #fde2e2 !important;
+  color: #8a1538 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-primary {
+  background: #1f583c !important;
+  color: #fff !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-guide {
+  color: #24583b !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-header,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-metric,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-source {
+  border-color: rgb(55 204 237 / 48%) !important;
+  background-color: #0d1327 !important;
+  color: #e9f8ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-metrics {
+  border-color: rgb(55 204 237 / 48%) !important;
+  background-color: rgb(55 204 237 / 48%) !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight .text-zinc-950,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight .text-zinc-800,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight .text-zinc-700,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight [class*="dark:text-zinc-"] {
+  color: #e9f8ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight .text-zinc-600,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight .text-zinc-500,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight .text-zinc-400 {
+  color: #8fb9cf !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-preflight [class*="text-emerald-"] {
+  color: #6ee7b7 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-status[data-state="passed"] {
+  background: #0b3d37 !important;
+  color: #9fffd8 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-status[data-state="blocked"] {
+  background: #4a1429 !important;
+  color: #ffb4cc !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-automation-primary {
+  background: #ffd34e !important;
+  color: #08111f !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-primary {
+  background: #67e8f9 !important;
+  color: #08111f !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-guide {
+  color: #67e8f9 !important;
+}
+
+/* Home Pages discovery keeps its editorial hierarchy explicit across the
+   portal themes instead of depending on broad utility remaps. */
+html[data-nyankoface-theme="solarpunk"] .nyankoface-home-pages {
+  border-color: #9fbd73 !important;
+  background: linear-gradient(135deg, rgb(241 247 229 / 96%), rgb(255 252 237 / 96%)) !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-home-pages-kicker,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-home-pages a {
+  color: #235c45;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-home-pages-browse {
+  background: #235c45 !important;
+  color: #fffdf4 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-home-pages-publish {
+  border-color: #9fbd73 !important;
+  background: #fffdf4 !important;
+  color: #235c45 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-home-pages {
+  border-color: #17627c !important;
+  background: linear-gradient(135deg, rgb(7 20 44 / 98%), rgb(18 14 48 / 98%)) !important;
+  box-shadow: 0 20px 60px rgb(0 229 255 / 8%);
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-home-pages-kicker,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-home-pages a {
+  color: #67e8f9;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-home-pages-browse {
+  background: #67e8f9 !important;
+  color: #07142c !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-home-pages-publish {
+  border-color: #17627c !important;
+  background: #0a1833 !important;
+  color: #b9f5ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-home-page-card,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-home-pages-fallback {
+  border-color: #174f69 !important;
+  background: #09162f !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-home-page-icon {
+  background: #0d3551 !important;
+  color: #67e8f9 !important;
+}
+
+.prose-nyankoface blockquote {
+  border-left: 4px solid #ffd21e;
+  padding-left: 1em;
+  color: rgb(113 113 122);
+  margin: 1em 0;
+}
+
+.prose-nyankoface table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+.prose-nyankoface th,
+.prose-nyankoface td {
+  border: 1px solid rgb(228 228 231);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+.prose-nyankoface img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+
+/* GitHub-compatible README surface used by Skill cards. It preserves GitHub's
+   semantic spacing, centered HTML blocks, and overflow behavior while keeping
+   the surrounding NyankoFace repository chrome. */
+.github-markdown-body {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  color: #1f2328;
+  font-family: var(--nyankoface-ui-font);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.github-markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.github-markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
+.github-markdown-body p {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.github-markdown-body p[align="center"],
+.github-markdown-body [align="center"] {
+  text-align: center;
+}
+
+.github-markdown-body h1,
+.github-markdown-body h2,
+.github-markdown-body h3,
+.github-markdown-body h4,
+.github-markdown-body h5,
+.github-markdown-body h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.github-markdown-body h1,
+.github-markdown-body h2 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #d1d9e0;
+}
+
+.github-markdown-body h1 { font-size: 2em; }
+.github-markdown-body h2 { font-size: 1.5em; }
+.github-markdown-body h3 { font-size: 1.25em; }
+
+.github-markdown-body a {
+  color: #0969da;
+  text-decoration: none;
+}
+
+.github-markdown-body a:hover {
+  text-decoration: underline;
+}
+
+.github-markdown-body code {
+  padding: 0.2em 0.4em;
+  border-radius: 6px;
+  background: rgb(175 184 193 / 20%);
+  font-size: 85%;
+}
+
+.github-markdown-body pre {
+  max-width: 100%;
+  margin-top: 0;
+  margin-bottom: 16px;
+  overflow: auto;
+  border-radius: 6px;
+  background: #f6f8fa;
+  color: #1f2328;
+  padding: 16px;
+  font-size: 85%;
+  line-height: 1.45;
+}
+
+.github-markdown-body pre code {
+  display: inline;
+  padding: 0;
+  background: transparent;
+  font-size: 100%;
+  white-space: pre;
+}
+
+.github-markdown-body img {
+  display: inline-block;
+  box-sizing: content-box;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+}
+
+.nyankoface-mermaid {
+  max-width: 100%;
+  margin: 24px 0;
+  overflow: hidden;
+  border: 1px solid #d1d9e0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.nyankoface-mermaid-viewport {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 24px;
+  scrollbar-gutter: stable;
+  overscroll-behavior-inline: contain;
+}
+
+.nyankoface-mermaid-viewport svg {
+  display: block;
+  width: 100%;
+  max-width: 100% !important;
+  height: auto;
+  margin: 0 auto;
+}
+
+.nyankoface-mermaid-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  border-bottom: 1px solid #d1d9e0;
+  padding: 8px 12px;
+  color: #57606a;
+  background: #f6f8fa;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.nyankoface-mermaid-zoom {
+  min-height: 30px;
+  border: 1px solid #d1d9e0;
+  border-radius: 7px;
+  padding: 4px 10px;
+  color: #24292f;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.nyankoface-mermaid-zoom:hover,
+.nyankoface-mermaid-zoom:focus-visible {
+  border-color: #0969da;
+  color: #0969da;
+  outline: none;
+}
+
+.nyankoface-mermaid[data-mermaid-view="actual"] .nyankoface-mermaid-viewport svg {
+  width: auto;
+  max-width: none !important;
+  min-width: 620px;
+}
+
+.nyankoface-mermaid-fallback {
+  margin: 0;
+  color: #1f2328;
+  background: #f6f8fa;
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.nyankoface-mermaid-error {
+  margin: 0;
+  border-top: 1px solid #d1d9e0;
+  padding: 10px 16px;
+  color: #9a3412;
+  background: #fff7ed;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .nyankoface-mermaid {
+    margin: 20px 0;
+    border-radius: 10px;
+  }
+
+  .nyankoface-mermaid-viewport {
+    padding: 16px;
+  }
+
+}
+
+.github-markdown-body table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin-top: 0;
+  margin-bottom: 16px;
+  overflow: auto;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+.github-markdown-body th,
+.github-markdown-body td {
+  border: 1px solid #d1d9e0;
+  padding: 6px 13px;
+}
+
+.github-markdown-body th {
+  font-weight: 600;
+  background: #f6f8fa;
+}
+
+@media (prefers-color-scheme: dark) {
+  .github-markdown-body { color: #f0f6fc; }
+  .github-markdown-body h1,
+  .github-markdown-body h2,
+  .github-markdown-body th,
+  .github-markdown-body td { border-color: #3d444d; }
+  .github-markdown-body code,
+  .github-markdown-body th { background: rgb(110 118 129 / 40%); }
+  .github-markdown-body pre { background: #161b22; color: #f0f6fc; }
+  .github-markdown-body a { color: #58a6ff; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose-nyankoface blockquote {
+    color: rgb(161 161 170);
+  }
+
+  .prose-nyankoface h1,
+  .prose-nyankoface h2 {
+    border-color: rgb(63 63 70);
+  }
+  .prose-nyankoface code {
+    background-color: rgb(39 39 42);
+  }
+  .prose-nyankoface a {
+    color: #58a6ff;
+  }
+  .prose-nyankoface th,
+  .prose-nyankoface td {
+    border-color: rgb(63 63 70);
+  }
+}
+
+.nyankoface-character-format-panel {
+  color: #fff !important;
+}
+
+@keyframes nyankoface-purupuru-frame-crossfade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.nyankoface-purupuru-frame {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: opacity;
+}
+
+.nyankoface-purupuru-frame-current {
+  opacity: 1;
+}
+
+.nyankoface-purupuru-frame-incoming {
+  animation: nyankoface-purupuru-frame-crossfade-in 180ms cubic-bezier(.22, .75, .32, 1) both;
+}
+
+.nyankoface-purupuru-frame-previous {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nyankoface-purupuru-frame-incoming {
+    animation: none;
+    opacity: 1;
+  }
+
+  .nyankoface-purupuru-frame-previous {
+    display: none;
+  }
+}
+
+.nyankoface-character-selection-active {
+  color: #082f49 !important;
+}
+
+.nyankoface-character-format-panel .nyankoface-character-panel-copy {
+  color: #d4d4d8 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-character-format-panel {
+  background-color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-character-format-panel .nyankoface-character-panel-copy {
+  color: #e7f0dc !important;
+}
+
+/* Explicit portal themes must remain legible regardless of the device's OS
+   color preference. The previous README colors relied on prefers-color-scheme,
+   so Cyberpunk on a light-mode iPhone rendered dark GitHub text on a dark
+   panel, while Solarpunk on a dark-mode device did the inverse. */
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface {
+  color: #173b2c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body h1,
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body h2,
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body h3,
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body h4,
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body h5,
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body h6,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface h1,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface h2,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface h3 {
+  color: #123523;
+  border-color: #94b889;
+}
+
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body a,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface a {
+  color: #1e633d;
+}
+
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body blockquote,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface blockquote {
+  color: #365f47;
+  border-color: #62a370;
+}
+
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body code,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface code,
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body th {
+  color: #173b2c;
+  background: #dfead8;
+}
+
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body pre,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface pre {
+  color: #f7ffe9;
+  background: #173b2c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .github-markdown-body pre code,
+html[data-nyankoface-theme="solarpunk"] .prose-nyankoface pre code {
+  color: inherit;
+  background: transparent;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mermaid {
+  border-color: #94b889;
+  background: #f8fbf1;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mermaid-controls {
+  border-color: #94b889;
+  color: #315c44;
+  background: #eef6e5;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mermaid-zoom {
+  border-color: #94b889;
+  color: #173b2c;
+  background: #f8fbf1;
+}
+
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-panel {
+  color: #173b2c;
+  border-color: #94b889 !important;
+  background: #f8fbf1 !important;
+}
+
+/* Theme-wide text overrides must not break the compact navigation control's
+   selected-state contrast. */
+.nyankoface-global-explore > summary > span {
+  color: inherit !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-nyankoface-theme]) .nyankoface-global-explore > summary > span,
+  html[data-nyankoface-theme="standard"] .nyankoface-global-explore > summary > span,
+  html[data-nyankoface-theme="cyberpunk"] .nyankoface-global-explore > summary > span {
+    color: #fafafa !important;
+  }
+
+  html[data-nyankoface-theme="solarpunk"] .nyankoface-global-explore > summary > span {
+    color: #173b2c !important;
+  }
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-global-explore > summary.bg-zinc-900 > span {
+  color: #f7ffe9 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-header {
+  border-color: #b9cfad !important;
+  background: #edf3e7;
+}
+
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-card,
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-empty {
+  border-color: #b9cfad !important;
+  background: #fff !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-name {
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-reason,
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-evidence {
+  color: #466652 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-section-title,
+html[data-nyankoface-theme="solarpunk"] .skill-relationship-metadata {
+  color: #553382 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface {
+  color: #c9e2ee;
+  background-color: #0a0d1d !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body h1,
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body h2,
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body h3,
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body h4,
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body h5,
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body h6,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface h1,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface h2,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface h3 {
+  color: #f2fbff;
+  border-color: #31536b;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body a,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface a {
+  color: #69e9ff;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body code,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface code,
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body th {
+  color: #dff7ff;
+  background: #1b2945;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body pre,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface pre {
+  color: #e9f8ff;
+  background: #050814;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body pre code,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface pre code {
+  color: inherit;
+  background: transparent;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mermaid {
+  border-color: #31536b;
+  background: #050814;
+  box-shadow: 0 0 0 1px rgb(105 233 255 / 7%), 0 12px 36px rgb(0 0 0 / 28%);
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mermaid-controls {
+  border-color: #31536b;
+  color: #a9c8d8;
+  background: #0b1328;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mermaid-zoom {
+  border-color: #31536b;
+  color: #69e9ff;
+  background: #101a35;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mermaid-error {
+  border-color: #713652;
+  color: #ffd7ea;
+  background: #241221;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mermaid-fallback {
+  color: #dff7ff;
+  background: #050814;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body blockquote,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface blockquote {
+  color: #a9c8d8;
+  border-color: #ff5caf;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body th,
+html[data-nyankoface-theme="cyberpunk"] .github-markdown-body td,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface th,
+html[data-nyankoface-theme="cyberpunk"] .prose-nyankoface td {
+  border-color: #31536b;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-panel {
+  color: #e9f8ff;
+  border-color: #3b5b8f !important;
+  background: #0d1327 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-header {
+  border-color: #29476a !important;
+  background: #111a33;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-card,
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-empty {
+  border-color: #31536b !important;
+  background: #111a33 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-name {
+  color: #f2fbff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-reason {
+  color: #b9d4e2 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-evidence {
+  color: #9fbed0 !important;
+  border-color: #7045a6 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-section-title {
+  color: #d8c1ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-metadata {
+  color: #e1d4ff !important;
+  border-color: #7652a8 !important;
+  background: #080b19 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .skill-relationship-badge {
+  color: #eadfff !important;
+  background: #37205f !important;
+}
+
+/* Pipeline logs are intentionally dark in every theme. Keep their compact
+   step labels independent from broad theme utility-color remapping. */
+html .nyankoface-pipeline-step-chip {
+  color: #fff !important;
+  background-color: #27272a !important;
+}
+
+/* WCAG AA guardrails. Theme selection is independent from the operating
+   system preference, so utility colors must remain legible in every pairing. */
+html[data-nyankoface-theme="standard"] .text-zinc-300,
+html[data-nyankoface-theme="standard"] .text-zinc-400 {
+  color: #52525b !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .text-zinc-300,
+html[data-nyankoface-theme="solarpunk"] [class~="dark:text-zinc-300"] {
+  color: #52715d !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .text-violet-700,
+html[data-nyankoface-theme="cyberpunk"] .text-violet-800,
+html[data-nyankoface-theme="cyberpunk"] .text-orange-800 {
+  color: #73edff !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-nyankoface-theme="standard"] body {
+    color: #e4e4e7;
+    background-color: #09090b;
+  }
+
+  html[data-nyankoface-theme="standard"] header,
+  html[data-nyankoface-theme="standard"] .bg-white,
+  html[data-nyankoface-theme="standard"] article,
+  html[data-nyankoface-theme="standard"] .divide-y,
+  html[data-nyankoface-theme="standard"] .nyankoface-repo-header,
+  html[data-nyankoface-theme="standard"] .nyankoface-space-runner,
+  html[data-nyankoface-theme="standard"] .nyankoface-space-runner-toolbar {
+    background-color: #18181b !important;
+  }
+
+  html[data-nyankoface-theme="standard"] .bg-zinc-50,
+  html[data-nyankoface-theme="standard"] .bg-zinc-100 {
+    background-color: #27272a !important;
+  }
+
+  html[data-nyankoface-theme="standard"] .text-zinc-950,
+  html[data-nyankoface-theme="standard"] .text-zinc-900,
+  html[data-nyankoface-theme="standard"] .text-zinc-800,
+  html[data-nyankoface-theme="standard"] .text-zinc-700 {
+    color: #fafafa !important;
+  }
+
+  html[data-nyankoface-theme="standard"] .text-zinc-600,
+  html[data-nyankoface-theme="standard"] .text-zinc-500,
+  html[data-nyankoface-theme="standard"] .text-zinc-400,
+  html[data-nyankoface-theme="standard"] .text-zinc-300 {
+    color: #b4b4bd !important;
+  }
+
+  html[data-nyankoface-theme="standard"] .border-zinc-100,
+  html[data-nyankoface-theme="standard"] .border-zinc-200,
+  html[data-nyankoface-theme="standard"] .border-zinc-300 {
+    border-color: #52525b !important;
+  }
+
+  html[data-nyankoface-theme="standard"] input:not([type="checkbox"]):not([type="radio"]),
+  html[data-nyankoface-theme="standard"] textarea,
+  html[data-nyankoface-theme="standard"] select {
+    border-color: #52525b !important;
+    background-color: #18181b !important;
+    color: #fafafa !important;
+  }
+}
+
+body:has(.nyankoface-space-app-page) {
+  background: #fff;
+}
+
+body:has(.nyankoface-space-app-page) > header,
+body:has(.nyankoface-space-app-page) > nav,
+body:has(.nyankoface-space-app-page) > footer {
+  display: none;
+}
+
+body:has(.nyankoface-space-app-page) > main {
+  max-width: none;
+  padding-inline: 0;
+}
+
+/* Canonical NyankoFace shell. All portal routes use this 64px header and the
+   same menu source; full-screen Space apps are the only intentional opt-out. */
+.nyankoface-global-header {
+  isolation: isolate;
+  /* A backdrop-filter turns fixed descendants into header-local containing
+     blocks in WebKit/Chromium. Keep the mobile dialog viewport-bound. */
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.nyankoface-global-navbar {
+  min-width: 0;
+}
+
+.nyankoface-desktop-nav-link {
+  position: relative;
+  display: inline-flex;
+  height: 40px;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 4px;
+  color: #52525b;
+  white-space: nowrap;
+  transition: color 150ms ease;
+}
+
+.nyankoface-desktop-nav-link:hover,
+.nyankoface-desktop-nav-link:focus-visible {
+  color: #09090b;
+}
+
+.nyankoface-desktop-nav-link:focus-visible,
+.nyankoface-explore-trigger:focus-visible,
+.nyankoface-account-trigger:focus-visible,
+.nyankoface-mobile-menu-toggle:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: 3px;
+}
+
+.nyankoface-desktop-nav-link[aria-current="page"] {
+  color: #09090b;
+  font-weight: 750;
+}
+
+.nyankoface-desktop-nav-link[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 2px -13px;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: #0d9488;
+}
+
+.nyankoface-explore-trigger,
+.nyankoface-account-trigger {
+  display: inline-flex;
+  min-height: 38px;
+  cursor: pointer;
+  list-style: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #e4e4e7;
+  border-radius: 999px;
+  background: #fafafa;
+  padding: 0 13px;
+  color: #3f3f46;
+  font-size: 13px;
+  font-weight: 700;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.nyankoface-explore-trigger::-webkit-details-marker,
+.nyankoface-account-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.nyankoface-global-explore[open] > .nyankoface-explore-trigger,
+.nyankoface-explore-trigger:hover,
+.nyankoface-account-trigger:hover {
+  border-color: #a1a1aa;
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+.nyankoface-explore-menu {
+  position: absolute;
+  right: 0;
+  z-index: 50;
+  display: none;
+  width: 640px;
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+  background: #fff;
+  padding: 20px;
+  color: #27272a;
+  box-shadow: 0 20px 50px rgb(15 23 42 / 16%);
+}
+
+.nyankoface-global-explore[open] > .nyankoface-explore-menu {
+  display: grid;
+}
+
+.nyankoface-explore-menu h2,
+.nyankoface-mobile-section > h2 {
+  margin: 0 0 9px;
+  color: #71717a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.nyankoface-explore-card {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid #e4e4e7;
+  border-radius: 11px;
+  background: #fafafa;
+  padding: 10px;
+  color: #27272a;
+  font-weight: 700;
+  transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+.nyankoface-explore-card:hover,
+.nyankoface-explore-card:focus-visible,
+.nyankoface-explore-card[aria-current="page"] {
+  border-color: #5eead4;
+  background: #f0fdfa;
+}
+
+.nyankoface-explore-card:focus-visible,
+.nyankoface-explore-row:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: 2px;
+}
+
+.nyankoface-nav-icon {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #f4f4f5;
+  color: #0f766e;
+}
+
+.nyankoface-explore-row {
+  display: block;
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: #3f3f46;
+  font-weight: 600;
+}
+
+.nyankoface-explore-row:hover,
+.nyankoface-explore-row[aria-current="page"] {
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+.nyankoface-account-trigger {
+  padding: 4px 12px 4px 4px;
+  background: #fff;
+}
+
+.nyankoface-account-fallback {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  background: #ccfbf1;
+  color: #115e59;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.nyankoface-account-menu {
+  position: absolute;
+  right: 0;
+  z-index: 50;
+  display: none;
+  width: 240px;
+  gap: 2px;
+  margin-top: 8px;
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+  color: #27272a;
+  font-size: 14px;
+  box-shadow: 0 18px 42px rgb(15 23 42 / 16%);
+}
+
+details[open] > .nyankoface-account-menu {
+  display: grid;
+}
+
+.nyankoface-account-menu p {
+  margin: 0 0 4px;
+  border-bottom: 1px solid #f4f4f5;
+  padding: 8px 10px 10px;
+  color: #71717a;
+  font-size: 12px;
+}
+
+.nyankoface-account-menu a,
+.nyankoface-account-menu button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 8px;
+  padding: 9px 10px;
+  text-align: left;
+  font-weight: 650;
+}
+
+.nyankoface-account-menu a:hover,
+.nyankoface-account-menu button:hover,
+.nyankoface-account-menu a:focus-visible,
+.nyankoface-account-menu button:focus-visible {
+  background: #f4f4f5;
+  outline: none;
+}
+
+.nyankoface-login-action,
+.nyankoface-signup-action {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding-inline: 14px;
+  font-weight: 700;
+}
+
+.nyankoface-login-action {
+  color: #27272a;
+}
+
+.nyankoface-login-action:hover {
+  background: #f4f4f5;
+}
+
+.nyankoface-signup-action {
+  background: #18181b;
+  color: #fff;
+}
+
+.nyankoface-mobile-menu-toggle {
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
+  color: #3f3f46;
+}
+
+.nyankoface-mobile-menu-toggle[aria-expanded="true"] {
+  border-color: #18181b;
+  background: #18181b;
+  color: #fff;
+}
+
+.nyankoface-mobile-layer {
+  position: fixed;
+  inset: 64px 0 0;
+  z-index: 45;
+}
+
+.nyankoface-mobile-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: rgb(9 9 11 / 48%);
+  backdrop-filter: blur(2px);
+}
+
+.nyankoface-mobile-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(92vw, 390px);
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-left: 1px solid #e4e4e7;
+  background: #fff;
+  padding: 18px;
+  color: #27272a;
+  box-shadow: -20px 0 50px rgb(15 23 42 / 18%);
+}
+
+.nyankoface-mobile-section {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 18px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .nyankoface-desktop-nav-link,
+  .nyankoface-login-action { color: #d4d4d8; }
+  .nyankoface-desktop-nav-link:hover,
+  .nyankoface-desktop-nav-link:focus-visible,
+  .nyankoface-desktop-nav-link[aria-current="page"] { color: #fff; }
+  .nyankoface-explore-trigger,
+  .nyankoface-account-trigger { border-color: #3f3f46; background: #18181b; color: #e4e4e7; }
+  .nyankoface-global-explore[open] > .nyankoface-explore-trigger,
+  .nyankoface-explore-trigger:hover,
+  .nyankoface-account-trigger:hover { border-color: #71717a; background: #27272a; color: #fff; }
+  .nyankoface-explore-menu,
+  .nyankoface-account-menu,
+  .nyankoface-mobile-panel { border-color: #3f3f46; background: #18181b; color: #f4f4f5; }
+  .nyankoface-explore-card { border-color: #3f3f46; background: #27272a; color: #f4f4f5; }
+  .nyankoface-explore-card:hover,
+  .nyankoface-explore-card:focus-visible,
+  .nyankoface-explore-card[aria-current="page"] { border-color: #0f766e; background: #134e4a; }
+  .nyankoface-nav-icon { background: #27272a; color: #5eead4; }
+  .nyankoface-explore-row { color: #d4d4d8; }
+  .nyankoface-explore-row:hover,
+  .nyankoface-explore-row[aria-current="page"],
+  .nyankoface-account-menu a:hover,
+  .nyankoface-account-menu button:hover,
+  .nyankoface-account-menu a:focus-visible,
+  .nyankoface-account-menu button:focus-visible { background: #27272a; color: #fff; }
+  .nyankoface-account-menu p { border-color: #27272a; }
+  .nyankoface-mobile-menu-toggle { border-color: #3f3f46; color: #e4e4e7; }
+}
+
+/* The explicit cyberpunk control must not depend on the operating-system
+   preference. Keep every navigation surface on the selected palette. */
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-desktop-nav-link,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-login-action {
+  color: #cbd5e1;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-desktop-nav-link:hover,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-desktop-nav-link:focus-visible,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-desktop-nav-link[aria-current="page"] {
+  color: #f8fafc;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-trigger,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-account-trigger,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-menu,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-account-menu,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mobile-panel {
+  border-color: #164e63;
+  background: #070b1b;
+  color: #f8fafc;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-card {
+  border-color: #164e63;
+  background: #10172d;
+  color: #e0f2fe;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-card:hover,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-card:focus-visible,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-card[aria-current="page"],
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-row:hover,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-row[aria-current="page"],
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-account-menu a:hover,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-account-menu button:hover,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-account-menu a:focus-visible,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-account-menu button:focus-visible {
+  background: #16213e;
+  color: #67e8f9;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-nav-icon {
+  background: #10172d;
+  color: #22d3ee;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-explore-row {
+  color: #cbd5e1;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mobile-section > h2,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-account-menu p {
+  border-color: #164e63;
+  color: #94a3b8;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-mobile-menu-toggle {
+  border-color: #164e63;
+  color: #e0f2fe;
+}
+
+/* Solarpunk remains a light botanical palette even when the operating system
+   prefers dark mode. Explicit theme selectors outrank the generic media-query
+   shell colors above. */
+html[data-nyankoface-theme="solarpunk"] .nyankoface-desktop-nav-link,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-login-action,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-row {
+  color: #315b43;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-desktop-nav-link:hover,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-desktop-nav-link:focus-visible,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-desktop-nav-link[aria-current="page"] {
+  color: #173b2c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-trigger,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-trigger {
+  border-color: #94b889;
+  background: #e7f0dc;
+  color: #1f583c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-global-explore[open] > .nyankoface-explore-trigger,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-trigger:hover,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-trigger:hover {
+  border-color: #527f55;
+  background: #d8e8cd;
+  color: #173b2c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-menu,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-menu,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mobile-panel {
+  border-color: #94b889;
+  background: #fbfcf5;
+  color: #173b2c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-card {
+  border-color: #b9cfad;
+  background: #edf3e7;
+  color: #173b2c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-card:hover,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-card:focus-visible,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-card[aria-current="page"],
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-row:hover,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-row[aria-current="page"],
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-menu a:hover,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-menu button:hover,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-menu a:focus-visible,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-menu button:focus-visible {
+  background: #d8e8cd;
+  color: #173b2c;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-nav-icon {
+  background: #dcebd5;
+  color: #24583b;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mobile-section > h2,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-menu p {
+  border-color: #b9cfad;
+  color: #52715d;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mobile-menu-toggle {
+  border-color: #94b889;
+  background: #f5f8ef;
+  color: #24583b;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mobile-menu-toggle[aria-expanded="true"] {
+  border-color: #2f6b47;
+  background: #24583b;
+  color: #f7ffe9;
+  box-shadow: 0 0 0 3px rgb(79 124 80 / 18%);
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-desktop-nav-link:focus-visible,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-explore-trigger:focus-visible,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-account-trigger:focus-visible,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-mobile-menu-toggle:focus-visible {
+  outline-color: #2f6b47;
+}
+
+body:has(.nyankoface-spaces-directory) > main {
+  max-width: 1600px;
+}
+
+/* Keep repository identity and status crisp above tabs and embedded content. */
+.nyankoface-repo-header {
+  position: relative;
+  z-index: 20;
+  isolation: isolate;
+  min-width: 0;
+  background: #fff;
+  filter: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.nyankoface-repo-header > * {
+  min-width: 0;
+  filter: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .nyankoface-repo-header {
+    background: #09090b;
+  }
+}
+
+/* Space detail chrome keeps the repository identity, runtime controls, and
+   tabs in separate shrinkable regions. Long Forgejo names must truncate at
+   the segment level instead of forcing flex items into vertical word breaks. */
+.nyankoface-space-header-main {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 0%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .5rem 1rem;
+  padding-block: .75rem;
+}
+
+.nyankoface-space-header-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: .5rem;
+}
+
+.nyankoface-space-header-title {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: .25rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.nyankoface-space-header-owner {
+  min-width: 0;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nyankoface-space-header-repo {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nyankoface-space-header-metrics,
+.nyankoface-space-header-controls {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  white-space: nowrap;
+}
+
+.nyankoface-space-header-metrics {
+  flex: 0 1 auto;
+  justify-content: flex-end;
+}
+
+.nyankoface-space-header-metrics > a:first-child {
+  margin-left: 0;
+}
+
+.nyankoface-space-header-controls {
+  justify-content: flex-end;
+}
+
+@media (max-width: 1023px) {
+  .nyankoface-space-detail-header > .nyankoface-space-header-main,
+  .nyankoface-space-detail-header > div:last-child {
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  .nyankoface-space-detail-header > div:last-child {
+    padding-bottom: .5rem;
+  }
+
+  .nyankoface-space-detail-header .nyankoface-space-header-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nyankoface-space-header-controls {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .nyankoface-space-header-main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .5rem;
+  }
+
+  .nyankoface-space-header-identity {
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .nyankoface-space-header-metrics {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .nyankoface-space-header-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+.nyankoface-space-app-page {
+  min-height: 100vh;
+  background: #fff;
+}
+
+.nyankoface-space-app-header {
+  min-height: 50px;
+  height: auto;
+  padding: 0 16px;
+  background: #fff;
+  border-bottom-color: #e5e7eb;
+}
+
+.nyankoface-space-app-header > div:first-child {
+  min-height: 50px;
+  height: auto;
+  padding: 0;
+}
+
+.nyankoface-space-app-header h1 {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.nyankoface-space-app-header [href*="/git/"][title*="like"] {
+  height: 24px;
+  border-radius: 6px;
+}
+
+.nyankoface-space-app-header [href*="/git/"] + a {
+  height: 24px;
+  border-radius: 6px;
+}
+
+.nyankoface-space-app-header span:has(> span.rounded-full),
+.nyankoface-space-app-header .bg-emerald-50 {
+  height: 24px;
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.nyankoface-space-app-header > div:last-child {
+  height: 50px;
+}
+
+.nyankoface-space-app-header a[href$="?tab=card"],
+.nyankoface-space-app-header a[href*="/src/branch/main"],
+.nyankoface-space-app-header a[href*="/issues"] {
+  min-height: 50px;
+  height: 50px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.nyankoface-space-app-runner,
+.nyankoface-space-runner {
+  height: calc(100vh - 50px);
+}
+
+.nyankoface-space-runner {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.nyankoface-space-runner-toolbar {
+  display: none;
+}
+
+.nyankoface-space-frame,
+.nyankoface-space-stage,
+.nyankoface-space-frame-stage {
+  height: calc(100vh - 50px);
+  min-height: calc(100vh - 50px);
+}
+
+/* Mobile Space apps can wrap long identities, status, controls, and tabs
+   into more than the original two header rows. Size the runner from the
+   viewport that remains after the actual header height. */
+@media (max-width: 640px) {
+  .nyankoface-space-app-header {
+    height: auto;
+    min-height: 116px;
+    align-content: flex-start;
+    padding: 10px 16px 0;
+  }
+
+  .nyankoface-space-app-header > div:first-child {
+    height: auto;
+    min-height: 48px;
+  }
+
+  .nyankoface-space-app-header > div:last-child {
+    display: flex;
+    width: 100%;
+    height: 50px;
+  }
+
+  .nyankoface-space-app-header a[href$="?tab=card"],
+  .nyankoface-space-app-header a[href*="/src/branch/main"],
+  .nyankoface-space-app-header a[href*="/issues"] {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  .nyankoface-space-app-page {
+    display: flex;
+    height: 100vh;
+    min-height: 100vh;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .nyankoface-space-app-header {
+    flex: 0 0 auto;
+    height: auto;
+  }
+
+  .nyankoface-space-app-runner {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: auto;
+    overflow: hidden;
+  }
+
+  .nyankoface-space-runner {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .nyankoface-space-frame,
+  .nyankoface-space-stage,
+  .nyankoface-space-frame-stage {
+    min-height: 0;
+    flex: 1 1 auto;
+    height: auto;
+  }
+
+  .nyankoface-space-frame {
+    height: 100%;
+  }
+}
+
+/* Tablet Space apps may wrap the long identity, runtime controls, and tabs
+   into more than one header row. Let the runner consume the viewport that is
+   actually left after that header instead of subtracting a fixed 50px. */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .nyankoface-space-app-page {
+    display: flex;
+    height: 100vh;
+    min-height: 100vh;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .nyankoface-space-app-header {
+    flex: 0 0 auto;
+    height: auto;
+  }
+
+  /* Keep the Space identity readable before placing runtime controls and
+     tabs on their own rows at tablet widths. */
+  .nyankoface-space-app-header > .nyankoface-space-header-main {
+    width: 100%;
+    flex-basis: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nyankoface-space-app-header > div:last-child {
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  .nyankoface-space-app-runner {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: auto;
+    overflow: hidden;
+  }
+
+  .nyankoface-space-runner {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .nyankoface-space-frame,
+  .nyankoface-space-stage,
+  .nyankoface-space-frame-stage {
+    min-height: 0;
+    flex: 1 1 auto;
+    height: auto;
+  }
+
+  .nyankoface-space-frame {
+    height: 100%;
+  }
+}
+
+/* Cascade terminus for contrast-sensitive compact controls. */
+html:not([data-nyankoface-theme]) .bg-zinc-900 .text-zinc-500,
+html[data-nyankoface-theme="standard"] .bg-zinc-900 .text-zinc-500 {
+  color: #a1a1aa !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .bg-zinc-900 .text-zinc-500 {
+  color: #e6f4dc !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .bg-orange-50,
+html[data-nyankoface-theme="cyberpunk"] .bg-orange-100,
+html[data-nyankoface-theme="cyberpunk"] .bg-violet-100 {
+  background-color: #1b2945 !important;
+  color: #9ff4ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] summary {
+  background-color: #0d1327;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-nyankoface-theme]) .bg-orange-50,
+  html:not([data-nyankoface-theme]) .bg-orange-100,
+  html:not([data-nyankoface-theme]) .bg-violet-100,
+  html[data-nyankoface-theme="standard"] .bg-orange-50,
+  html[data-nyankoface-theme="standard"] .bg-orange-100,
+  html[data-nyankoface-theme="standard"] .bg-violet-100 {
+    background-color: #3f2d18 !important;
+    color: #fde68a !important;
+  }
+
+  html:not([data-nyankoface-theme]) summary,
+  html[data-nyankoface-theme="standard"] summary {
+    background-color: #18181b;
+  }
+
+  html[data-nyankoface-theme="solarpunk"] .bg-orange-50,
+  html[data-nyankoface-theme="solarpunk"] .bg-orange-100,
+  html[data-nyankoface-theme="solarpunk"] .bg-violet-100,
+  html[data-nyankoface-theme="solarpunk"] [class*="dark:text-orange-"],
+  html[data-nyankoface-theme="solarpunk"] [class*="dark:text-violet-"] {
+    background-color: #e5eedf !important;
+    color: #315b43 !important;
+  }
+}
+
+/* issue-70-theme-contrast: Pages and Pipeline are explicit-theme surfaces.
+   Pair foregrounds and backgrounds semantically so an OS-level dark media
+   query cannot split utility colors across Solarpunk or Cyberpunk. */
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-kicker,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-step-heading,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-guide-card,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pipeline-kicker {
+  color: #24583b !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-method[data-selected="true"] {
+  border-color: #94b889 !important;
+  background: #edf3e7 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-method[data-selected="true"]
+  .nyankoface-pages-method-title {
+  color: #173b2c !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-method[data-selected="true"]
+  .nyankoface-pages-method-description {
+  color: #52715d !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-diff-add {
+  color: #6ee7b7 !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-reason {
+  color: #92400e !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-guide-card,
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pages-secondary {
+  border-color: #94b889 !important;
+  background: #fbfcf5 !important;
+  color: #24583b !important;
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-pipeline-primary {
+  background: #1f583c !important;
+  color: #fff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-kicker,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-step-heading,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-guide-card,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pipeline-kicker {
+  color: #67e8f9 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-method[data-selected="true"] {
+  border-color: #37cced !important;
+  background: #11162b !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-method[data-selected="true"]
+  .nyankoface-pages-method-title {
+  color: #e9f8ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-method[data-selected="true"]
+  .nyankoface-pages-method-description {
+  color: #8fb9cf !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-diff-add {
+  color: #6ee7b7 !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-reason {
+  color: #fcd34d !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-guide-card,
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pages-secondary {
+  border-color: #37cced !important;
+  background: #11162b !important;
+  color: #9ff4ff !important;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-pipeline-primary {
+  background: #67e8f9 !important;
+  color: #08111f !important;
+}
+
+/* Shared Markdown code surface. Highlighting is generated on the server from
+   a deliberately small language registry; themes only exchange CSS tokens so
+   switching the portal theme never re-renders or flashes the source. */
+.nyankoface-code-block {
+  --of-code-bg: #f6f8fa;
+  --of-code-header: #eef1f4;
+  --of-code-border: #d0d7de;
+  --of-code-text: #1f2328;
+  --of-code-muted: #57606a;
+  --of-code-accent: #0969da;
+  --of-code-keyword: #cf222e;
+  --of-code-built-in: #953800;
+  --of-code-title: #8250df;
+  --of-code-string: #0a3069;
+  --of-code-number: #0550ae;
+  --of-code-comment: #57606a;
+  --of-code-add: #116329;
+  --of-code-add-bg: #dafbe1;
+  --of-code-delete: #82071e;
+  --of-code-delete-bg: #ffebe9;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 1.25rem 0;
+  overflow: hidden;
+  border: 1px solid var(--of-code-border);
+  border-radius: 10px;
+  color: var(--of-code-text);
+  background: var(--of-code-bg);
+  box-shadow: 0 1px 2px rgb(31 35 40 / 5%);
+}
+
+.nyankoface-code-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+  border-bottom: 1px solid var(--of-code-border);
+  padding: 0.375rem 0.5rem 0.375rem 0.875rem;
+  color: var(--of-code-muted);
+  background: var(--of-code-header);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+}
+
+.nyankoface-code-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--of-code-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nyankoface-code-language {
+  flex: none;
+  border: 1px solid var(--of-code-border);
+  border-radius: 999px;
+  padding: 0.125rem 0.45rem;
+  color: var(--of-code-muted);
+  background: var(--of-code-bg);
+  font-size: 0.675rem;
+  text-transform: lowercase;
+}
+
+.nyankoface-code-copy {
+  flex: none;
+  min-width: 3.5rem;
+  min-height: 2rem;
+  margin-left: auto;
+  border: 1px solid var(--of-code-border);
+  border-radius: 7px;
+  padding: 0.25rem 0.625rem;
+  color: var(--of-code-text);
+  background: var(--of-code-bg);
+  font: inherit;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.nyankoface-code-copy:hover {
+  border-color: var(--of-code-accent);
+  color: var(--of-code-accent);
+}
+
+.nyankoface-code-copy:focus-visible,
+.nyankoface-code-block pre:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--of-code-accent) 40%, transparent);
+  outline-offset: -3px;
+}
+
+.nyankoface-code-copy:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.nyankoface-code-copy[data-copy-state="success"] {
+  border-color: var(--of-code-add);
+  color: var(--of-code-add);
+  background: var(--of-code-add-bg);
+}
+
+.nyankoface-code-copy[data-copy-state="error"] {
+  border-color: var(--of-code-delete);
+  color: var(--of-code-delete);
+  background: var(--of-code-delete-bg);
+}
+
+.github-markdown-body .nyankoface-code-block pre,
+.prose-nyankoface .nyankoface-code-block pre {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  padding: 1rem 1.125rem;
+  color: var(--of-code-text) !important;
+  background: var(--of-code-bg) !important;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  scrollbar-color: var(--of-code-muted) var(--of-code-bg);
+  scrollbar-width: thin;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.github-markdown-body .nyankoface-code-block pre code,
+.prose-nyankoface .nyankoface-code-block pre code {
+  display: inline;
+  padding: 0;
+  color: var(--of-code-text) !important;
+  background: transparent !important;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: inherit;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.nyankoface-code-copy-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.nyankoface-code-block .hljs-comment,
+.nyankoface-code-block .hljs-quote { color: var(--of-code-comment) !important; font-style: italic; }
+.nyankoface-code-block .hljs-keyword,
+.nyankoface-code-block .hljs-selector-tag,
+.nyankoface-code-block .hljs-literal,
+.nyankoface-code-block .hljs-doctag { color: var(--of-code-keyword) !important; }
+.nyankoface-code-block .hljs-title,
+.nyankoface-code-block .hljs-title.function_,
+.nyankoface-code-block .hljs-title.class_,
+.nyankoface-code-block .hljs-section { color: var(--of-code-title) !important; font-weight: 650; }
+.nyankoface-code-block .hljs-string,
+.nyankoface-code-block .hljs-regexp,
+.nyankoface-code-block .hljs-template-tag,
+.nyankoface-code-block .hljs-template-variable { color: var(--of-code-string) !important; }
+.nyankoface-code-block .hljs-number,
+.nyankoface-code-block .hljs-symbol,
+.nyankoface-code-block .hljs-bullet { color: var(--of-code-number) !important; }
+.nyankoface-code-block .hljs-built_in,
+.nyankoface-code-block .hljs-type,
+.nyankoface-code-block .hljs-attr,
+.nyankoface-code-block .hljs-attribute,
+.nyankoface-code-block .hljs-selector-attr,
+.nyankoface-code-block .hljs-selector-class,
+.nyankoface-code-block .hljs-selector-id { color: var(--of-code-built-in) !important; }
+.nyankoface-code-block .hljs-variable,
+.nyankoface-code-block .hljs-params,
+.nyankoface-code-block .hljs-property,
+.nyankoface-code-block .hljs-meta { color: var(--of-code-text) !important; }
+.nyankoface-code-block .hljs-addition { color: var(--of-code-add) !important; background: var(--of-code-add-bg) !important; }
+.nyankoface-code-block .hljs-deletion { color: var(--of-code-delete) !important; background: var(--of-code-delete-bg) !important; }
+.nyankoface-code-block .hljs-emphasis { font-style: italic; }
+.nyankoface-code-block .hljs-strong { font-weight: 700; }
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-nyankoface-theme]) .nyankoface-code-block,
+  html[data-nyankoface-theme="standard"] .nyankoface-code-block {
+    --of-code-bg: #0d1117;
+    --of-code-header: #161b22;
+    --of-code-border: #30363d;
+    --of-code-text: #e6edf3;
+    --of-code-muted: #8b949e;
+    --of-code-accent: #58a6ff;
+    --of-code-keyword: #ff7b72;
+    --of-code-built-in: #ffa657;
+    --of-code-title: #d2a8ff;
+    --of-code-string: #a5d6ff;
+    --of-code-number: #79c0ff;
+    --of-code-comment: #8b949e;
+    --of-code-add: #aff5b4;
+    --of-code-add-bg: #033a16;
+    --of-code-delete: #ffdcd7;
+    --of-code-delete-bg: #67060c;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+  }
+}
+
+html[data-nyankoface-theme="solarpunk"] .nyankoface-code-block {
+  --of-code-bg: #f8fbf1;
+  --of-code-header: #edf3e7;
+  --of-code-border: #94b889;
+  --of-code-text: #173b2c;
+  --of-code-muted: #466652;
+  --of-code-accent: #1e633d;
+  --of-code-keyword: #8f2535;
+  --of-code-built-in: #7a3e00;
+  --of-code-title: #6741a5;
+  --of-code-string: #15542f;
+  --of-code-number: #005b73;
+  --of-code-comment: #52715d;
+  --of-code-add: #155e35;
+  --of-code-add-bg: #dcefdc;
+  --of-code-delete: #8c1d2c;
+  --of-code-delete-bg: #f6d9d7;
+}
+
+html[data-nyankoface-theme="cyberpunk"] .nyankoface-code-block {
+  --of-code-bg: #050814;
+  --of-code-header: #0b1328;
+  --of-code-border: #31536b;
+  --of-code-text: #e9f8ff;
+  --of-code-muted: #a9c8d8;
+  --of-code-accent: #69e9ff;
+  --of-code-keyword: #ff79c6;
+  --of-code-built-in: #ffb86c;
+  --of-code-title: #bd93f9;
+  --of-code-string: #9ff4ff;
+  --of-code-number: #8be9fd;
+  --of-code-comment: #8fa9b7;
+  --of-code-add: #b6f5c8;
+  --of-code-add-bg: #123926;
+  --of-code-delete: #ffd7ea;
+  --of-code-delete-bg: #4d152e;
+  box-shadow: 0 0 0 1px rgb(105 233 255 / 7%), 0 12px 32px rgb(0 0 0 / 22%);
+}
+
+/* Inline code belongs to the same palette without inheriting block padding. */
+.github-markdown-body :not(pre) > code,
+.prose-nyankoface :not(pre) > code {
+  border: 1px solid rgb(127 127 127 / 18%);
+  border-radius: 5px;
+  padding: 0.12em 0.34em;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.875em;
+  white-space: break-spaces;
+}
+
+@media (max-width: 640px) {
+  .nyankoface-code-block {
+    margin: 1rem 0;
+    border-radius: 8px;
+  }
+
+  .nyankoface-code-header {
+    padding-left: 0.75rem;
+  }
+
+  .github-markdown-body .nyankoface-code-block pre,
+  .prose-nyankoface .nyankoface-code-block pre {
+    overflow-x: auto;
+    padding: 0.875rem;
+  }
+
+  .github-markdown-body .nyankoface-code-block pre code,
+  .prose-nyankoface .nyankoface-code-block pre code {
+    white-space: pre;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}

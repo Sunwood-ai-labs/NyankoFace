@@ -1,0 +1,80 @@
+{
+  "generatedAt": "2026-07-30T12:18:39.449Z",
+  "baseUrl": "https://localhost:8443",
+  "results": [
+    {
+      "id": "anonymous-deploy",
+      "passed": true,
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "id": "desktop",
+      "passed": true,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "repo": "pages-deploy-e2e",
+      "method": "docs",
+      "resultStatus": "published",
+      "before": {
+        "width": 1440,
+        "height": 1000,
+        "horizontalOverflow": 0,
+        "deployHeadingVisible": true,
+        "formVisible": true
+      },
+      "after": {
+        "width": 1440,
+        "height": 1000,
+        "horizontalOverflow": 0,
+        "deployHeadingVisible": true,
+        "formVisible": true
+      },
+      "screenshots": {
+        "directory": "desktop--pages-directory.png",
+        "confirmed": "desktop--deploy-confirmed.png",
+        "result": "desktop--deploy-result.png",
+        "published": "desktop--published-site.png"
+      }
+    },
+    {
+      "id": "mobile",
+      "passed": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "repo": "pages-deploy-mobile-e2e",
+      "method": "gh-pages",
+      "resultStatus": "published",
+      "before": {
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": 0,
+        "deployHeadingVisible": true,
+        "formVisible": true
+      },
+      "after": {
+        "width": 390,
+        "height": 844,
+        "horizontalOverflow": 2,
+        "deployHeadingVisible": true,
+        "formVisible": true
+      },
+      "screenshots": {
+        "directory": "mobile--pages-directory.png",
+        "confirmed": "mobile--deploy-confirmed.png",
+        "result": "mobile--deploy-result.png",
+        "published": "mobile--published-site.png"
+      }
+    },
+    {
+      "id": "missing-repository",
+      "passed": true,
+      "message": "デプロイできませんでした\n\nrepository nyankoface/pages-does-not-exist not found",
+      "screenshot": "mobile--missing-repository.png"
+    }
+  ]
+}

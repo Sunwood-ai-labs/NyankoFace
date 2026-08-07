@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "brand": {
+    "name": "NyankoFace",
+    "homeHref": "/",
+    "markSrc": "/brand/nyankoface-cat-logo.png"
+  },
+  "primary": [
+    { "id": "models", "href": "/models", "icon": "model", "label": "Models", "labelJa": "Models" },
+    { "id": "datasets", "href": "/datasets", "icon": "dataset", "label": "Datasets", "labelJa": "Datasets" },
+    { "id": "spaces", "href": "/spaces", "icon": "space", "label": "Spaces", "labelJa": "Spaces" },
+    { "id": "pages", "href": "/pages", "icon": "pages", "label": "Pages", "labelJa": "Pages" },
+    { "id": "knowledge", "href": "/docs", "icon": "doc", "label": "Knowledge", "labelJa": "ナレッジ" }
+  ],
+  "explore": [
+    { "id": "skills", "href": "/skills", "icon": "skill", "label": "Skills", "labelJa": "スキル" },
+    { "id": "mcps", "href": "/mcps", "icon": "mcp", "label": "MCPs", "labelJa": "MCPs" },
+    { "id": "prompts", "href": "/prompts", "icon": "prompt", "label": "Prompts", "labelJa": "プロンプト" },
+    { "id": "benchmarks", "href": "/benchmarks", "icon": "benchmark", "label": "Benchmarks", "labelJa": "ベンチマーク" },
+    { "id": "automations", "href": "/automations", "icon": "automation", "label": "Automations", "labelJa": "自動化" },
+    { "id": "characters", "href": "/characters", "icon": "character", "label": "Characters", "labelJa": "キャラクター" }
+  ],
+  "community": [
+    { "id": "repositories", "href": "/git/explore/repos", "icon": "folder", "label": "Repositories", "labelJa": "リポジトリ" },
+    { "id": "users", "href": "/git/explore/users", "icon": "users", "label": "Users", "labelJa": "ユーザー" },
+    { "id": "discussions", "href": "https://github.com/Sunwood-ai-labs/NyankoFace/issues", "icon": "comments", "label": "Discussions", "labelJa": "議論", "external": true }
+  ],
+  "publish": [
+    { "id": "create-repository", "href": "/git/repo/create", "icon": "plus", "label": "Create repository", "labelJa": "リポジトリを作成", "auth": "authenticated" },
+    { "id": "mcp-administration", "href": "/admin/mcp", "icon": "mcp", "label": "MCP administration", "labelJa": "MCP管理", "auth": "admin" },
+    { "id": "administration", "href": "/git/admin", "icon": "gear", "label": "Administration", "labelJa": "管理", "auth": "admin" }
+  ]
+}

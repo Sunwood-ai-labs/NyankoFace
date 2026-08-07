@@ -1,0 +1,705 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-27T13:30:52.343Z",
+  "baseUrl": "https://localhost:8443",
+  "dimensions": {
+    "themes": [
+      "standard",
+      "solarpunk",
+      "cyberpunk"
+    ],
+    "colorSchemes": [
+      "light",
+      "dark"
+    ],
+    "viewports": [
+      {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "routes": [
+      {
+        "id": "navigator-skill-detail",
+        "path": "/nyankoface/nyankoface-navigator-skill"
+      }
+    ]
+  },
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "screenshots": 12,
+    "auditedTextNodes": 428,
+    "imageBackedTextNodes": 160,
+    "minimumContrastMargin": 1.01
+  },
+  "results": [
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 725,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 613,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Knowledge Explore JA ログイン 新規登録 スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing nyankoface-na",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 24,
+      "imageBackedTextCount": 29,
+      "minimumContrast": 7.1,
+      "minimumContrastMargin": 1.58,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 667,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 559,
+      "bodyPreview": "NyankoFace スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing スキルの関連 根拠付きリンク 0件 メタデータ 使用／連携 必須 0 · ワークフロー 0 単独で完結 必須または推奨ワークフロー",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 22,
+      "imageBackedTextCount": 23,
+      "minimumContrast": 7.1,
+      "minimumContrastMargin": 1.58,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 736,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 613,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Knowledge Explore JA ログイン 新規登録 スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing nyankoface-na",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 24,
+      "imageBackedTextCount": 29,
+      "minimumContrast": 7.1,
+      "minimumContrastMargin": 1.58,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 761,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 559,
+      "bodyPreview": "NyankoFace スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing スキルの関連 根拠付きリンク 0件 メタデータ 使用／連携 必須 0 · ワークフロー 0 単独で完結 必須または推奨ワークフロー",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 22,
+      "imageBackedTextCount": 23,
+      "minimumContrast": 7.1,
+      "minimumContrastMargin": 1.58,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 620,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 613,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Knowledge Explore JA ログイン 新規登録 スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing nyankoface-na",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 49,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 4.54,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 673,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 559,
+      "bodyPreview": "NyankoFace スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing スキルの関連 根拠付きリンク 0件 メタデータ 使用／連携 必須 0 · ワークフロー 0 単独で完結 必須または推奨ワークフロー",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 41,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 4.54,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 637,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 613,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Knowledge Explore JA ログイン 新規登録 スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing nyankoface-na",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 49,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 4.54,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 697,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 559,
+      "bodyPreview": "NyankoFace スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing スキルの関連 根拠付きリンク 0件 メタデータ 使用／連携 必須 0 · ワークフロー 0 単独で完結 必須または推奨ワークフロー",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 41,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 4.54,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 678,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 613,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Knowledge Explore JA ログイン 新規登録 スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing nyankoface-na",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 43,
+      "imageBackedTextCount": 10,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 654,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 559,
+      "bodyPreview": "NyankoFace スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing スキルの関連 根拠付きリンク 0件 メタデータ 使用／連携 必須 0 · ワークフロー 0 単独で完結 必須または推奨ワークフロー",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 35,
+      "imageBackedTextCount": 10,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 732,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 613,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Knowledge Explore JA ログイン 新規登録 スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing nyankoface-na",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 43,
+      "imageBackedTextCount": 10,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "navigator-skill-detail",
+        "label": "NyankoFace Navigator Skill",
+        "path": "/nyankoface/nyankoface-navigator-skill",
+        "focus": "Japanese-friendly publishing navigator instructions, selection rules, validation workflow, and repository files"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "finalUrl": "https://localhost:8443/nyankoface/nyankoface-navigator-skill",
+      "status": 200,
+      "durationMs": 611,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--navigator-skill-detail.png",
+      "title": "nyankoface/nyankoface-navigator-skill - スキル - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 559,
+      "bodyPreview": "NyankoFace スキル: nyankoface / nyankoface-navigator-skill いいね 0 スキルカード ファイル コミュニティ 初心者向けにNyankoFaceの公開方法を選び、最小構成と検証手順を案内するスキル beginner japanese navigator publishing スキルの関連 根拠付きリンク 0件 メタデータ 使用／連携 必須 0 · ワークフロー 0 単独で完結 必須または推奨ワークフロー",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 35,
+      "imageBackedTextCount": 10,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    }
+  ]
+}

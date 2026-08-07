@@ -1,0 +1,44 @@
+{
+  "passed": 2,
+  "total": 2,
+  "results": [
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "audit": {
+        "triggerPresent": true,
+        "triggerDisplay": "none",
+        "triggerVisible": false,
+        "dotPresent": true,
+        "dotDisplay": "flex",
+        "dotVisible": false,
+        "profilePresent": true,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "desktop--navbar-without-stopwatch-dot.png"
+    },
+    {
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "audit": {
+        "triggerPresent": true,
+        "triggerDisplay": "none",
+        "triggerVisible": false,
+        "dotPresent": true,
+        "dotDisplay": "flex",
+        "dotVisible": false,
+        "profilePresent": true,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "mobile--navbar-without-stopwatch-dot.png"
+    }
+  ]
+}

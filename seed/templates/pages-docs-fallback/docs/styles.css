@@ -1,0 +1,15 @@
+:root { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #28251d; background: #fbf8f0; }
+* { box-sizing: border-box; }
+body { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 100vh; margin: 0; }
+aside { display: flex; flex-direction: column; gap: 18px; padding: 30px; border-right: 1px solid #ded7c6; background: #f1ecdf; }
+aside a { color: #695c43; font-size: 12px; font-weight: 700; text-decoration: none; }
+aside a:first-child { color: #28251d; letter-spacing: .08em; }
+main { max-width: 800px; padding: clamp(48px, 10vw, 150px) clamp(28px, 8vw, 110px); }
+.eyebrow { color: #aa4c2f; font-size: 11px; font-weight: 700; letter-spacing: .12em; }
+h1 { max-width: 700px; margin: 18px 0; font: 700 clamp(2.1rem, 6vw, 4.8rem)/.98 ui-serif, Georgia, serif; letter-spacing: -.06em; }
+.lead, li { max-width: 650px; color: #695c43; font: 1.08rem/1.7 ui-serif, Georgia, serif; }
+li { margin: 14px 0; }
+code { padding: .14em .35em; border-radius: 4px; background: #eee5d4; font: .84em ui-monospace, monospace; }
+.button { display: inline-block; margin-top: 24px; padding: 11px 15px; border: 1px solid #28251d; border-radius: 6px; color: #28251d; font-size: 12px; font-weight: 700; text-decoration: none; }
+.button:hover { background: #28251d; color: #fbf8f0; }
+@media (max-width: 680px) { body { grid-template-columns: 1fr; } aside { flex-direction: row; border-right: 0; border-bottom: 1px solid #ded7c6; } }

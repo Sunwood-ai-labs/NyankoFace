@@ -1,0 +1,116 @@
+{
+  "issue": 151,
+  "reviewed_main_sha": "926ece00a2763a2dad706ef049094734831f9c7e",
+  "runtime": "local Docker Compose at https://localhost:8443",
+  "capture_mode": "manual real-runtime browser capture; not a CI job",
+  "commands": [
+    "docker compose --profile mcp up -d --build nyankoface-mcp mcp-admin",
+    "docker compose --profile mcp build frontend gateway",
+    "docker compose --profile mcp up -d --no-deps frontend gateway",
+    "docker compose --profile mcp ps",
+    "GET http://mcp-admin:8001/health"
+  ],
+  "expected_pre_reauth": {
+    "http_status": 428,
+    "error": "fresh_reauthentication_required"
+  },
+  "baseline_cases": [
+    {
+      "theme": "standard/base",
+      "viewport": "desktop",
+      "size": "1440x1000",
+      "reauth_status": "pass",
+      "console_status": 200,
+      "post_reauth_page_or_console_errors": 0,
+      "post_reauth_http_errors": 0,
+      "horizontal_overflow_count": 0,
+      "result": "pass"
+    },
+    {
+      "theme": "standard/base",
+      "viewport": "mobile",
+      "size": "390x844",
+      "reauth_status": "pass",
+      "console_status": 200,
+      "post_reauth_page_or_console_errors": 0,
+      "post_reauth_http_errors": 0,
+      "horizontal_overflow_count": 0,
+      "result": "pass"
+    },
+    {
+      "theme": "solarpunk/light",
+      "viewport": "desktop",
+      "size": "1440x1000",
+      "reauth_status": "pass",
+      "console_status": 200,
+      "post_reauth_page_or_console_errors": 0,
+      "post_reauth_http_errors": 0,
+      "horizontal_overflow_count": 0,
+      "result": "pass"
+    },
+    {
+      "theme": "solarpunk/light",
+      "viewport": "mobile",
+      "size": "390x844",
+      "reauth_status": "pass",
+      "console_status": 200,
+      "post_reauth_page_or_console_errors": 0,
+      "post_reauth_http_errors": 0,
+      "horizontal_overflow_count": 0,
+      "result": "pass"
+    },
+    {
+      "theme": "cyberpunk/dark",
+      "viewport": "desktop",
+      "size": "1440x1000",
+      "reauth_status": "pass",
+      "console_status": 200,
+      "post_reauth_page_or_console_errors": 0,
+      "post_reauth_http_errors": 0,
+      "horizontal_overflow_count": 0,
+      "result": "pass"
+    },
+    {
+      "theme": "cyberpunk/dark",
+      "viewport": "mobile",
+      "size": "390x844",
+      "reauth_status": "pass",
+      "console_status": 200,
+      "post_reauth_page_or_console_errors": 0,
+      "post_reauth_http_errors": 0,
+      "horizontal_overflow_count": 0,
+      "result": "pass"
+    }
+  ],
+  "one_time_secret_cases": [
+    {
+      "viewport": "desktop",
+      "size": "1440x1000",
+      "dialog_visible": true,
+      "plaintext_saved": false,
+      "temporary_data_redacted": true,
+      "result": "pass"
+    },
+    {
+      "viewport": "mobile",
+      "size": "390x844",
+      "dialog_visible": true,
+      "plaintext_saved": false,
+      "temporary_data_redacted": true,
+      "result": "pass"
+    }
+  ],
+  "cleanup": {
+    "temporary_subjects_total": 4,
+    "temporary_subjects_enabled": 0,
+    "temporary_tokens_total": 10,
+    "temporary_tokens_active": 0,
+    "temporary_tokens_revoked_or_expired": 10
+  },
+  "manual_review": {
+    "screenshots_opened": 14,
+    "layout_overflow_observed": false,
+    "raw_token_observed": false,
+    "result": "pass"
+  }
+}

@@ -1,0 +1,39 @@
+name: Publish VitePress to NyankoFace Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.forgejo/workflows/publish-pages.yml'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: node20
+    steps:
+      - name: Check out the source
+        uses: https://data.forgejo.org/actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build VitePress
+        run: VITEPRESS_BASE="/pages/${GITHUB_REPOSITORY}/" npm run docs:build
+
+      - name: Publish the static site
+        env:
+          PAGES_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "NyankoFace Pages"
+          git config user.email "pages@nyankoface.local"
+          git checkout --orphan gh-pages
+          git rm -rf .
+          cp -R docs/.vitepress/dist/. .
+          touch .nojekyll
+          git add --all
+          git commit -m "Publish Pages for ${GITHUB_SHA}"
+          git remote set-url origin "http://oauth2:${PAGES_TOKEN}@forgejo:3000/${GITHUB_REPOSITORY}.git"
+          git push --force origin gh-pages

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">NyankoFace v0.5.0</title>
+  <desc id="desc">PostgreSQL pipeline state, safer upgrades, clearer previews, and faster validation</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset=".55" stop-color="#10214a"/>
+      <stop offset="1" stop-color="#251238"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#67e8f9" stroke-opacity=".1"/>
+    </pattern>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#67e8f9"/>
+      <stop offset="1" stop-color="#f472b6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect x="80" y="76" width="1040" height="478" rx="44" fill="#080f20" fill-opacity=".78" stroke="#67e8f9" stroke-opacity=".38"/>
+  <rect x="124" y="124" width="104" height="104" rx="25" fill="#07111f" stroke="#67e8f9" stroke-width="3"/>
+  <image href="../nyankoface.svg" x="136" y="136" width="80" height="80" preserveAspectRatio="xMidYMid meet"/>
+  <text x="124" y="334" font-family="Arial, sans-serif" font-size="86" font-weight="700" fill="#f8fafc">NyankoFace</text>
+  <rect x="124" y="373" width="238" height="62" rx="31" fill="url(#accent)"/>
+  <text x="243" y="414" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#07111f">v0.5.0</text>
+  <text x="124" y="493" font-family="Arial, sans-serif" font-size="27" fill="#cbd5e1">Migrate clearly. Recover safely. Validate in parallel.</text>
+  <path d="M868 218h92l46-62 70 98-52 70H892l-48-62z" fill="none" stroke="url(#accent)" stroke-width="13" stroke-linejoin="round" opacity=".82"/>
+  <circle cx="915" cy="262" r="13" fill="#67e8f9"/>
+  <circle cx="1005" cy="262" r="13" fill="#f472b6"/>
+  <path d="M922 300q38 31 76 0" fill="none" stroke="#f8fafc" stroke-width="10" stroke-linecap="round"/>
+</svg>

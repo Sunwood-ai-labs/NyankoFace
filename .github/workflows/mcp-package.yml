@@ -1,0 +1,126 @@
+name: MCP package
+
+on:
+  pull_request:
+    paths:
+      - nyankoface-mcp/**
+      - .github/workflows/mcp-package.yml
+  push:
+    branches: [main]
+    tags: [nyankoface-mcp-v*]
+    paths:
+      - nyankoface-mcp/**
+      - .github/workflows/mcp-package.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-contract:
+    name: Python ${{ matrix.python-version }} contract
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install package and contract dependencies
+        run: |
+          python -m pip install --disable-pip-version-check ./nyankoface-mcp
+          python -m pip install --disable-pip-version-check -r nyankoface-mcp/requirements-dev.txt
+      - name: Verify package entry points
+        run: |
+          package_version="$(python -c 'import importlib.metadata; print(importlib.metadata.version("nyankoface-mcp"))')"
+          nyankoface-mcp --version
+          test "$(nyankoface-mcp --version)" = "nyankoface-mcp $package_version"
+          command -v nyankoface-mcp-server
+          command -v nyankoface-mcp-stdio
+      - name: Test package and stdio contracts
+        run: python -m pytest -q nyankoface-mcp/tests
+
+  distribution:
+    name: Reproducible distribution and image
+    runs-on: ubuntu-latest
+    outputs:
+      package-version: ${{ steps.package.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Read package version
+        id: package
+        run: |
+          version="$(python -c 'import pathlib,tomllib; print(tomllib.loads(pathlib.Path("nyankoface-mcp/pyproject.toml").read_text())["project"]["version"])')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Install build verification tools
+        run: >-
+          python -m pip install --disable-pip-version-check
+          build==1.3.0 packaging==26.2 pyproject-hooks==1.2.0
+          setuptools==80.9.0 twine==6.2.0 wheel==0.45.1
+      - name: Build twice and verify reproducibility
+        env:
+          SOURCE_DATE_EPOCH: '1767225600'
+        run: |
+          python nyankoface-mcp/scripts/build_distribution.py --out-dir nyankoface-mcp/dist-a
+          python nyankoface-mcp/scripts/build_distribution.py --out-dir nyankoface-mcp/dist-b
+          (cd nyankoface-mcp/dist-a && sha256sum * | sort -k2) > nyankoface-mcp/checksums-a.txt
+          (cd nyankoface-mcp/dist-b && sha256sum * | sort -k2) > nyankoface-mcp/checksums-b.txt
+          diff -u nyankoface-mcp/checksums-a.txt nyankoface-mcp/checksums-b.txt
+          mkdir nyankoface-mcp/dist
+          cp nyankoface-mcp/dist-a/* nyankoface-mcp/dist/
+          (cd nyankoface-mcp/dist && sha256sum *.whl *.tar.gz | sort -k2) > nyankoface-mcp/SHA256SUMS
+          cp nyankoface-mcp/SHA256SUMS nyankoface-mcp/dist/SHA256SUMS
+          python -m twine check nyankoface-mcp/dist/*.whl nyankoface-mcp/dist/*.tar.gz
+      - name: Verify wheel in a clean virtual environment
+        run: |
+          python -m venv "$RUNNER_TEMP/nyankoface-mcp-wheel"
+          "$RUNNER_TEMP/nyankoface-mcp-wheel/bin/pip" install nyankoface-mcp/dist/*.whl
+          test "$("$RUNNER_TEMP/nyankoface-mcp-wheel/bin/nyankoface-mcp" --version)" = "nyankoface-mcp ${{ steps.package.outputs.version }}"
+      - name: Build and inspect version-matched image
+        env:
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          docker build --pull=false \
+            --build-arg NYANKOFACE_MCP_VERSION="$PACKAGE_VERSION" \
+            --build-arg VCS_REF="$GITHUB_SHA" \
+            -t "nyankoface-mcp:$PACKAGE_VERSION" nyankoface-mcp
+          test "$(docker image inspect "nyankoface-mcp:$PACKAGE_VERSION" --format '{{ index .Config.Labels "org.opencontainers.image.version" }}')" = "$PACKAGE_VERSION"
+          test "$(docker run --rm "nyankoface-mcp:$PACKAGE_VERSION" nyankoface-mcp --version)" = "nyankoface-mcp $PACKAGE_VERSION"
+      - name: Upload wheel, sdist, and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyankoface-mcp-${{ steps.package.outputs.version }}
+          path: nyankoface-mcp/dist/
+          if-no-files-found: error
+
+  release-attestation:
+    name: Attest tagged MCP release
+    if: startsWith(github.ref, 'refs/tags/nyankoface-mcp-v')
+    needs: distribution
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Require tag and package versions to match
+        env:
+          PACKAGE_VERSION: ${{ needs.distribution.outputs.package-version }}
+        run: |
+          tag_version="${GITHUB_REF_NAME#nyankoface-mcp-v}"
+          test "$tag_version" = "$PACKAGE_VERSION"
+      - name: Download verified package artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: nyankoface-mcp-${{ needs.distribution.outputs.package-version }}
+          path: nyankoface-mcp/dist
+      - name: Attest release package provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: nyankoface-mcp/dist/*

@@ -1,0 +1,24 @@
+services:
+  gpu-worker:
+    build:
+      context: ./gpu-worker
+    env_file:
+      - ./gpu-worker/.env.example
+    environment:
+      WORKER_RUNTIME_PROFILE_FILE: /run/nyankoface/runtime-profile.json
+    ports:
+      - "${WORKER_BIND_ADDRESS:-127.0.0.1}:${WORKER_PORT:-8787}:8787"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gpu-worker-data:/data
+      - ${WORKER_RUNTIME_PROFILE_PATH:-./gpu-worker/runtime-profile.example.json}:/run/nyankoface/runtime-profile.json:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  gpu-worker-data:

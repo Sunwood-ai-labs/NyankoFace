@@ -1,0 +1,4 @@
+interface:
+  display_name: "NyankoFace Navigator"
+  short_description: "Publish, validate, and operate NyankoFace repositories"
+  default_prompt: "Use $nyankoface-navigator to choose, validate, publish, or troubleshoot the correct NyankoFace repository and deployment contract."

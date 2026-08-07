@@ -1,0 +1,35 @@
+{
+  "baseUrl": "https://example.invalid",
+  "owner": "seraphim-labs",
+  "repo": "sample-gradio",
+  "startStatus": 200,
+  "startBody": {
+    "status": "running",
+    "url": "/run/seraphim-labs/sample-gradio/",
+    "execution": "local-cpu"
+  },
+  "runtimeStatus": {
+    "status": "running",
+    "url": "/run/seraphim-labs/sample-gradio/"
+  },
+  "results": [
+    {
+      "viewport": "desktop",
+      "authState": "anonymous",
+      "appText": "🎛️ Gradio Signal Lab\n\nTune a tiny CPU-generated waveform.\n\nFrequency\n↺\n80\n880\nWarmth\n↺\n0\n100\nMotion\n↺\n0\n100\nSynthesize\nReading\nReady for a signal.\nAPIを介して使用\n·\n",
+      "screenshot": "docs/evidence/issues/81/desktop.png",
+      "viewportWidth": 1440,
+      "bodyWidth": 1440,
+      "iframeSrc": "/run/seraphim-labs/sample-gradio/"
+    },
+    {
+      "viewport": "mobile",
+      "authState": "anonymous",
+      "appText": "🎛️ Gradio Signal Lab\n\nTune a tiny CPU-generated waveform.\n\nFrequency\n↺\nWarmth\n↺\nMotion\n↺\nSynthesize\nReading\nReady for a signal.\nGradioで作成\n·\n設定",
+      "screenshot": "docs/evidence/issues/81/mobile.png",
+      "viewportWidth": 390,
+      "bodyWidth": 390,
+      "iframeSrc": "/run/seraphim-labs/sample-gradio/"
+    }
+  ]
+}

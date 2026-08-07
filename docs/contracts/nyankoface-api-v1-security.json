@@ -1,0 +1,338 @@
+{
+  "contract_version": "1.0.0",
+  "status": "proposed",
+  "public_base_path": "/api/v1",
+  "openapi_path": "/api/v1/openapi.json",
+  "token": {
+    "scheme": "Bearer",
+    "format": "opaque",
+    "storage": "sha256-or-stronger-one-way-digest",
+    "stored_metadata": {
+      "common_fields": ["one_way_digest", "token_id", "subject_id", "audience", "scopes", "created_at", "expires_at", "revocation_state"],
+      "service_account_fields": ["resource_grant_id"],
+      "resource_grant_id": "immutable-exact-resource-grant-selected-at-issue-and-preserved-by-rotation"
+    },
+    "generation": "cryptographically-secure-random",
+    "minimum_entropy_bits": 256,
+    "audience": "nyankoface-api-v1",
+    "default_ttl_seconds": 2592000,
+    "maximum_ttl_seconds": 7776000,
+    "revocation": "immediate-server-side-deny",
+    "rotation": {
+      "token_ids": "distinct",
+      "maximum_overlap_seconds": 300,
+      "overlap_expiry": "force-revoke-previous-token-before-next-request",
+      "early_revocation": "manual-revocation-or-subject-disable-ends-overlap-immediately"
+    },
+    "service_accounts": true,
+    "issuance": {
+      "human_authentication": "nyankoface-local-session-from-prior-forgejo-exchange-plus-bound-recent-reauthentication-proof",
+      "scope_ceiling": "intersection-of-requested-scopes-and-current-issuer-scope-grants",
+      "human_resource_model": "scope-only-global-token-with-dynamic-current-forgejo-permission-on-every-resource-request",
+      "service_account_grant": "administrator-created-explicit-immutable-resource-grant"
+    },
+    "recent_reauthentication": {
+      "maximum_age_seconds": 300,
+      "expired_proof": "require-reauthentication-before-token-management-or-issuer-scope-grant-administration"
+    }
+  },
+  "scopes": [
+    "repos:read",
+    "repos:write",
+    "issues:read",
+    "issues:write",
+    "spaces:read",
+    "spaces:run",
+    "secrets:read-metadata",
+    "secrets:write",
+    "pipelines:read",
+    "pipelines:write",
+    "metrics:read",
+    "reactions:write"
+  ],
+  "error": {
+    "content_type": "application/problem+json",
+    "required_fields": ["type", "title", "status", "code", "request_id"],
+    "optional_fields": ["detail", "instance", "errors", "retry_after"],
+    "bearer_challenge": {
+      "header": "WWW-Authenticate",
+      "scheme": "Bearer",
+      "missing_credentials": {"status": 401, "include_error": false, "when": "pre-authentication-rate-limit-admits-request"},
+      "unsupported_authorization_scheme": {"status": 401, "include_error": false, "when": "pre-authentication-rate-limit-admits-request"},
+      "invalid_token": {"status": 401, "error": "invalid_token", "when": "pre-authentication-rate-limit-admits-request"},
+      "insufficient_scope": {"status": 403, "error": "insufficient_scope", "include_scope": true, "when": "pre-authentication-and-post-authentication-rate-limits-admit-request"}
+    }
+  },
+  "pagination": {
+    "style": "opaque-cursor",
+    "request_parameters": ["cursor", "limit"],
+    "response_fields": ["items", "next_cursor"],
+    "default_limit": 30,
+    "maximum_limit": 100
+  },
+  "idempotency": {
+    "header": "Idempotency-Key",
+    "required_for": ["POST", "PUT", "PATCH", "DELETE"],
+    "namespace_fields": ["verified_subject_id", "http_method", "canonical_target", "idempotency_key"],
+    "payload_fingerprint_role": "mismatch-detection-within-namespace-only",
+    "retention_seconds": 86400,
+    "same_key_same_payload": "replay-original-response-without-second-mutation-except-non-replayable-credential-responses",
+    "non_replayable_credential_responses": {
+      "routes": ["tokens.issue", "tokens.rotate"],
+      "plaintext_delivery": "successful-initial-response-only-never-persisted",
+      "successful_initial_response_headers": {"Cache-Control": "no-store"},
+      "persisted_result": "one-way-digest-token-id-and-non-secret-metadata-only",
+      "same_key_retry_status": 409,
+      "same_key_retry_code": "idempotency_result_not_replayable",
+      "same_key_retry_behavior": "return-non-secret-operation-metadata-without-second-mutation"
+    },
+    "same_key_different_payload_status": 422,
+    "concurrent_duplicate_status": 409
+  },
+  "authorization": {
+    "subject_mapping": "immutable-nyankoface-subject-to-forgejo-user-id-including-dedicated-forgejo-users",
+    "repository_check": "every-request",
+    "deny_on_mapping_failure": true,
+    "repository_authority_failure": "fail-closed-before-resource-adapter-with-target-independent-503-and-audit",
+    "positive_permission_cache": "forbidden",
+    "service_credentials": "never-authoritative-for-caller-permission",
+    "service_account_repository_authority": "explicit-immutable-nyankoface-resource-grant-with-derived-target-required_permission-and-current-dedicated-forgejo-user-level",
+    "service_account_resource_grants": {
+      "collection_route": "/api/v1/admin/service-account-resource-grants",
+      "item_route": "/api/v1/admin/service-account-resource-grants/{grant_id}",
+      "methods": {"create": "POST", "list": "GET", "read": "GET", "revoke": "DELETE"},
+      "authentication": "nyankoface-local-server-side-administrator-session-plus-bound-recent-reauthentication-proof",
+      "recent_reauthentication_maximum_age_seconds": 300,
+      "bootstrap": "create-does-not-require-a-preexisting-resource-grant",
+      "create_authority": "current-nyankoface-administrator-who-is-the-current-forgejo-owner-or-administrator-of-every-canonical-target-repository",
+      "dedicated_user_check": "dedicated-non-admin-forgejo-user-must-meet-each-immutable-target-required-permission-before-create",
+      "permission_order": ["none", "read", "write", "admin"],
+      "allowed_required_permission_values": ["read", "write"],
+      "repository_target_record": {"repository_id": "immutable-canonical-forgejo-repository-id", "required_permission": "immutable-derived-read-or-write"},
+      "allowed_scopes_validation": "non-empty-declared-scopes-that-enable-at-least-one-action",
+      "client_required_permission_input": "forbidden-server-derived-only",
+      "required_permission_derivation": "at-create-take-the-highest-forgejo-permission-in-action_permission_matrix-for-every-action-whose-required-scopes-are-a-subset-of-immutable-allowed_scopes-and-store-it-on-each-target-record",
+      "token_scope_ceiling": "issued-and-rotated-token-scopes-must-be-a-subset-of-immutable-allowed_scopes",
+      "token_binding": "issue-atomically-persists-the-selected-active-resource_grant_id-and-current-version-with-the-token-mutation-while-rotation-preserves-the-token-resource_grant_id-and-binds-the-mutation-to-that-exact-active-grant-current-version",
+      "immutable_fields": ["grant_id", "owner_subject_id", "service_account_subject_id", "dedicated_forgejo_user_id", "allowed_scopes", "repository_targets"],
+      "replacement": "repository-or-owner-binding-change-requires-a-new-grant-and-revocation-of-the-old-grant-and-old-grant-tokens-never-adopt-or-resolve-to-the-replacement-grant",
+      "management_authority": "list-read-and-token-management-require-current-nyankoface-administrator-plus-immutable-owner-subject-plus-current-forgejo-owner-or-administrator-permission-on-every-bound-repository",
+      "revocation_authority": "either-management-authority-or-successor-current-nyankoface-administrator-with-fresh-reauthentication-and-current-forgejo-owner-or-administrator-permission-on-every-bound-repository",
+      "successor_revocation_audit": "record-successor-override-former-owner-subject-reason-and-all-standard-revocation-fields",
+      "revocation": "atomically-mark-revoked-increment-version-and-revoke-every-token-whose-immutable-resource_grant_id-exactly-matches-the-revoked-grant-before-return",
+      "revocation_dispatch_fence": "exclusive-version-fence-waits-for-old-version-dispatches-and-prevents-new-adapter-calls-before-return",
+      "request_enforcement": "every-service-account-resource-request-resolves-only-the-token-immutable-resource_grant_id-acquires-that-exact-grant-current-version-bound-read-fence-validates-active-grant-membership-token-scopes-within-allowed-scopes-current-dedicated-user-permission-at-or-above-each-bound-target-required_permission-and-requested-target-permission-at-or-above-action_permission_matrix-requirement-revalidates-the-same-grant-id-and-version-immediately-before-adapter-dispatch-and-holds-fence-through-dispatch",
+      "audit": "every-create-and-revoke-with-actor-subject-grant-id-service-account-subject-repository-target-records-old-version-new-version-and-result",
+      "authority_failure": "fail-closed-with-target-independent-503-and-audit-before-grant-or-token-mutation"
+    },
+    "issuer_scope_grants": {
+      "authority": "nyankoface-server-side-versioned-per-subject-grant-store",
+      "management_route": "/api/v1/admin/subjects/{subject_id}/scope-grants",
+      "default": "empty-deny-all",
+      "authentication": "nyankoface-local-server-side-administrator-session-plus-bound-recent-reauthentication-proof",
+      "recent_reauthentication": {
+        "maximum_age_seconds": 300,
+        "expired_proof": "require-reauthentication-before-grant-store-read-or-mutation"
+      },
+      "assignment": "current-nyankoface-administrator-only-declared-scopes-only-requested-token-scopes-never-authoritative",
+      "audit": "every-create-replace-reduce-and-revoke-with-actor-subject-target-subject-old-version-new-version-and-scope-diff",
+      "enforcement": "read-current-version-on-issue-rotation-and-every-resource-request-before-adapter-and-reject-token-scopes-outside-current-grant",
+      "reduction_or_revocation": "atomically-increment-version-and-revoke-all-subject-tokens-not-subsets-of-the-new-grant-before-commit-returns",
+      "authority_failure": "fail-closed-with-target-independent-503-and-audit-before-token-mutation-or-resource-adapter",
+      "toctou": "resource-request-acquires-version-bound-read-fence-and-revalidates-current-grant-immediately-before-adapter-dispatch-while-grant-update-exclusively-advances-version-and-cannot-return-until-old-version-dispatches-finish"
+    },
+    "token_management": {
+      "authentication": "nyankoface-local-server-side-session-plus-bound-recent-reauthentication-proof",
+      "session_authority": "nyankoface-local-server-side-session-established-by-prior-forgejo-session-exchange",
+      "session_validation": "local-session-subject-only-before-post-auth-rate-limit-no-forgejo-adapter-call",
+      "recent_reauthentication_proof": "bound-to-local-session-and-validated-locally-after-post-auth-rate-limit",
+      "human_resource_permission_check": "none-at-issuance-or-rotation-current-forgejo-permission-required-on-every-resource-request",
+      "service_account_resource_permission_check": "issue-and-rotate-require-current-dedicated-forgejo-user-level-at-or-above-every-immutable-target-required_permission-after-post-auth-rate-limit-before-token-store-mutation-and-atomically-bind-immutable-resource_grant_id-to-the-exact-current-grant-version",
+      "service_account_management_authority": "current-nyankoface-administrator-role-and-current-resource-grant-ownership",
+      "bearer_token_allowed": false,
+      "actions": {
+        "tokens.issue": "self-with-current-scope-grant-ceiling-or-current-admin-with-current-service-account-grant",
+        "tokens.list": "self-or-current-admin-and-current-resource-grant-owner",
+        "tokens.rotate": "self-preserving-scope-only-resource-model-or-current-admin-and-current-resource-grant-owner",
+        "tokens.revoke": "self-or-current-admin-and-current-resource-grant-owner"
+      }
+    }
+  },
+  "action_scope_matrix": {
+    "repos.read": ["repos:read"],
+    "repos.write": ["repos:write"],
+    "issues.read": ["issues:read", "repos:read"],
+    "issues.write": ["issues:write", "repos:read"],
+    "spaces.status": ["spaces:read", "repos:read"],
+    "spaces.run": ["spaces:run", "repos:read"],
+    "spaces.environment-metadata": ["secrets:read-metadata", "spaces:read", "repos:read"],
+    "spaces.secret-write": ["secrets:write", "spaces:run", "repos:read"],
+    "pipelines.read": ["pipelines:read", "repos:read"],
+    "pipelines.write": ["pipelines:write", "repos:read"],
+    "metrics.read": ["metrics:read", "repos:read"],
+    "reactions.write": ["reactions:write", "repos:read"]
+  },
+  "action_permission_matrix": {
+    "repos.read": "read",
+    "repos.write": "write",
+    "issues.read": "read",
+    "issues.write": "write",
+    "spaces.status": "read",
+    "spaces.run": "write",
+    "spaces.environment-metadata": "read",
+    "spaces.secret-write": "write",
+    "pipelines.read": "read",
+    "pipelines.write": "write",
+    "metrics.read": "read",
+    "reactions.write": "write"
+  },
+  "secrets": {
+    "plaintext_write_only": true,
+    "response_allowed_fields": ["name", "scope", "enabled", "updated_at", "updated_by", "has_value"],
+    "response_forbidden_fields": ["value", "plaintext", "ciphertext", "token", "authorization"],
+    "redact_from": ["logs", "errors", "audit", "traces", "metrics"]
+  },
+  "controls": {
+    "rate_limit_keys": {
+      "bearer_routes": {
+        "pre_auth": ["source_address_class", "route_class"],
+        "post_auth": ["verified_token_id", "route_class"]
+      },
+      "session_managed_token_routes": {
+        "pre_auth": ["source_address_class", "route_class"],
+        "post_auth": ["verified_local_session_subject_id", "route_class", "source_address_class"]
+      },
+      "session_managed_scope_grant_admin_routes": {
+        "routes": ["/api/v1/admin/subjects/{subject_id}/scope-grants"],
+        "pre_auth": ["source_address_class", "route_class"],
+        "post_auth": ["verified_local_session_subject_id", "route_class", "source_address_class"]
+      },
+      "session_managed_resource_grant_admin_routes": {
+        "routes": ["/api/v1/admin/service-account-resource-grants", "/api/v1/admin/service-account-resource-grants/{grant_id}"],
+        "pre_auth": ["source_address_class", "route_class"],
+        "post_auth": ["verified_local_session_subject_id", "route_class", "source_address_class"]
+      }
+    },
+    "rate_limit_policies": {
+      "algorithm": "deployment-wide-atomic-fixed-window-plus-token-bucket",
+      "bearer_routes": {
+        "pre_auth": {"requests_per_window": 60, "window_seconds": 60, "burst_capacity": 10, "burst_refill_tokens_per_second": 1},
+        "post_auth": {"requests_per_window": 600, "window_seconds": 60, "burst_capacity": 50, "burst_refill_tokens_per_second": 10}
+      },
+      "session_managed_token_routes": {
+        "pre_auth": {"requests_per_window": 30, "window_seconds": 60, "burst_capacity": 5, "burst_refill_tokens_per_second": 0.5},
+        "post_auth": {"requests_per_window": 120, "window_seconds": 60, "burst_capacity": 10, "burst_refill_tokens_per_second": 2}
+      },
+      "session_managed_scope_grant_admin_routes": {
+        "pre_auth": {"requests_per_window": 20, "window_seconds": 60, "burst_capacity": 5, "burst_refill_tokens_per_second": 0.333333},
+        "post_auth": {"requests_per_window": 30, "window_seconds": 60, "burst_capacity": 5, "burst_refill_tokens_per_second": 0.5}
+      },
+      "session_managed_resource_grant_admin_routes": {
+        "pre_auth": {"requests_per_window": 20, "window_seconds": 60, "burst_capacity": 5, "burst_refill_tokens_per_second": 0.333333},
+        "post_auth": {"requests_per_window": 30, "window_seconds": 60, "burst_capacity": 5, "burst_refill_tokens_per_second": 0.5}
+      }
+    },
+    "rate_limit_coordination": {
+      "scope": "deployment-wide-across-all-api-workers-and-replicas",
+      "authority": "shared-authoritative-store",
+      "operation": "atomic-window-counter-and-token-bucket-update",
+      "clock": "authoritative-store-time",
+      "authority_failure": "fail-closed-with-503-before-digest-lookup-protected-store-or-adapter-call"
+    },
+    "rate_limit_order": {
+      "bearer_routes": [
+        "pre-auth-before-digest-lookup-denial-audit-and-any-upstream-or-service-adapter-call",
+        "post-auth-after-token-validation-before-scope-evaluation-denial-audit-and-any-upstream-or-service-adapter-call"
+      ],
+      "session_managed_token_routes": [
+        "pre-auth-before-local-session-validation-and-any-upstream-or-service-adapter-call",
+        "post-auth-after-local-session-subject-validation-before-recent-reauthentication-token-store-or-any-upstream-or-service-adapter-call"
+      ],
+      "session_managed_scope_grant_admin_routes": [
+        "pre-auth-before-local-session-validation-denial-audit-grant-store-read-and-any-upstream-or-service-adapter-call",
+        "post-auth-after-local-session-validation-before-admin-authorization-recent-reauthentication-grant-store-access-or-any-upstream-or-service-adapter-call"
+      ],
+      "session_managed_resource_grant_admin_routes": [
+        "pre-auth-before-local-session-validation-denial-audit-resource-grant-store-read-and-any-upstream-or-service-adapter-call",
+        "post-auth-after-local-session-validation-before-admin-authorization-recent-reauthentication-resource-grant-store-access-or-any-upstream-or-service-adapter-call"
+      ]
+    },
+    "bearer_pre_auth_coverage": ["missing-credentials", "unsupported-authorization-scheme", "malformed-or-unknown-token", "valid-token"],
+    "session_pre_auth_coverage": ["missing-session", "invalid-session", "valid-session"],
+    "scope_grant_admin_pre_auth_coverage": ["missing-session", "invalid-session", "valid-session"],
+    "resource_grant_admin_pre_auth_coverage": ["missing-session", "invalid-session", "valid-session"],
+    "rate_limit_headers": ["RateLimit", "RateLimit-Policy", "Retry-After"],
+    "cors_default": "deny",
+    "cors_wildcard_with_credentials": false,
+    "audit_required_for": ["authentication-denial", "authorization-denial", "rate-limit-denial", "mutation"],
+    "audit_denial_order": "emit-before-denial-return-except-repeat-rate-limit-denials-recorded-in-bounded-aggregate",
+    "rate_limit_denial_audit": {
+      "mode": "bounded-fixed-window-aggregation",
+      "scope": "deployment-wide-across-all-api-workers-and-replicas",
+      "authority": "shared-authoritative-store",
+      "atomic_operations": "claim-first-rejection-increment-repeat-counter-claim-single-summary-and-enforce-global-key-cap",
+      "window_seconds": 60,
+      "window_alignment": "unix-epoch-aligned-non-overlapping-windows",
+      "key_fields": ["limiter_stage", "source_address_class", "route_class", "fixed_window"],
+      "first_rejection": "emit-one-audit-event-immediately-before-429",
+      "repeat_rejection": "atomically-increment-shared-authoritative-bounded-counter-without-per-request-audit-write",
+      "summary": "enqueue-at-most-one-summary-per-key-when-the-60-second-window-closes-with-total-and-suppressed-count-without-per-request-retry",
+      "state_retention": "retain-current-and-immediately-previous-window-only-and-discard-previous-window-after-its-single-summary-enqueue-attempt",
+      "maximum_keys_per_window": 4096,
+      "maximum_keys_scope": "global-per-deployment-not-per-worker",
+      "overflow": "coalesce-into-one-overflow-summary-per-limiter-stage-and-window-without-per-request-write",
+      "raw_credential_or_address": "forbidden"
+    },
+    "audit_unknown_bearer_context": ["request_id", "target", "operation", "result", "source_address_class", "time", "credential_present"],
+    "browser_session_exchange": {
+      "server_side_only": true,
+      "cookie_attributes": ["Secure", "HttpOnly", "SameSite"],
+      "csrf": "same-origin-check-plus-csrf-token"
+    }
+  },
+  "native_forgejo_data_plane": [
+    "git-https-clone-push",
+    "git-ssh-clone-push",
+    "git-lfs",
+    "unsupported-forgejo-native-api"
+  ],
+  "security_requirements": [
+    {"id": "SEC-001", "assertion": "When the earlier pre-authentication rate limit admits the request, expired or revoked NyankoFace tokens receive 401 and a WWW-Authenticate Bearer invalid_token challenge before an adapter call."},
+    {"id": "SEC-002", "assertion": "When the earlier pre-authentication and post-authentication rate limits admit the request, a valid token missing any required action scope receives 403 and a WWW-Authenticate Bearer insufficient_scope challenge before an adapter call."},
+    {"id": "SEC-003", "assertion": "Repository access is checked against the mapped Forgejo user on every request."},
+    {"id": "SEC-004", "assertion": "An internal admin PAT never grants a caller permission and never leaves the private service network."},
+    {"id": "SEC-005", "assertion": "Secret plaintext is accepted on write but never appears in any success or error response."},
+    {"id": "SEC-006", "assertion": "Secret plaintext and credentials are redacted from logs, traces, metrics, and audit records."},
+    {"id": "SEC-007", "assertion": "Except for the non-replayable token issue and rotation responses defined by SEC-023, reusing an idempotency key with the same payload replays the original response without a second mutation; a different payload receives 422 and a concurrent duplicate receives 409."},
+    {"id": "SEC-008", "assertion": "Bearer and session-managed routes enforce the concrete deployment-wide 60-second quotas and token-bucket bursts in rate_limit_policies through atomic shared-store counters before protected work; rate-limited requests receive 429 with retry metadata and no upstream or service adapter call."},
+    {"id": "SEC-009", "assertion": "CORS allows only configured origins and never combines wildcard origin with credentials."},
+    {"id": "SEC-010", "assertion": "Audit events record request id, target, operation, result, source address class, time, and credential presence; actor, token id, and scope appear only when verified and never come from untrusted token text; repeated rate-limit denials use shared atomic deployment-wide, non-overlapping 60-second aggregation with a global 4096-key cap, bounded state retention, and overflow summaries instead of per-request writes."},
+    {"id": "SEC-011", "assertion": "Private repository absence and denial do not disclose repository existence."},
+    {"id": "SEC-012", "assertion": "OpenAPI marks secret write fields as writeOnly and omits them from response schemas."},
+    {"id": "SEC-013", "assertion": "Every token stores and validates the nyankoface-api-v1 audience before scope or adapter evaluation."},
+    {"id": "SEC-014", "assertion": "Human token issuance requires recent reauthentication and cannot grant scopes beyond the current version of the authoritative server-side per-subject issuer scope grant; only a current administrator with fresh reauthentication can change that default-empty grant, every change is audited, reductions immediately revoke non-conforming tokens, authority failures fail closed, and compare-and-swap versioning prevents stale authorization."},
+    {"id": "SEC-015", "assertion": "A service account requires an immutable resource grant created through the declared administration route by a freshly reauthenticated current NyankoFace administrator with current Forgejo owner or administrator permission on every target; bootstrap needs no prior grant, bindings cannot mutate, a qualified successor administrator can revoke, and every request holds and revalidates the same version fence that revocation exclusively advances before revoking grant tokens."},
+    {"id": "SEC-016", "assertion": "Opaque tokens are generated by a cryptographically secure random source with at least 256 bits of entropy."},
+    {"id": "SEC-017", "assertion": "Browser session exchange remains server-side and session cookies use Secure, HttpOnly, SameSite, origin checks, and CSRF tokens."},
+    {"id": "SEC-018", "assertion": "When the earlier pre-authentication rate limit admits the request, missing credentials or an unsupported Authorization scheme receive 401 and a WWW-Authenticate Bearer challenge without an error parameter, while a presented invalid Bearer token uses invalid_token."},
+    {"id": "SEC-019", "assertion": "Session-managed token, issuer-scope-grant, and service-account-resource-grant administration routes each apply their concrete source-and-route pre-authentication quota before local session validation and verified local-session-subject post-authentication quota before protected stores, authorization, reauthentication, or upstream calls; invalid and missing sessions are covered by the pre-authentication limit."},
+    {"id": "SEC-020", "assertion": "Token issuance, token management, issuer scope-grant administration, and service-account resource-grant administration require reauthentication proof no older than 300 seconds, and an expired proof requires reauthentication before token-store, grant-store, or resource-grant-store access continues."},
+    {"id": "SEC-021", "assertion": "Idempotency records are namespaced by verified subject, HTTP method, canonical target, and idempotency key; the payload fingerprint detects mismatches only within that namespace."},
+    {"id": "SEC-022", "assertion": "Token rotation may overlap distinct token IDs for at most 300 seconds; the previous token is force-revoked when that window expires and manual revocation or subject disable ends it immediately."},
+    {"id": "SEC-023", "assertion": "Token issue and rotation plaintext is returned only once with Cache-Control: no-store and never persisted; an idempotent retry returns 409 idempotency_result_not_replayable with non-secret operation metadata and performs no second mutation."},
+    {"id": "SEC-024", "assertion": "Human tokens are scope-only global credentials: issue and rotation apply the current issuer scope ceiling without a target-permission lookup, while every resource request checks the mapped human's current Forgejo repository permission; each service-account token binds to an immutable explicit resource grant by storing its immutable resource_grant_id, issue and rotation bind to that exact active grant and current version, requests resolve only that grant, replacement never rebinds old tokens, revocation selects exact matching tokens, every target must meet its derived read/write required_permission, and resource use additionally requires the requested target to meet the action_permission_matrix level."},
+    {"id": "SEC-025", "assertion": "Service-account token management requires both a current NyankoFace administrator role and current ownership of the explicit resource grant."},
+    {"id": "SEC-026", "assertion": "A timeout, error, or unparseable response from the repository permission authority fails closed before the resource adapter with a target-independent 503 and audit event; positive permission decisions are never cached."}
+  ],
+  "standards": [
+    {"topic": "bearer", "url": "https://www.rfc-editor.org/rfc/rfc6750.html", "status": "RFC"},
+    {"topic": "revocation", "url": "https://www.rfc-editor.org/rfc/rfc7009.html", "status": "RFC"},
+    {"topic": "problem-details", "url": "https://www.rfc-editor.org/rfc/rfc9457.html", "status": "RFC"},
+    {"topic": "sunset", "url": "https://www.rfc-editor.org/rfc/rfc8594.html", "status": "RFC"},
+    {"topic": "cors", "url": "https://fetch.spec.whatwg.org/", "status": "Living Standard"},
+    {"topic": "openapi", "url": "https://spec.openapis.org/oas/v3.2.0.html", "status": "OAS 3.2.0"},
+    {"topic": "structured-fields", "url": "https://www.rfc-editor.org/rfc/rfc9651.html", "status": "RFC; syntax foundation for the RateLimit draft"},
+    {"topic": "idempotency", "url": "https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-idempotency-key-header-07", "status": "expired IETF draft; informative only"},
+    {"topic": "rate-limit", "url": "https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-ratelimit-headers-11", "status": "active IETF draft expiring 2026-11-24; field semantics; informative only"}
+  ]
+}

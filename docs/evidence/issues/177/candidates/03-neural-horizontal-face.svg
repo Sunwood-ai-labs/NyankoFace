@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="candidate-03-title candidate-03-desc">
+    <title id="candidate-03-title">Neural Horizontal Face</title><desc id="candidate-03-desc">NyankoFace brand exploration candidate 03.</desc>
+    <g><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#06b6d4" stroke="none"/><circle cx="164" cy="128" r="8" fill="#06b6d4" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#f59e0b"/>
+      </g></g>
+  </svg>

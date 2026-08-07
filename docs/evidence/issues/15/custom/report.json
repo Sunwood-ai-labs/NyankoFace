@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-07-27T21:04:55.009Z",
+  "baseUrl": "http://localhost:8090",
+  "expectedAppName": "Aurora Hub",
+  "cases": 4,
+  "failures": 0,
+  "results": [
+    {
+      "route": "portal-home",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "audit": {
+        "title": "Aurora Hub - ローカルで育てるAIコミュニティ",
+        "brand": "Aurora Hub",
+        "searchLabel": "Aurora Hubを検索",
+        "metaAppName": "",
+        "viewportWidth": 1440,
+        "scrollWidth": 1440
+      },
+      "defects": [],
+      "screenshot": "C:\\Users\\makim\\Claude\\Projects\\NyankoFace\\docs\\evidence\\issues\\15\\custom\\screenshots\\portal-home--desktop.png"
+    },
+    {
+      "route": "forgejo-login",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "audit": {
+        "title": "Sign in - Aurora Hub",
+        "brand": "Aurora Hub",
+        "searchLabel": "",
+        "metaAppName": "Aurora Hub",
+        "viewportWidth": 1440,
+        "scrollWidth": 1440
+      },
+      "defects": [],
+      "screenshot": "C:\\Users\\makim\\Claude\\Projects\\NyankoFace\\docs\\evidence\\issues\\15\\custom\\screenshots\\forgejo-login--desktop.png"
+    },
+    {
+      "route": "portal-home",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "audit": {
+        "title": "Aurora Hub - ローカルで育てるAIコミュニティ",
+        "brand": "Aurora Hub",
+        "searchLabel": "Aurora Hubを検索",
+        "metaAppName": "",
+        "viewportWidth": 390,
+        "scrollWidth": 390
+      },
+      "defects": [],
+      "screenshot": "C:\\Users\\makim\\Claude\\Projects\\NyankoFace\\docs\\evidence\\issues\\15\\custom\\screenshots\\portal-home--mobile.png"
+    },
+    {
+      "route": "forgejo-login",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "audit": {
+        "title": "Sign in - Aurora Hub",
+        "brand": "Aurora Hub",
+        "searchLabel": "",
+        "metaAppName": "Aurora Hub",
+        "viewportWidth": 390,
+        "scrollWidth": 390
+      },
+      "defects": [],
+      "screenshot": "C:\\Users\\makim\\Claude\\Projects\\NyankoFace\\docs\\evidence\\issues\\15\\custom\\screenshots\\forgejo-login--mobile.png"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="candidate-02-title candidate-02-desc">
+    <title id="candidate-02-title">Open Eye</title><desc id="candidate-02-desc">NyankoFace brand exploration candidate 02.</desc>
+    <g><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#06b6d4" stroke="none"/><circle cx="116" cy="128" r="7" fill="#f8fafc" stroke="none"/>
+      </g></g>
+  </svg>

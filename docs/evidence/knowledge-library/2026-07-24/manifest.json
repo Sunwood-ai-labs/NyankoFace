@@ -1,0 +1,1369 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-24T10:02:08.183Z",
+  "baseUrl": "https://example.invalid",
+  "dimensions": {
+    "themes": [
+      "standard",
+      "solarpunk",
+      "cyberpunk"
+    ],
+    "colorSchemes": [
+      "light",
+      "dark"
+    ],
+    "viewports": [
+      {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "routes": [
+      {
+        "id": "docs",
+        "path": "/docs"
+      },
+      {
+        "id": "doc-detail",
+        "path": "/docs/nyankoface/local-first-ai-hub"
+      }
+    ]
+  },
+  "summary": {
+    "total": 24,
+    "passed": 24,
+    "failed": 0,
+    "screenshots": 24,
+    "auditedTextNodes": 3704,
+    "imageBackedTextNodes": 676,
+    "minimumContrastMargin": 1.01
+  },
+  "results": [
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 1672,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 680,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 25 views #architecture #local-first #forge",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 11,
+      "imageBackedTextCount": 30,
+      "minimumContrast": 10.97,
+      "minimumContrastMargin": 2.44,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 1959,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2876,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 281,
+      "imageBackedTextCount": 54,
+      "minimumContrast": 8.81,
+      "minimumContrastMargin": 1.96,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 2699,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 603,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 26 views #architecture #local-first #forgejo ローカルAIハブが必要な理由 NyankoFaceはGit履歴を信頼できる情報源とし、Dockerを実行境界として扱います。ホスト型カタログへ所有権を渡",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 10,
+      "imageBackedTextCount": 20,
+      "minimumContrast": 10.97,
+      "minimumContrastMargin": 2.44,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 2951,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2799,
+      "bodyPreview": "NyankoFace NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド すべて 記事 手順 WIKI いま読まれている / 記事 ローカルAIコミュニティのデザイン コミュニティカタログの情報設計とアクセシビリティ原則 OP",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 280,
+      "imageBackedTextCount": 44,
+      "minimumContrast": 8.81,
+      "minimumContrastMargin": 1.96,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 1708,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 680,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 23 views #architecture #local-first #forge",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 11,
+      "imageBackedTextCount": 30,
+      "minimumContrast": 10.97,
+      "minimumContrastMargin": 2.44,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 1971,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2876,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 281,
+      "imageBackedTextCount": 54,
+      "minimumContrast": 8.81,
+      "minimumContrastMargin": 1.96,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 2725,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 603,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 24 views #architecture #local-first #forgejo ローカルAIハブが必要な理由 NyankoFaceはGit履歴を信頼できる情報源とし、Dockerを実行境界として扱います。ホスト型カタログへ所有権を渡",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 10,
+      "imageBackedTextCount": 20,
+      "minimumContrast": 10.97,
+      "minimumContrastMargin": 2.44,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 2957,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2799,
+      "bodyPreview": "NyankoFace NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド すべて 記事 手順 WIKI いま読まれている / 記事 ローカルAIコミュニティのデザイン コミュニティカタログの情報設計とアクセシビリティ原則 OP",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 280,
+      "imageBackedTextCount": 44,
+      "minimumContrast": 8.81,
+      "minimumContrastMargin": 1.96,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 1610,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 680,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 21 views #architecture #local-first #forge",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 23,
+      "imageBackedTextCount": 18,
+      "minimumContrast": 5.24,
+      "minimumContrastMargin": 1.17,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 1865,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2876,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 295,
+      "imageBackedTextCount": 40,
+      "minimumContrast": 5.52,
+      "minimumContrastMargin": 1.23,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 2749,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 603,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 22 views #architecture #local-first #forgejo ローカルAIハブが必要な理由 NyankoFaceはGit履歴を信頼できる情報源とし、Dockerを実行境界として扱います。ホスト型カタログへ所有権を渡",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 12,
+      "imageBackedTextCount": 18,
+      "minimumContrast": 5.24,
+      "minimumContrastMargin": 1.17,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 3032,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2799,
+      "bodyPreview": "NyankoFace NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド すべて 記事 手順 WIKI いま読まれている / 記事 ローカルAIコミュニティのデザイン コミュニティカタログの情報設計とアクセシビリティ原則 OP",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 284,
+      "imageBackedTextCount": 40,
+      "minimumContrast": 5.52,
+      "minimumContrastMargin": 1.23,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 1585,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 680,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 19 views #architecture #local-first #forge",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 23,
+      "imageBackedTextCount": 18,
+      "minimumContrast": 5.24,
+      "minimumContrastMargin": 1.17,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 1993,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2876,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 295,
+      "imageBackedTextCount": 40,
+      "minimumContrast": 4.73,
+      "minimumContrastMargin": 1.05,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 2852,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 603,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 20 views #architecture #local-first #forgejo ローカルAIハブが必要な理由 NyankoFaceはGit履歴を信頼できる情報源とし、Dockerを実行境界として扱います。ホスト型カタログへ所有権を渡",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 12,
+      "imageBackedTextCount": 18,
+      "minimumContrast": 5.24,
+      "minimumContrastMargin": 1.17,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 3060,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2799,
+      "bodyPreview": "NyankoFace NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド すべて 記事 手順 WIKI いま読まれている / 記事 ローカルAIコミュニティのデザイン コミュニティカタログの情報設計とアクセシビリティ原則 OP",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 284,
+      "imageBackedTextCount": 40,
+      "minimumContrast": 4.73,
+      "minimumContrastMargin": 1.05,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 1519,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 680,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 17 views #architecture #local-first #forge",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 41,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 1810,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2876,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 298,
+      "imageBackedTextCount": 37,
+      "minimumContrast": 7.15,
+      "minimumContrastMargin": 1.61,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 2838,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 603,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 18 views #architecture #local-first #forgejo ローカルAIハブが必要な理由 NyankoFaceはGit履歴を信頼できる情報源とし、Dockerを実行境界として扱います。ホスト型カタログへ所有権を渡",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 30,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 3035,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2799,
+      "bodyPreview": "NyankoFace NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド すべて 記事 手順 WIKI いま読まれている / 記事 ローカルAIコミュニティのデザイン コミュニティカタログの情報設計とアクセシビリティ原則 OP",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 287,
+      "imageBackedTextCount": 37,
+      "minimumContrast": 7.15,
+      "minimumContrastMargin": 1.61,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 2217,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 680,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 15 views #architecture #local-first #forge",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 41,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 4.83,
+      "minimumContrastMargin": 1.07,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 2149,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2876,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 298,
+      "imageBackedTextCount": 37,
+      "minimumContrast": 4.56,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Composable knowledge detail",
+        "path": "/docs/nyankoface/local-first-ai-hub",
+        "focus": "NyankoFace editorial header with article and Wiki roles, topics, real view count, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "finalUrl": "https://example.invalid/docs/nyankoface/local-first-ai-hub",
+      "status": 200,
+      "durationMs": 3018,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--doc-detail.png",
+      "title": "ローカルAIハブが必要な理由 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 603,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface ✍️ 記事 WIKI ローカルAIハブが必要な理由 Gitで管理する知識が、ローカルAIコミュニティを長く支える理由 8分前に更新 · 読了 1分 · 16 views #architecture #local-first #forgejo ローカルAIハブが必要な理由 NyankoFaceはGit履歴を信頼できる情報源とし、Dockerを実行境界として扱います。ホスト型カタログへ所有権を渡",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 30,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 4.83,
+      "minimumContrastMargin": 1.07,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 3203,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2799,
+      "bodyPreview": "NyankoFace NYANKOFACE ナレッジライブラリ 読む。試す。 知識にする。 読みものの「記事」、再現できる「手順」、育ち続ける「Wiki」。ひとつのナレッジに複数の役割を付けて届けます。 ナレッジを公開する はじめ方を見る 公開ナレッジ 18 登録トピック 38 新着 トレンド すべて 記事 手順 WIKI いま読まれている / 記事 ローカルAIコミュニティのデザイン コミュニティカタログの情報設計とアクセシビリティ原則 OP",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 287,
+      "imageBackedTextCount": 37,
+      "minimumContrast": 4.56,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    }
+  ]
+}

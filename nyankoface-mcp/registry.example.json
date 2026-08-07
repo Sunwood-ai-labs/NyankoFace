@@ -1,0 +1,55 @@
+{
+  "version": 2,
+  "subjects": [
+    {
+      "subject_id": "service:codex-reader",
+      "subject_type": "service_account",
+      "enabled": true,
+      "forgejo_user_id": 42,
+      "forgejo_token_file": "/run/secrets/nyankoface-mcp-forgejo-user-token",
+      "allowed_scopes": [
+        "catalog:read",
+        "repos:read",
+        "issues:read",
+        "spaces:read",
+        "spaces:run",
+        "pages:read",
+        "pages:deploy",
+        "pipelines:read",
+        "pipelines:write",
+        "metrics:read"
+      ],
+      "repository_permissions": {
+        "nyankoface/example": "read"
+      },
+      "mapping_version": 1,
+      "created_at": 1767225600
+    }
+  ],
+  "tokens": [
+    {
+      "token_id": "00000000-0000-4000-8000-000000000001",
+      "token_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "client_id": "codex",
+      "subject_id": "service:codex-reader",
+      "subject_type": "service_account",
+      "audience": "nyankoface-api-v1",
+      "scopes": [
+        "catalog:read",
+        "repos:read",
+        "issues:read",
+        "spaces:read",
+        "pages:read",
+        "pipelines:read",
+        "metrics:read"
+      ],
+      "repositories": [
+        "nyankoface/example"
+      ],
+      "mapping_version": 1,
+      "created_at": 1767225600,
+      "expires_at": 1775001600,
+      "revoked_at": null
+    }
+  ]
+}

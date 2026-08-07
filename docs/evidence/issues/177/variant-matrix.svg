@@ -1,0 +1,292 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1366" role="img" aria-labelledby="variant-matrix-title variant-matrix-desc">
+    <title id="variant-matrix-title">NyankoFace shrink and color matrix</title>
+    <desc id="variant-matrix-desc">Ten logo directions compared at true 24 and 32 pixel surface sizes across light, dark, monochrome, and inverse variants.</desc>
+    <defs>
+    <linearGradient id="hero" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#12263f"/><stop offset="1" stop-color="#0b1220"/></linearGradient>
+    <linearGradient id="card" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#e9f4f7"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#020617" flood-opacity=".18"/></filter>
+  </defs>
+    <rect width="1920" height="1366" fill="#07111f"/>
+    <text x="70" y="62" fill="#67e8f9" font-family="Inter,Segoe UI,sans-serif" font-size="24px" font-weight="800" text-anchor="start">SHRINK + COLOR MATRIX</text>
+    <text x="70" y="103" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="28px" font-weight="800" text-anchor="start">Every direction is checked as a mark, not only as a large illustration.</text>
+    <text x="600" y="137" fill="#a8c1d6" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="700" text-anchor="middle">24 / light</text><text x="822" y="137" fill="#a8c1d6" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="700" text-anchor="middle">24 / dark</text><text x="1044" y="137" fill="#a8c1d6" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="700" text-anchor="middle">32 / light</text><text x="1266" y="137" fill="#a8c1d6" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="700" text-anchor="middle">32 / dark</text><text x="1488" y="137" fill="#a8c1d6" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="700" text-anchor="middle">24 / mono</text><text x="1710" y="137" fill="#a8c1d6" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="700" text-anchor="middle">24 / inverse</text>
+    <rect x="48" y="150" width="1824" height="92" rx="18" fill="#f8fafc"/>
+      <text x="70" y="189" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">01  NyankoFace Signal Wordmark</text>
+      <rect x="70" y="204" width="86" height="21" rx="10" fill="#0e7490"/><text x="113" y="219" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="10px" font-weight="800" text-anchor="middle">PRIMARY</text>
+      <rect x="505" y="160" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 184) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M42 76h126"/><path d="M42 128h172"/><path d="M42 180h126"/>
+        <path d="M182 76h32" stroke="#06b6d4"/><path d="M42 128h38" stroke="#f59e0b"/>
+      </g></g><rect x="727" y="160" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 184) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M42 76h126"/><path d="M42 128h172"/><path d="M42 180h126"/>
+        <path d="M182 76h32" stroke="#67e8f9"/><path d="M42 128h38" stroke="#fbbf24"/>
+      </g></g><rect x="949" y="160" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 180) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M42 76h126"/><path d="M42 128h172"/><path d="M42 180h126"/>
+        <path d="M182 76h32" stroke="#06b6d4"/><path d="M42 128h38" stroke="#f59e0b"/>
+      </g></g><rect x="1171" y="160" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 180) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M42 76h126"/><path d="M42 128h172"/><path d="M42 180h126"/>
+        <path d="M182 76h32" stroke="#67e8f9"/><path d="M42 128h38" stroke="#fbbf24"/>
+      </g></g><rect x="1393" y="160" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 184) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M42 76h126"/><path d="M42 128h172"/><path d="M42 180h126"/>
+        <path d="M182 76h32" stroke="#111827"/><path d="M42 128h38" stroke="#111827"/>
+      </g></g><rect x="1615" y="160" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 184) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M42 76h126"/><path d="M42 128h172"/><path d="M42 180h126"/>
+        <path d="M182 76h32" stroke="#ffffff"/><path d="M42 128h38" stroke="#ffffff"/>
+      </g></g><rect x="48" y="262" width="1824" height="92" rx="18" fill="#e8f1f5"/>
+      <text x="70" y="301" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">02  Open Eye</text>
+      <text x="70" y="331" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="600" text-anchor="start">soft lowercase + eye</text>
+      <rect x="505" y="272" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 296) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#06b6d4" stroke="none"/><circle cx="116" cy="128" r="7" fill="#f8fafc" stroke="none"/>
+      </g></g><rect x="727" y="272" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 296) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#67e8f9" stroke="none"/><circle cx="116" cy="128" r="7" fill="#0b1220" stroke="none"/>
+      </g></g><rect x="949" y="272" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 292) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#06b6d4" stroke="none"/><circle cx="116" cy="128" r="7" fill="#f8fafc" stroke="none"/>
+      </g></g><rect x="1171" y="272" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 292) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#67e8f9" stroke="none"/><circle cx="116" cy="128" r="7" fill="#0b1220" stroke="none"/>
+      </g></g><rect x="1393" y="272" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 296) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#111827" stroke="none"/><circle cx="116" cy="128" r="7" fill="#ffffff" stroke="none"/>
+      </g></g><rect x="1615" y="272" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 296) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#ffffff" stroke="none"/><circle cx="116" cy="128" r="7" fill="#111827" stroke="none"/>
+      </g></g><rect x="48" y="374" width="1824" height="92" rx="18" fill="#f8fafc"/>
+      <text x="70" y="413" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">03  Neural Horizontal Face</text>
+      <text x="70" y="443" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="600" text-anchor="start">layered face lines</text>
+      <rect x="505" y="384" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 408) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#06b6d4" stroke="none"/><circle cx="164" cy="128" r="8" fill="#06b6d4" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#f59e0b"/>
+      </g></g><rect x="727" y="384" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 408) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#67e8f9" stroke="none"/><circle cx="164" cy="128" r="8" fill="#67e8f9" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#fbbf24"/>
+      </g></g><rect x="949" y="384" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 404) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#06b6d4" stroke="none"/><circle cx="164" cy="128" r="8" fill="#06b6d4" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#f59e0b"/>
+      </g></g><rect x="1171" y="384" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 404) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#67e8f9" stroke="none"/><circle cx="164" cy="128" r="8" fill="#67e8f9" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#fbbf24"/>
+      </g></g><rect x="1393" y="384" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 408) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#111827" stroke="none"/><circle cx="164" cy="128" r="8" fill="#111827" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#111827"/>
+      </g></g><rect x="1615" y="384" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 408) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#ffffff" stroke="none"/><circle cx="164" cy="128" r="8" fill="#ffffff" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#ffffff"/>
+      </g></g><rect x="48" y="486" width="1824" height="92" rx="18" fill="#e8f1f5"/>
+      <text x="70" y="525" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">04  OF Brain-Line Monogram</text>
+      <text x="70" y="555" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="600" text-anchor="start">OF + neural stroke</text>
+      <rect x="505" y="496" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 520) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="86" cy="128" r="60"/><path d="M146 68v120"/>
+        <path d="M146 74h70M146 128h55M146 182h70" stroke="#06b6d4"/>
+        <path d="M74 104h24" stroke="#f59e0b"/>
+      </g></g><rect x="727" y="496" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 520) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="86" cy="128" r="60"/><path d="M146 68v120"/>
+        <path d="M146 74h70M146 128h55M146 182h70" stroke="#67e8f9"/>
+        <path d="M74 104h24" stroke="#fbbf24"/>
+      </g></g><rect x="949" y="496" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 516) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="86" cy="128" r="60"/><path d="M146 68v120"/>
+        <path d="M146 74h70M146 128h55M146 182h70" stroke="#06b6d4"/>
+        <path d="M74 104h24" stroke="#f59e0b"/>
+      </g></g><rect x="1171" y="496" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 516) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="86" cy="128" r="60"/><path d="M146 68v120"/>
+        <path d="M146 74h70M146 128h55M146 182h70" stroke="#67e8f9"/>
+        <path d="M74 104h24" stroke="#fbbf24"/>
+      </g></g><rect x="1393" y="496" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 520) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="86" cy="128" r="60"/><path d="M146 68v120"/>
+        <path d="M146 74h70M146 128h55M146 182h70" stroke="#111827"/>
+        <path d="M74 104h24" stroke="#111827"/>
+      </g></g><rect x="1615" y="496" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 520) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="86" cy="128" r="60"/><path d="M146 68v120"/>
+        <path d="M146 74h70M146 128h55M146 182h70" stroke="#ffffff"/>
+        <path d="M74 104h24" stroke="#ffffff"/>
+      </g></g><rect x="48" y="598" width="1824" height="92" rx="18" fill="#f8fafc"/>
+      <text x="70" y="637" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">05  Open Portal Wordmark</text>
+      <text x="70" y="667" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="600" text-anchor="start">repository portal</text>
+      <rect x="505" y="608" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 632) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 50H46v156h40M170 50h40v156h-40"/>
+        <path d="M78 96h100M78 128h70M78 160h100" stroke="#06b6d4"/>
+        <path d="M154 128h24" stroke="#f59e0b"/>
+      </g></g><rect x="727" y="608" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 632) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 50H46v156h40M170 50h40v156h-40"/>
+        <path d="M78 96h100M78 128h70M78 160h100" stroke="#67e8f9"/>
+        <path d="M154 128h24" stroke="#fbbf24"/>
+      </g></g><rect x="949" y="608" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 628) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 50H46v156h40M170 50h40v156h-40"/>
+        <path d="M78 96h100M78 128h70M78 160h100" stroke="#06b6d4"/>
+        <path d="M154 128h24" stroke="#f59e0b"/>
+      </g></g><rect x="1171" y="608" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 628) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 50H46v156h40M170 50h40v156h-40"/>
+        <path d="M78 96h100M78 128h70M78 160h100" stroke="#67e8f9"/>
+        <path d="M154 128h24" stroke="#fbbf24"/>
+      </g></g><rect x="1393" y="608" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 632) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 50H46v156h40M170 50h40v156h-40"/>
+        <path d="M78 96h100M78 128h70M78 160h100" stroke="#111827"/>
+        <path d="M154 128h24" stroke="#111827"/>
+      </g></g><rect x="1615" y="608" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 632) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 50H46v156h40M170 50h40v156h-40"/>
+        <path d="M78 96h100M78 128h70M78 160h100" stroke="#ffffff"/>
+        <path d="M154 128h24" stroke="#ffffff"/>
+      </g></g><rect x="48" y="710" width="1824" height="92" rx="18" fill="#e8f1f5"/>
+      <text x="70" y="749" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">06  Cat Signal</text>
+      <rect x="70" y="764" width="86" height="21" rx="10" fill="#0e7490"/><text x="113" y="779" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="10px" font-weight="800" text-anchor="middle">CONTINUITY</text>
+      <rect x="505" y="720" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 744) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#06b6d4" stroke="none"/><circle cx="158" cy="132" r="9" fill="#06b6d4" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#f59e0b"/>
+      </g></g><rect x="727" y="720" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 744) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#67e8f9" stroke="none"/><circle cx="158" cy="132" r="9" fill="#67e8f9" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#fbbf24"/>
+      </g></g><rect x="949" y="720" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 740) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#06b6d4" stroke="none"/><circle cx="158" cy="132" r="9" fill="#06b6d4" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#f59e0b"/>
+      </g></g><rect x="1171" y="720" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 740) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#67e8f9" stroke="none"/><circle cx="158" cy="132" r="9" fill="#67e8f9" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#fbbf24"/>
+      </g></g><rect x="1393" y="720" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 744) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#111827" stroke="none"/><circle cx="158" cy="132" r="9" fill="#111827" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#111827"/>
+      </g></g><rect x="1615" y="720" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 744) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#ffffff" stroke="none"/><circle cx="158" cy="132" r="9" fill="#ffffff" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#ffffff"/>
+      </g></g><rect x="48" y="822" width="1824" height="92" rx="18" fill="#f8fafc"/>
+      <text x="70" y="861" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">07  Face Aperture</text>
+      <text x="70" y="891" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="600" text-anchor="start">open / close motion</text>
+      <rect x="505" y="832" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 856) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 86h180"/><path d="M38 170h180"/>
+        <path d="M78 128h100" stroke="#06b6d4" stroke-width="28"/>
+        <circle cx="128" cy="128" r="14" fill="#f8fafc" stroke="none"/>
+        <path d="M106 128h44" stroke="#f59e0b"/>
+      </g></g><rect x="727" y="832" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 856) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 86h180"/><path d="M38 170h180"/>
+        <path d="M78 128h100" stroke="#67e8f9" stroke-width="28"/>
+        <circle cx="128" cy="128" r="14" fill="#0b1220" stroke="none"/>
+        <path d="M106 128h44" stroke="#fbbf24"/>
+      </g></g><rect x="949" y="832" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 852) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 86h180"/><path d="M38 170h180"/>
+        <path d="M78 128h100" stroke="#06b6d4" stroke-width="28"/>
+        <circle cx="128" cy="128" r="14" fill="#f8fafc" stroke="none"/>
+        <path d="M106 128h44" stroke="#f59e0b"/>
+      </g></g><rect x="1171" y="832" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 852) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 86h180"/><path d="M38 170h180"/>
+        <path d="M78 128h100" stroke="#67e8f9" stroke-width="28"/>
+        <circle cx="128" cy="128" r="14" fill="#0b1220" stroke="none"/>
+        <path d="M106 128h44" stroke="#fbbf24"/>
+      </g></g><rect x="1393" y="832" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 856) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 86h180"/><path d="M38 170h180"/>
+        <path d="M78 128h100" stroke="#111827" stroke-width="28"/>
+        <circle cx="128" cy="128" r="14" fill="#ffffff" stroke="none"/>
+        <path d="M106 128h44" stroke="#111827"/>
+      </g></g><rect x="1615" y="832" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 856) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 86h180"/><path d="M38 170h180"/>
+        <path d="M78 128h100" stroke="#ffffff" stroke-width="28"/>
+        <circle cx="128" cy="128" r="14" fill="#111827" stroke="none"/>
+        <path d="M106 128h44" stroke="#ffffff"/>
+      </g></g><rect x="48" y="934" width="1824" height="92" rx="18" fill="#e8f1f5"/>
+      <text x="70" y="973" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">08  Community Wave</text>
+      <text x="70" y="1003" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="600" text-anchor="start">people + repositories</text>
+      <rect x="505" y="944" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 968) scale(0.09375)"><g fill="none" stroke="#06b6d4" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 96c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 128c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 160c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+      </g><circle cx="128" cy="128" r="17" fill="#f59e0b"/></g><rect x="727" y="944" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 968) scale(0.09375)"><g fill="none" stroke="#67e8f9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 96c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 128c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 160c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+      </g><circle cx="128" cy="128" r="17" fill="#fbbf24"/></g><rect x="949" y="944" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 964) scale(0.125)"><g fill="none" stroke="#06b6d4" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 96c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 128c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 160c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+      </g><circle cx="128" cy="128" r="17" fill="#f59e0b"/></g><rect x="1171" y="944" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 964) scale(0.125)"><g fill="none" stroke="#67e8f9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 96c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 128c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 160c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+      </g><circle cx="128" cy="128" r="17" fill="#fbbf24"/></g><rect x="1393" y="944" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 968) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 96c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 128c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 160c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+      </g><circle cx="128" cy="128" r="17" fill="#111827"/></g><rect x="1615" y="944" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 968) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 96c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 128c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 160c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+      </g><circle cx="128" cy="128" r="17" fill="#ffffff"/></g><rect x="48" y="1046" width="1824" height="92" rx="18" fill="#f8fafc"/>
+      <text x="70" y="1085" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">09  Black Wordmark + Cyan Cut</text>
+      <rect x="70" y="1100" width="86" height="21" rx="10" fill="#0e7490"/><text x="113" y="1115" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="10px" font-weight="800" text-anchor="middle">UTILITY</text>
+      <rect x="505" y="1056" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 1080) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M92 56c-40 0-66 28-66 72s26 72 66 72c22 0 38-8 50-22"/>
+        <path d="M112 72h98M112 128h72M112 184h98"/>
+        <path d="M72 128h38" stroke="#06b6d4" stroke-width="26"/>
+      </g></g><rect x="727" y="1056" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 1080) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M92 56c-40 0-66 28-66 72s26 72 66 72c22 0 38-8 50-22"/>
+        <path d="M112 72h98M112 128h72M112 184h98"/>
+        <path d="M72 128h38" stroke="#67e8f9" stroke-width="26"/>
+      </g></g><rect x="949" y="1056" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 1076) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M92 56c-40 0-66 28-66 72s26 72 66 72c22 0 38-8 50-22"/>
+        <path d="M112 72h98M112 128h72M112 184h98"/>
+        <path d="M72 128h38" stroke="#06b6d4" stroke-width="26"/>
+      </g></g><rect x="1171" y="1056" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 1076) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M92 56c-40 0-66 28-66 72s26 72 66 72c22 0 38-8 50-22"/>
+        <path d="M112 72h98M112 128h72M112 184h98"/>
+        <path d="M72 128h38" stroke="#67e8f9" stroke-width="26"/>
+      </g></g><rect x="1393" y="1056" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 1080) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M92 56c-40 0-66 28-66 72s26 72 66 72c22 0 38-8 50-22"/>
+        <path d="M112 72h98M112 128h72M112 184h98"/>
+        <path d="M72 128h38" stroke="#111827" stroke-width="26"/>
+      </g></g><rect x="1615" y="1056" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 1080) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M92 56c-40 0-66 28-66 72s26 72 66 72c22 0 38-8 50-22"/>
+        <path d="M112 72h98M112 128h72M112 184h98"/>
+        <path d="M72 128h38" stroke="#ffffff" stroke-width="26"/>
+      </g></g><rect x="48" y="1158" width="1824" height="92" rx="18" fill="#e8f1f5"/>
+      <text x="70" y="1197" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">10  Mark-First Monogram System</text>
+      <text x="70" y="1227" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="600" text-anchor="start">responsive mark system</text>
+      <rect x="505" y="1168" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(588 1192) scale(0.09375)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="42" y="42" width="172" height="172" rx="42"/>
+        <path d="M42 102h58M156 102h58M42 154h58M156 154h58" stroke="#06b6d4"/>
+        <circle cx="128" cy="128" r="20" fill="#f59e0b" stroke="none"/>
+      </g></g><rect x="727" y="1168" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(810 1192) scale(0.09375)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="42" y="42" width="172" height="172" rx="42"/>
+        <path d="M42 102h58M156 102h58M42 154h58M156 154h58" stroke="#67e8f9"/>
+        <circle cx="128" cy="128" r="20" fill="#fbbf24" stroke="none"/>
+      </g></g><rect x="949" y="1168" width="190" height="72" rx="14" fill="#f8fafc" stroke="#cad9e1"/><g transform="translate(1028 1188) scale(0.125)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="42" y="42" width="172" height="172" rx="42"/>
+        <path d="M42 102h58M156 102h58M42 154h58M156 154h58" stroke="#06b6d4"/>
+        <circle cx="128" cy="128" r="20" fill="#f59e0b" stroke="none"/>
+      </g></g><rect x="1171" y="1168" width="190" height="72" rx="14" fill="#0b1220" stroke="#cad9e1"/><g transform="translate(1250 1188) scale(0.125)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="42" y="42" width="172" height="172" rx="42"/>
+        <path d="M42 102h58M156 102h58M42 154h58M156 154h58" stroke="#67e8f9"/>
+        <circle cx="128" cy="128" r="20" fill="#fbbf24" stroke="none"/>
+      </g></g><rect x="1393" y="1168" width="190" height="72" rx="14" fill="#ffffff" stroke="#cad9e1"/><g transform="translate(1476 1192) scale(0.09375)"><g fill="none" stroke="#111827" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="42" y="42" width="172" height="172" rx="42"/>
+        <path d="M42 102h58M156 102h58M42 154h58M156 154h58" stroke="#111827"/>
+        <circle cx="128" cy="128" r="20" fill="#111827" stroke="none"/>
+      </g></g><rect x="1615" y="1168" width="190" height="72" rx="14" fill="#111827" stroke="#cad9e1"/><g transform="translate(1698 1192) scale(0.09375)"><g fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="42" y="42" width="172" height="172" rx="42"/>
+        <path d="M42 102h58M156 102h58M42 154h58M156 154h58" stroke="#ffffff"/>
+        <circle cx="128" cy="128" r="20" fill="#ffffff" stroke="none"/>
+      </g></g>
+    <rect x="48" y="1322" width="1824" height="24" rx="12" fill="#102a43"/>
+    <text x="70" y="1339" fill="#d7e6ef" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="600" text-anchor="start">Pass target: recognizable silhouette at 24px, clean 1-color export, no thin strokes that collapse on favicon or navbar surfaces.</text>
+  </svg>

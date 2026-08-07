@@ -1,0 +1,63 @@
+name: Bug report
+description: Report a reproducible NyankoFace defect
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve NyankoFace. Remove credentials and private repository data before submitting.
+  - type: input
+    id: revision
+    attributes:
+      label: NyankoFace revision
+      description: Commit SHA or release name
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Gateway / HTTPS
+        - Frontend
+        - Forgejo
+        - Spaces runner
+        - Seed data
+        - Forgejo Actions / Pages
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: Describe the shortest sequence that reproduces the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and sanitized logs
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Docker version, Compose version, browser, and deployment URL shape
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed passwords, tokens, private repository data, and certificate material.
+          required: true

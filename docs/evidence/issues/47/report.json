@@ -1,0 +1,106 @@
+{
+  "passed": 4,
+  "total": 4,
+  "results": [
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "profileAvatarSrc": null,
+        "profileAvatarLoaded": null,
+        "anonymousControls": 2,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "desktop--anonymous--classic-home.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "profileAvatarSrc": "/git/assets/img/avatars/lina-park.png?v=20260718-seraphim-characters3",
+        "profileAvatarLoaded": true,
+        "anonymousControls": 0,
+        "authenticatedControls": 2,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "desktop--authenticated--classic-home.png"
+    },
+    {
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "profileAvatarSrc": null,
+        "profileAvatarLoaded": null,
+        "anonymousControls": 2,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "mobile--anonymous--classic-home.png"
+    },
+    {
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "profileAvatarSrc": "/git/assets/img/avatars/lina-park.png?v=20260718-seraphim-characters3",
+        "profileAvatarLoaded": true,
+        "anonymousControls": 0,
+        "authenticatedControls": 2,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "mobile--authenticated--classic-home.png"
+    }
+  ]
+}

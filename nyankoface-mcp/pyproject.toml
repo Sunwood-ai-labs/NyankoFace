@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools==80.9.0", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nyankoface-mcp"
+version = "0.1.0"
+description = "Official stateless MCP adapter for NyankoFace"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Sunwood AI Labs" }]
+keywords = ["nyankoface", "mcp", "model-context-protocol"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+  "httpx==0.28.1",
+  "mcp==1.26.0",
+  "starlette==1.3.1",
+  "uvicorn==0.41.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Sunwood-ai-labs/NyankoFace"
+Issues = "https://github.com/Sunwood-ai-labs/NyankoFace/issues"
+Documentation = "https://sunwood-ai-labs.github.io/NyankoFace/guide/mcp-server"
+
+[project.scripts]
+nyankoface-mcp = "nyankoface_mcp.cli:main"
+nyankoface-mcp-server = "nyankoface_mcp.cli:http_main"
+nyankoface-mcp-stdio = "nyankoface_mcp.cli:stdio_main"
+nyankoface-mcp-admin-server = "nyankoface_mcp.cli:admin_main"
+
+[tool.setuptools.packages.find]
+include = ["nyankoface_mcp*"]

@@ -1,0 +1,1225 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-21T13:38:38.204Z",
+  "baseUrl": "https://localhost:8443",
+  "dimensions": {
+    "themes": [
+      "standard",
+      "solarpunk",
+      "cyberpunk"
+    ],
+    "colorSchemes": [
+      "light",
+      "dark"
+    ],
+    "viewports": [
+      {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "routes": [
+      {
+        "id": "docs",
+        "path": "/docs"
+      },
+      {
+        "id": "doc-detail",
+        "path": "/nyankoface/platform-knowledge-atlas"
+      }
+    ]
+  },
+  "summary": {
+    "total": 24,
+    "passed": 24,
+    "failed": 0,
+    "screenshots": 24,
+    "auditedTextNodes": 1640,
+    "imageBackedTextNodes": 172,
+    "minimumContrastMargin": 1.01
+  },
+  "results": [
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 797,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 1229,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture ",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 34,
+      "imageBackedTextCount": 32,
+      "minimumContrast": 7.58,
+      "minimumContrastMargin": 1.69,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 808,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 1483,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 82,
+      "imageBackedTextCount": 12,
+      "minimumContrast": 6.23,
+      "minimumContrastMargin": 1.38,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 689,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 1166,
+      "bodyPreview": "NyankoFace Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture routes wiki license: MIT #wiki #architecture #routes NyankoFace p",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 33,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 7.58,
+      "minimumContrastMargin": 1.69,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 699,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 1420,
+      "bodyPreview": "NyankoFace NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and practical guides help you ship. PUBLISHED ENTRIES 6 CONNECTED ",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 81,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.23,
+      "minimumContrastMargin": 1.38,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 769,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 1229,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture ",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 35,
+      "imageBackedTextCount": 31,
+      "minimumContrast": 7.58,
+      "minimumContrastMargin": 1.69,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 674,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 1483,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 82,
+      "imageBackedTextCount": 12,
+      "minimumContrast": 6.23,
+      "minimumContrastMargin": 1.38,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 720,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 1166,
+      "bodyPreview": "NyankoFace Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture routes wiki license: MIT #wiki #architecture #routes NyankoFace p",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 34,
+      "imageBackedTextCount": 23,
+      "minimumContrast": 7.58,
+      "minimumContrastMargin": 1.69,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 728,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 1420,
+      "bodyPreview": "NyankoFace NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and practical guides help you ship. PUBLISHED ENTRIES 6 CONNECTED ",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 81,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.23,
+      "minimumContrastMargin": 1.38,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 758,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1229,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture ",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 61,
+      "imageBackedTextCount": 5,
+      "minimumContrast": 4.54,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 773,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1483,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 91,
+      "imageBackedTextCount": 3,
+      "minimumContrast": 6.14,
+      "minimumContrastMargin": 1.37,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 661,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1166,
+      "bodyPreview": "NyankoFace Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture routes wiki license: MIT #wiki #architecture #routes NyankoFace p",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 52,
+      "imageBackedTextCount": 5,
+      "minimumContrast": 4.54,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 645,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1420,
+      "bodyPreview": "NyankoFace NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and practical guides help you ship. PUBLISHED ENTRIES 6 CONNECTED ",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 82,
+      "imageBackedTextCount": 3,
+      "minimumContrast": 6.14,
+      "minimumContrastMargin": 1.37,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 733,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1229,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture ",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 62,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 4.54,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 703,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1483,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 91,
+      "imageBackedTextCount": 3,
+      "minimumContrast": 4.73,
+      "minimumContrastMargin": 1.05,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 645,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1166,
+      "bodyPreview": "NyankoFace Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture routes wiki license: MIT #wiki #architecture #routes NyankoFace p",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 53,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 4.54,
+      "minimumContrastMargin": 1.01,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 629,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1420,
+      "bodyPreview": "NyankoFace NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and practical guides help you ship. PUBLISHED ENTRIES 6 CONNECTED ",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 82,
+      "imageBackedTextCount": 3,
+      "minimumContrast": 4.73,
+      "minimumContrastMargin": 1.05,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 656,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1229,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture ",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 66,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 621,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1483,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 94,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 8.28,
+      "minimumContrastMargin": 1.84,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 703,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1166,
+      "bodyPreview": "NyankoFace Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture routes wiki license: MIT #wiki #architecture #routes NyankoFace p",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 57,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 590,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1420,
+      "bodyPreview": "NyankoFace NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and practical guides help you ship. PUBLISHED ENTRIES 6 CONNECTED ",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 85,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 8.28,
+      "minimumContrastMargin": 1.84,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 936,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1229,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture ",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 66,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 895,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1483,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Docs Log In Sign Up NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 94,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 4.96,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-detail",
+        "label": "Doc detail",
+        "path": "/nyankoface/platform-knowledge-atlas",
+        "focus": "Wiki content, topics, repository source actions, responsive reading width, and theme contrast"
+      },
+      "requestedUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "finalUrl": "https://localhost:8443/nyankoface/platform-knowledge-atlas",
+      "status": 200,
+      "durationMs": 700,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--doc-detail.png",
+      "title": "nyankoface/platform-knowledge-atlas - Doc - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1166,
+      "bodyPreview": "NyankoFace Docs: nyankoface / platform-knowledge-atlas like 0 Document Files Community A connected Wiki map of NyankoFace services, routes, and state architecture routes wiki license: MIT #wiki #architecture #routes NyankoFace p",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 57,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 6.91,
+      "minimumContrastMargin": 1.54,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Docs library",
+        "path": "/docs",
+        "focus": "Editorial hero, article and Wiki taxonomy, search, filters, and responsive reading index"
+      },
+      "requestedUrl": "https://localhost:8443/docs",
+      "finalUrl": "https://localhost:8443/docs",
+      "status": 200,
+      "durationMs": 642,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--docs.png",
+      "title": "Docs - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 1420,
+      "bodyPreview": "NyankoFace NYANKOFACE DOCS LIBRARY Read broadly. Navigate precisely. An editorial library where field notes explain the decisions, Wiki nodes map the system, and practical guides help you ship. PUBLISHED ENTRIES 6 CONNECTED ",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "contrastRiskCount": 0,
+      "auditedTextCount": 85,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 4.96,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    }
+  ]
+}

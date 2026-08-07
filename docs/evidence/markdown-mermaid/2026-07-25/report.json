@@ -1,0 +1,697 @@
+{
+  "generatedAt": "2026-07-25T04:41:51.301Z",
+  "baseUrl": "http://localhost:8090",
+  "coverage": {
+    "themes": 3,
+    "viewports": 2,
+    "routes": 2,
+    "screenshots": 57
+  },
+  "failures": [],
+  "results": [
+    {
+      "theme": "standard",
+      "viewport": "desktop",
+      "route": "repository-readme",
+      "status": 200,
+      "activeTheme": "standard",
+      "rendered": 1,
+      "fallbacks": 0,
+      "rawBlocks": 0,
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 32,
+          "right": 1096,
+          "viewportClientWidth": 1047,
+          "viewportScrollWidth": 1047
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--repository-readme.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--repository-readme--diagram-1.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "standard",
+      "viewport": "desktop",
+      "route": "knowledge-article",
+      "status": 200,
+      "activeTheme": "standard",
+      "rendered": 5,
+      "fallbacks": 1,
+      "rawBlocks": 0,
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "error",
+          "view": null,
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--knowledge-article.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--knowledge-article--diagram-1.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--knowledge-article--diagram-2.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--knowledge-article--diagram-3.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--knowledge-article--diagram-4.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--knowledge-article--diagram-5.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--desktop--knowledge-article--diagram-6.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "standard",
+      "viewport": "mobile",
+      "route": "repository-readme",
+      "status": 200,
+      "activeTheme": "standard",
+      "rendered": 1,
+      "fallbacks": 0,
+      "rawBlocks": 0,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 20,
+          "right": 370,
+          "viewportClientWidth": 333,
+          "viewportScrollWidth": 333
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--repository-readme.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--repository-readme--diagram-1.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "standard",
+      "viewport": "mobile",
+      "route": "knowledge-article",
+      "status": 200,
+      "activeTheme": "standard",
+      "rendered": 5,
+      "fallbacks": 1,
+      "rawBlocks": 0,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "error",
+          "view": null,
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": {
+        "view": "actual",
+        "pressed": "true",
+        "label": "全体表示",
+        "clientWidth": 293,
+        "scrollWidth": 652
+      },
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--knowledge-article.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--knowledge-article--diagram-1.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--knowledge-article--diagram-2.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--knowledge-article--diagram-3.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--knowledge-article--diagram-4.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--knowledge-article--diagram-5.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/standard--mobile--knowledge-article--diagram-6.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": "desktop",
+      "route": "repository-readme",
+      "status": 200,
+      "activeTheme": "solarpunk",
+      "rendered": 1,
+      "fallbacks": 0,
+      "rawBlocks": 0,
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 32,
+          "right": 1096,
+          "viewportClientWidth": 1047,
+          "viewportScrollWidth": 1047
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--repository-readme.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--repository-readme--diagram-1.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": "desktop",
+      "route": "knowledge-article",
+      "status": 200,
+      "activeTheme": "solarpunk",
+      "rendered": 5,
+      "fallbacks": 1,
+      "rawBlocks": 0,
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "error",
+          "view": null,
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--knowledge-article.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--knowledge-article--diagram-1.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--knowledge-article--diagram-2.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--knowledge-article--diagram-3.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--knowledge-article--diagram-4.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--knowledge-article--diagram-5.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--desktop--knowledge-article--diagram-6.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": "mobile",
+      "route": "repository-readme",
+      "status": 200,
+      "activeTheme": "solarpunk",
+      "rendered": 1,
+      "fallbacks": 0,
+      "rawBlocks": 0,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 20,
+          "right": 370,
+          "viewportClientWidth": 333,
+          "viewportScrollWidth": 333
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--repository-readme.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--repository-readme--diagram-1.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": "mobile",
+      "route": "knowledge-article",
+      "status": 200,
+      "activeTheme": "solarpunk",
+      "rendered": 5,
+      "fallbacks": 1,
+      "rawBlocks": 0,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "error",
+          "view": null,
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": {
+        "view": "actual",
+        "pressed": "true",
+        "label": "全体表示",
+        "clientWidth": 293,
+        "scrollWidth": 652
+      },
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--knowledge-article.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--knowledge-article--diagram-1.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--knowledge-article--diagram-2.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--knowledge-article--diagram-3.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--knowledge-article--diagram-4.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--knowledge-article--diagram-5.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/solarpunk--mobile--knowledge-article--diagram-6.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": "desktop",
+      "route": "repository-readme",
+      "status": 200,
+      "activeTheme": "cyberpunk",
+      "rendered": 1,
+      "fallbacks": 0,
+      "rawBlocks": 0,
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 32,
+          "right": 1096,
+          "viewportClientWidth": 1047,
+          "viewportScrollWidth": 1047
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--repository-readme.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--repository-readme--diagram-1.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": "desktop",
+      "route": "knowledge-article",
+      "status": 200,
+      "activeTheme": "cyberpunk",
+      "rendered": 5,
+      "fallbacks": 1,
+      "rawBlocks": 0,
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        },
+        {
+          "state": "error",
+          "view": null,
+          "left": 232,
+          "right": 978,
+          "viewportClientWidth": 729,
+          "viewportScrollWidth": 729
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--knowledge-article.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--knowledge-article--diagram-1.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--knowledge-article--diagram-2.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--knowledge-article--diagram-3.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--knowledge-article--diagram-4.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--knowledge-article--diagram-5.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--desktop--knowledge-article--diagram-6.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": "mobile",
+      "route": "repository-readme",
+      "status": 200,
+      "activeTheme": "cyberpunk",
+      "rendered": 1,
+      "fallbacks": 0,
+      "rawBlocks": 0,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 20,
+          "right": 370,
+          "viewportClientWidth": 333,
+          "viewportScrollWidth": 333
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": null,
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--repository-readme.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--repository-readme--diagram-1.png"
+      ],
+      "passed": true
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": "mobile",
+      "route": "knowledge-article",
+      "status": 200,
+      "activeTheme": "cyberpunk",
+      "rendered": 5,
+      "fallbacks": 1,
+      "rawBlocks": 0,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "figures": [
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "rendered",
+          "view": "fit",
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        },
+        {
+          "state": "error",
+          "view": null,
+          "left": 40,
+          "right": 350,
+          "viewportClientWidth": 293,
+          "viewportScrollWidth": 293
+        }
+      ],
+      "pageErrors": [],
+      "consoleErrors": [],
+      "unexpectedHttpErrors": [],
+      "figureBoundsPass": true,
+      "fitPass": true,
+      "zoom": {
+        "view": "actual",
+        "pressed": "true",
+        "label": "全体表示",
+        "clientWidth": 293,
+        "scrollWidth": 652
+      },
+      "screenshot": "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--knowledge-article.png",
+      "figureScreenshots": [
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--knowledge-article--diagram-1.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--knowledge-article--diagram-2.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--knowledge-article--diagram-3.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--knowledge-article--diagram-4.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--knowledge-article--diagram-5.png",
+        "docs/evidence/markdown-mermaid/2026-07-25/screenshots/cyberpunk--mobile--knowledge-article--diagram-6.png"
+      ],
+      "passed": true
+    }
+  ]
+}

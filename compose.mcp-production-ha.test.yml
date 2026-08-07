@@ -1,0 +1,40 @@
+services:
+  dependency-stub:
+    image: python:3.13-alpine
+    command: python -m http.server 8000
+    networks:
+      nyankoface:
+        aliases:
+          - frontend
+          - forgejo
+          - spaces-runner
+
+  probe:
+    image: python:3.13-alpine
+    command: sleep infinity
+    networks:
+      - nyankoface
+
+  gateway:
+    container_name: !reset null
+    ports: !override
+      - "127.0.0.1::443"
+    depends_on: !reset {}
+
+  nyankoface-mcp:
+    environment:
+      NYANKOFACE_MCP_TOKEN_FILE: /fixtures/registry.json
+      NYANKOFACE_MCP_ALLOWED_HOSTS: nyankoface-mcp:8000
+      NYANKOFACE_MCP_ALLOWED_ORIGINS: ""
+    volumes: !override
+      - production-mcp-state:/data
+      - ./nyankoface-mcp/tests/ha:/fixtures:ro
+    secrets: !reset []
+    depends_on: !reset {}
+
+networks:
+  nyankoface:
+    name: ${NYANKOFACE_LIVE_HA_NETWORK}
+
+volumes:
+  production-mcp-state:

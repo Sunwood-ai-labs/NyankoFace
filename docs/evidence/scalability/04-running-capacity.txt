@@ -1,0 +1,20 @@
+NyankoFace on-demand capacity verification
+Captured: 2026-07-14T12:42Z
+
+Configuration:
+MAX_RUNNING_SPACES=24
+
+Before opening the 25th Space:
+PUBLIC_SPACES=25
+RUNNING_CONTAINERS=24
+ON_DEMAND_SPACES=1
+ON_DEMAND_REPO=nyankoface/capacity-proof-space
+
+After opening the 25th Space detail page:
+AUTO_STARTED=nyankoface/capacity-proof-space
+IFRAME_HEADING=Capacity Proof Space
+RUNNING_CONTAINERS=24
+LRU_EVICTED=nyankoface/sample-gradio
+
+The temporary verification repository was removed after capture and the
+evicted sample was started again, restoring the original 24 running Spaces.

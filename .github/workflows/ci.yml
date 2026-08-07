@@ -1,0 +1,252 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compose:
+    name: Compose/config validation
+    runs-on: ubuntu-latest
+    env:
+      # Keep any future Compose execution isolated from other workflow runs.
+      COMPOSE_PROJECT_NAME: nyankoface-ci-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Validate Docker Compose
+        run: |
+          docker compose config --quiet
+          docker compose -f docker-compose.gpu-worker.yml \
+            --env-file gpu-worker/.env.example config --quiet
+
+  frontend:
+    name: Frontend validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend --no-audit --no-fund
+
+      - name: Audit production dependencies
+        run: npm audit --prefix frontend --omit=dev --audit-level=high
+
+      - name: Check frontend types
+        run: npm run lint --prefix frontend
+
+      - name: Test Automation preflight
+        run: npm run test:automation --prefix frontend
+
+      - name: Build frontend
+        run: npm run build --prefix frontend
+
+  docs:
+    name: Documentation validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install documentation dependencies
+        run: npm ci --prefix docs --no-audit --no-fund
+
+      - name: Check documentation integrity
+        run: npm run docs:check --prefix docs
+
+      - name: Build documentation
+        env:
+          VITEPRESS_BASE: /NyankoFace/
+        run: npm run docs:build --prefix docs
+
+  python_skill:
+    name: Python and Skill validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Compile Python sources
+        run: python -m compileall -q spaces-runner gpu-worker maintenance-agent nyankoface-mcp/nyankoface_mcp scripts
+
+      - name: Install MCP test dependencies
+        run: python -m pip install --disable-pip-version-check -r nyankoface-mcp/requirements-dev.txt
+
+      - name: Test MCP protocol and security contracts
+        env:
+          PYTHONPATH: nyankoface-mcp
+        run: python -m pytest -q nyankoface-mcp/tests
+
+      - name: Test optional worker runtime profile
+        working-directory: gpu-worker
+        run: python -m pytest -q test_sandbox_profile.py
+
+      - name: Test PR merge guard
+        run: python -m unittest discover -s scripts/tests -p "test_*.py" -v
+
+      - name: Validate bundled NyankoFace Navigator Skill
+        run: |
+          diff -ru skills/nyankoface-navigator seed/templates/nyankoface-navigator
+          python -m unittest skills/nyankoface-navigator/scripts/test_validate_repo.py -v
+          python -m unittest skills/nyankoface-navigator/scripts/test_verify_pages.py -v
+          python skills/nyankoface-navigator/scripts/validate_repo.py \
+            skills/nyankoface-navigator --goal skill --topics skill
+
+  spaces_runner:
+    name: Spaces runner tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: nyankoface
+          POSTGRES_PASSWORD: nyankoface-postgres
+          POSTGRES_DB: nyankoface_metrics
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nyankoface -d nyankoface_metrics"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install runner test dependencies
+        run: python -m pip install --disable-pip-version-check -r spaces-runner/requirements-dev.txt
+
+      - name: Prepare isolated runner state
+        env:
+          NYANKOFACE_PIPELINE_DATA_DIR: ${{ runner.temp }}/nyankoface-pipelines-${{ github.run_id }}-${{ github.run_attempt }}
+          TMPDIR: ${{ runner.temp }}/spaces-runner-tmp-${{ github.run_id }}-${{ github.run_attempt }}
+        run: mkdir -p "$NYANKOFACE_PIPELINE_DATA_DIR" "$TMPDIR"
+
+      - name: Test runner unit tests
+        env:
+          PYTHONPATH: spaces-runner
+          NYANKOFACE_PIPELINE_DATA_DIR: ${{ runner.temp }}/nyankoface-pipelines-${{ github.run_id }}-${{ github.run_attempt }}
+          NYANKOFACE_PIPELINE_TEST_DATABASE_URL: postgresql://nyankoface:nyankoface-postgres@localhost:5432/nyankoface_metrics
+          TMPDIR: ${{ runner.temp }}/spaces-runner-tmp-${{ github.run_id }}-${{ github.run_attempt }}
+        run: python -m pytest -q spaces-runner/tests
+
+  maintenance_agent:
+    name: maintenance-agent tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install maintenance-agent dependencies
+        run: python -m pip install --disable-pip-version-check -r maintenance-agent/requirements.txt
+
+      - name: Prepare isolated maintenance-agent state
+        env:
+          MAINTENANCE_DATA_DIR: ${{ runner.temp }}/maintenance-agent-data-${{ github.run_id }}-${{ github.run_attempt }}
+          MAINTENANCE_WORKSPACE_DIR: ${{ runner.temp }}/maintenance-agent-work-${{ github.run_id }}-${{ github.run_attempt }}
+          TMPDIR: ${{ runner.temp }}/maintenance-agent-tmp-${{ github.run_id }}-${{ github.run_attempt }}
+        run: mkdir -p "$MAINTENANCE_DATA_DIR" "$MAINTENANCE_WORKSPACE_DIR" "$TMPDIR"
+
+      - name: Test GLM maintenance safety gates
+        env:
+          MAINTENANCE_DATA_DIR: ${{ runner.temp }}/maintenance-agent-data-${{ github.run_id }}-${{ github.run_attempt }}
+          MAINTENANCE_WORKSPACE_DIR: ${{ runner.temp }}/maintenance-agent-work-${{ github.run_id }}-${{ github.run_attempt }}
+          TMPDIR: ${{ runner.temp }}/maintenance-agent-tmp-${{ github.run_id }}-${{ github.run_attempt }}
+        working-directory: maintenance-agent
+        run: python -m unittest discover -s tests -v
+
+  # Keep this job id and name as `validate`: branch protection and the merge
+  # guard require the existing `CI / validate` check.
+  validate:
+    name: validate
+    if: ${{ always() }}
+    needs:
+      - compose
+      - frontend
+      - docs
+      - python_skill
+      - spaces_runner
+      - maintenance_agent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize validation results
+        env:
+          COMPOSE_RESULT: ${{ needs.compose.result }}
+          FRONTEND_RESULT: ${{ needs.frontend.result }}
+          DOCS_RESULT: ${{ needs.docs.result }}
+          PYTHON_SKILL_RESULT: ${{ needs.python_skill.result }}
+          SPACES_RUNNER_RESULT: ${{ needs.spaces_runner.result }}
+          MAINTENANCE_AGENT_RESULT: ${{ needs.maintenance_agent.result }}
+        run: |
+          set -euo pipefail
+
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          failed=0
+          {
+            echo "## CI validation summary"
+            echo
+            echo "| Job | Result | Logs |"
+            echo "| --- | --- | --- |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          for job_status in \
+            "Compose/config validation|$COMPOSE_RESULT" \
+            "Frontend validation|$FRONTEND_RESULT" \
+            "Documentation validation|$DOCS_RESULT" \
+            "Python and Skill validation|$PYTHON_SKILL_RESULT" \
+            "Spaces runner tests|$SPACES_RUNNER_RESULT" \
+            "maintenance-agent tests|$MAINTENANCE_AGENT_RESULT"; do
+            job="${job_status%%|*}"
+            result="${job_status#*|}"
+            echo "$job: $result"
+            printf '| %s | %s | [workflow run logs](%s) |\n' "$job" "$result" "$run_url" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$result" != "success" ]; then
+              echo "::error title=$job::validation job finished with $result; inspect its independent job log"
+              failed=1
+            fi
+          done
+
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::At least one required validation job failed, was cancelled, or was skipped."
+            exit 1
+          fi

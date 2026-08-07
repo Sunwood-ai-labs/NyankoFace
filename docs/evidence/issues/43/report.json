@@ -1,0 +1,130 @@
+{
+  "passed": 4,
+  "total": 4,
+  "results": [
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "surfaceLinks": [
+          "/spaces",
+          "/pages/nyankoface/pages-starter",
+          "/docs",
+          "/spaces?q=gpu",
+          "/models",
+          "/datasets",
+          "/skills",
+          "/mcps",
+          "/prompts",
+          "/git/explore/repos"
+        ],
+        "createCta": false,
+        "loginCta": true,
+        "anonymousControls": 2,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "desktop--anonymous--platform-home.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": true,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "surfaceLinks": [
+          "/spaces",
+          "/pages/nyankoface/pages-starter",
+          "/docs",
+          "/spaces?q=gpu",
+          "/models",
+          "/datasets",
+          "/skills",
+          "/mcps",
+          "/prompts",
+          "/git/explore/repos"
+        ],
+        "createCta": true,
+        "loginCta": false,
+        "anonymousControls": 0,
+        "authenticatedControls": 2,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "desktop--authenticated--platform-home.png"
+    },
+    {
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "surfaceLinks": [
+          "/spaces",
+          "/pages/nyankoface/pages-starter",
+          "/docs",
+          "/spaces?q=gpu",
+          "/models",
+          "/datasets",
+          "/skills",
+          "/mcps",
+          "/prompts",
+          "/git/explore/repos"
+        ],
+        "createCta": false,
+        "loginCta": true,
+        "anonymousControls": 2,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "mobile--anonymous--platform-home.png"
+    },
+    {
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": true,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "surfaceLinks": [
+          "/spaces",
+          "/pages/nyankoface/pages-starter",
+          "/docs",
+          "/spaces?q=gpu",
+          "/models",
+          "/datasets",
+          "/skills",
+          "/mcps",
+          "/prompts",
+          "/git/explore/repos"
+        ],
+        "createCta": true,
+        "loginCta": false,
+        "anonymousControls": 0,
+        "authenticatedControls": 2,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "mobile--authenticated--platform-home.png"
+    }
+  ]
+}

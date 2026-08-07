@@ -1,0 +1,204 @@
+{
+  "passed": 6,
+  "total": 6,
+  "results": [
+    {
+      "theme": "standard",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "pagesSection": true,
+        "pagesState": "ready",
+        "pagesBrowseLinks": 2,
+        "pagesPublishLinks": 1,
+        "publishedPageLinks": 6,
+        "pagesFallback": false,
+        "profileAvatarSrc": null,
+        "profileAvatarLoaded": null,
+        "anonymousControls": 1,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "standard--desktop--anonymous--classic-home.png",
+      "pagesScreenshot": "standard--desktop--anonymous--pages-discovery.png"
+    },
+    {
+      "theme": "standard",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "pagesSection": true,
+        "pagesState": "ready",
+        "pagesBrowseLinks": 2,
+        "pagesPublishLinks": 1,
+        "publishedPageLinks": 6,
+        "pagesFallback": false,
+        "profileAvatarSrc": null,
+        "profileAvatarLoaded": null,
+        "anonymousControls": 1,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "standard--mobile--anonymous--classic-home.png",
+      "pagesScreenshot": "standard--mobile--anonymous--pages-discovery.png"
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "pagesSection": true,
+        "pagesState": "ready",
+        "pagesBrowseLinks": 2,
+        "pagesPublishLinks": 1,
+        "publishedPageLinks": 6,
+        "pagesFallback": false,
+        "profileAvatarSrc": null,
+        "profileAvatarLoaded": null,
+        "anonymousControls": 1,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "solarpunk--desktop--anonymous--classic-home.png",
+      "pagesScreenshot": "solarpunk--desktop--anonymous--pages-discovery.png"
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "pagesSection": true,
+        "pagesState": "ready",
+        "pagesBrowseLinks": 2,
+        "pagesPublishLinks": 1,
+        "publishedPageLinks": 6,
+        "pagesFallback": false,
+        "profileAvatarSrc": null,
+        "profileAvatarLoaded": null,
+        "anonymousControls": 1,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "solarpunk--mobile--anonymous--classic-home.png",
+      "pagesScreenshot": "solarpunk--mobile--anonymous--pages-discovery.png"
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "pagesSection": true,
+        "pagesState": "ready",
+        "pagesBrowseLinks": 2,
+        "pagesPublishLinks": 1,
+        "publishedPageLinks": 6,
+        "pagesFallback": false,
+        "profileAvatarSrc": null,
+        "profileAvatarLoaded": null,
+        "anonymousControls": 1,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "cyberpunk--desktop--anonymous--classic-home.png",
+      "pagesScreenshot": "cyberpunk--desktop--anonymous--pages-discovery.png"
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "authenticated": false,
+      "audit": {
+        "platformMessage": true,
+        "platformDescription": true,
+        "classicHero": true,
+        "heroBackground": "rgba(0, 0, 0, 0)",
+        "heroLinks": [
+          "/spaces",
+          "/models"
+        ],
+        "pagesSection": true,
+        "pagesState": "ready",
+        "pagesBrowseLinks": 2,
+        "pagesPublishLinks": 1,
+        "publishedPageLinks": 6,
+        "pagesFallback": false,
+        "profileAvatarSrc": null,
+        "profileAvatarLoaded": null,
+        "anonymousControls": 1,
+        "authenticatedControls": 0,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "cyberpunk--mobile--anonymous--classic-home.png",
+      "pagesScreenshot": "cyberpunk--mobile--anonymous--pages-discovery.png"
+    }
+  ]
+}

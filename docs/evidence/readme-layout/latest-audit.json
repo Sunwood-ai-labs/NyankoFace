@@ -1,0 +1,39 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "maximumPortraitHeight": 420,
+  "results": [
+    {
+      "id": "english",
+      "url": "https://github.com/Sunwood-ai-labs/NyankoFace",
+      "articleWidth": 838,
+      "pageScrollWidth": 1440,
+      "viewportWidth": 1440,
+      "visibleImages": 52,
+      "collapsedEvidence": [
+        "Open the full-page mobile Character captures",
+        "Open the full Owner settings capture",
+        "Open the complete Standard and Cyberpunk Knowledge directories",
+        "Open the full-height evidence-backed relationship sidebar"
+      ],
+      "oversizedPortraits": []
+    },
+    {
+      "id": "japanese",
+      "url": "https://github.com/Sunwood-ai-labs/NyankoFace/blob/main/README.ja.md",
+      "articleWidth": 1012,
+      "pageScrollWidth": 1440,
+      "viewportWidth": 1440,
+      "visibleImages": 46,
+      "collapsedEvidence": [
+        "Owner設定の全長キャプチャを開く",
+        "Characters一覧のモバイル全長キャプチャを開く",
+        "PC／モバイルのKnowledge全長キャプチャを開く",
+        "根拠付きSkill関係サイドバーの全長キャプチャを開く"
+      ],
+      "oversizedPortraits": []
+    }
+  ]
+}

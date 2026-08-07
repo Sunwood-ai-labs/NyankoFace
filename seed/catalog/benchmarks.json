@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "name": "cadtestbench",
+      "description": "200 executable Text-to-CAD tasks with deterministic CadQuery tests",
+      "source": "https://github.com/dimitrismallis/CADTestBench.git",
+      "branch": "main",
+      "topics": [
+        "cad",
+        "text-to-cad",
+        "cadquery",
+        "cpu",
+        "executable-tests",
+        "python",
+        "mit"
+      ]
+    },
+    {
+      "name": "svgenius",
+      "description": "SVG understanding, editing, and generation benchmark with 2,377 queries",
+      "source": "https://github.com/ZJU-REAL/SVGenius.git",
+      "branch": "main",
+      "topics": [
+        "svg",
+        "understanding",
+        "editing",
+        "generation",
+        "cpu",
+        "python",
+        "apache-2.0"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,264 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1320" role="img" aria-labelledby="brand-exploration-title brand-exploration-desc">
+    <title id="brand-exploration-title">NyankoFace brand exploration</title>
+    <desc id="brand-exploration-desc">Ten deterministic NyankoFace logo directions with a provisional shortlist.</desc>
+    <defs>
+    <linearGradient id="hero" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#12263f"/><stop offset="1" stop-color="#0b1220"/></linearGradient>
+    <linearGradient id="card" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#e9f4f7"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#020617" flood-opacity=".18"/></filter>
+  </defs>
+    <rect width="1920" height="1320" fill="#07111f"/>
+    <rect x="0" y="0" width="1920" height="175" fill="url(#hero)"/>
+    <text x="72" y="68" fill="#67e8f9" font-family="Inter,Segoe UI,sans-serif" font-size="24px" font-weight="800" text-anchor="start">NYANKOFACE BRAND EXPLORATION</text>
+    <text x="72" y="116" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="42px" font-weight="800" text-anchor="start">10 directions · initial shortlist · deterministic SVG study</text>
+    <text x="72" y="151" fill="#a8c1d6" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="500" text-anchor="start">Reference language: high-contrast icon + wordmark, translated into NyankoFace signal / face / community meaning.</text>
+    <rect x="1510" y="58" width="318" height="72" rx="18" fill="#102a43" stroke="#2b4a63"/>
+    <text x="1538" y="87" fill="#fbbf24" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="800" text-anchor="start">PROVISIONAL SHORTLIST</text>
+    <text x="1538" y="116" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="23px" font-weight="800" text-anchor="start">01  ·  06  ·  09</text>
+    <g filter="url(#shadow)">
+      <rect x="72" y="205" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="72" y="205" width="8" height="470" rx="4" fill="#06b6d4"/>
+      <text x="96" y="248" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">01</text>
+      <text x="96" y="280" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">NyankoFace Signal Wordmark</text>
+      <rect x="310" y="227" width="84" height="25" rx="12" fill="#0e7490"/><text x="352" y="244" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="700" text-anchor="middle">PRIMARY</text>
+      <rect x="96" y="305" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(103 312) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M42 76h126"/><path d="M42 128h172"/><path d="M42 180h126"/>
+        <path d="M182 76h32" stroke="#06b6d4"/><path d="M42 128h38" stroke="#f59e0b"/>
+      </g></g>
+      <rect x="256" y="305" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(263 312) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M42 76h126"/><path d="M42 128h172"/><path d="M42 180h126"/>
+        <path d="M182 76h32" stroke="#67e8f9"/><path d="M42 128h38" stroke="#fbbf24"/>
+      </g></g>
+      <text x="96" y="491" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">open face + signal</text>
+      <text x="96" y="521" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="96" y="555" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">shortlist candidate</text>
+      <line x1="96" x2="392" y1="583" y2="583" stroke="#dbe7ed"/>
+      <text x="96" y="615" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="356" cy="609" r="7" fill="#06b6d4"/><circle cx="376" cy="609" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="438" y="205" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="438" y="205" width="8" height="470" rx="4" fill="#f59e0b"/>
+      <text x="462" y="248" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">02</text>
+      <text x="462" y="280" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">Open Eye</text>
+
+      <rect x="462" y="305" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(469 312) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#06b6d4" stroke="none"/><circle cx="116" cy="128" r="7" fill="#f8fafc" stroke="none"/>
+      </g></g>
+      <rect x="622" y="305" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(629 312) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M32 128c26-48 71-68 112-68 34 0 61 15 80 38"/>
+        <path d="M32 128c26 48 71 68 112 68 34 0 61-15 80-38"/>
+        <circle cx="116" cy="128" r="20" fill="#67e8f9" stroke="none"/><circle cx="116" cy="128" r="7" fill="#0b1220" stroke="none"/>
+      </g></g>
+      <text x="462" y="491" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">soft lowercase + eye</text>
+      <text x="462" y="521" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="462" y="555" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">exploration candidate</text>
+      <line x1="462" x2="758" y1="583" y2="583" stroke="#dbe7ed"/>
+      <text x="462" y="615" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="722" cy="609" r="7" fill="#06b6d4"/><circle cx="742" cy="609" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="804" y="205" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="804" y="205" width="8" height="470" rx="4" fill="#f59e0b"/>
+      <text x="828" y="248" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">03</text>
+      <text x="828" y="280" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">Neural Horizontal Face</text>
+
+      <rect x="828" y="305" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(835 312) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#06b6d4" stroke="none"/><circle cx="164" cy="128" r="8" fill="#06b6d4" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#f59e0b"/>
+      </g></g>
+      <rect x="988" y="305" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(995 312) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M36 72h184"/><path d="M52 128h152"/><path d="M70 184h116"/>
+        <circle cx="92" cy="128" r="8" fill="#67e8f9" stroke="none"/><circle cx="164" cy="128" r="8" fill="#67e8f9" stroke="none"/>
+        <path d="M104 168q24 16 48 0" stroke="#fbbf24"/>
+      </g></g>
+      <text x="828" y="491" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">layered face lines</text>
+      <text x="828" y="521" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="828" y="555" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">exploration candidate</text>
+      <line x1="828" x2="1124" y1="583" y2="583" stroke="#dbe7ed"/>
+      <text x="828" y="615" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="1088" cy="609" r="7" fill="#06b6d4"/><circle cx="1108" cy="609" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="1170" y="205" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="1170" y="205" width="8" height="470" rx="4" fill="#f59e0b"/>
+      <text x="1194" y="248" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">04</text>
+      <text x="1194" y="280" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">OF Brain-Line Monogram</text>
+
+      <rect x="1194" y="305" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(1201 312) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="86" cy="128" r="60"/><path d="M146 68v120"/>
+        <path d="M146 74h70M146 128h55M146 182h70" stroke="#06b6d4"/>
+        <path d="M74 104h24" stroke="#f59e0b"/>
+      </g></g>
+      <rect x="1354" y="305" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(1361 312) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="86" cy="128" r="60"/><path d="M146 68v120"/>
+        <path d="M146 74h70M146 128h55M146 182h70" stroke="#67e8f9"/>
+        <path d="M74 104h24" stroke="#fbbf24"/>
+      </g></g>
+      <text x="1194" y="491" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">OF + neural stroke</text>
+      <text x="1194" y="521" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="1194" y="555" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">exploration candidate</text>
+      <line x1="1194" x2="1490" y1="583" y2="583" stroke="#dbe7ed"/>
+      <text x="1194" y="615" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="1454" cy="609" r="7" fill="#06b6d4"/><circle cx="1474" cy="609" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="1536" y="205" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="1536" y="205" width="8" height="470" rx="4" fill="#f59e0b"/>
+      <text x="1560" y="248" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">05</text>
+      <text x="1560" y="280" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">Open Portal Wordmark</text>
+
+      <rect x="1560" y="305" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(1567 312) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 50H46v156h40M170 50h40v156h-40"/>
+        <path d="M78 96h100M78 128h70M78 160h100" stroke="#06b6d4"/>
+        <path d="M154 128h24" stroke="#f59e0b"/>
+      </g></g>
+      <rect x="1720" y="305" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(1727 312) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M86 50H46v156h40M170 50h40v156h-40"/>
+        <path d="M78 96h100M78 128h70M78 160h100" stroke="#67e8f9"/>
+        <path d="M154 128h24" stroke="#fbbf24"/>
+      </g></g>
+      <text x="1560" y="491" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">repository portal</text>
+      <text x="1560" y="521" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="1560" y="555" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">exploration candidate</text>
+      <line x1="1560" x2="1856" y1="583" y2="583" stroke="#dbe7ed"/>
+      <text x="1560" y="615" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="1820" cy="609" r="7" fill="#06b6d4"/><circle cx="1840" cy="609" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="72" y="697" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="72" y="697" width="8" height="470" rx="4" fill="#06b6d4"/>
+      <text x="96" y="740" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">06</text>
+      <text x="96" y="772" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">Cat Signal</text>
+      <rect x="310" y="719" width="84" height="25" rx="12" fill="#0e7490"/><text x="352" y="736" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="700" text-anchor="middle">CONTINUITY</text>
+      <rect x="96" y="797" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(103 804) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#06b6d4" stroke="none"/><circle cx="158" cy="132" r="9" fill="#06b6d4" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#f59e0b"/>
+      </g></g>
+      <rect x="256" y="797" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(263 804) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#67e8f9" stroke="none"/><circle cx="158" cy="132" r="9" fill="#67e8f9" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#fbbf24"/>
+      </g></g>
+      <text x="96" y="983" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">cat continuity route</text>
+      <text x="96" y="1013" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="96" y="1047" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">shortlist candidate</text>
+      <line x1="96" x2="392" y1="1075" y2="1075" stroke="#dbe7ed"/>
+      <text x="96" y="1107" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="356" cy="1101" r="7" fill="#06b6d4"/><circle cx="376" cy="1101" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="438" y="697" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="438" y="697" width="8" height="470" rx="4" fill="#f59e0b"/>
+      <text x="462" y="740" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">07</text>
+      <text x="462" y="772" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">Face Aperture</text>
+
+      <rect x="462" y="797" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(469 804) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 86h180"/><path d="M38 170h180"/>
+        <path d="M78 128h100" stroke="#06b6d4" stroke-width="28"/>
+        <circle cx="128" cy="128" r="14" fill="#f8fafc" stroke="none"/>
+        <path d="M106 128h44" stroke="#f59e0b"/>
+      </g></g>
+      <rect x="622" y="797" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(629 804) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M38 86h180"/><path d="M38 170h180"/>
+        <path d="M78 128h100" stroke="#67e8f9" stroke-width="28"/>
+        <circle cx="128" cy="128" r="14" fill="#0b1220" stroke="none"/>
+        <path d="M106 128h44" stroke="#fbbf24"/>
+      </g></g>
+      <text x="462" y="983" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">open / close motion</text>
+      <text x="462" y="1013" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="462" y="1047" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">exploration candidate</text>
+      <line x1="462" x2="758" y1="1075" y2="1075" stroke="#dbe7ed"/>
+      <text x="462" y="1107" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="722" cy="1101" r="7" fill="#06b6d4"/><circle cx="742" cy="1101" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="804" y="697" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="804" y="697" width="8" height="470" rx="4" fill="#f59e0b"/>
+      <text x="828" y="740" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">08</text>
+      <text x="828" y="772" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">Community Wave</text>
+
+      <rect x="828" y="797" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(835 804) scale(.50)"><g fill="none" stroke="#06b6d4" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 96c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 128c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 160c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+      </g><circle cx="128" cy="128" r="17" fill="#f59e0b"/></g>
+      <rect x="988" y="797" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(995 804) scale(.50)"><g fill="none" stroke="#67e8f9" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M24 96c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 128c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+        <path d="M24 160c28-24 56-24 84 0s56 24 84 0 36-24 40-20"/>
+      </g><circle cx="128" cy="128" r="17" fill="#fbbf24"/></g>
+      <text x="828" y="983" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">people + repositories</text>
+      <text x="828" y="1013" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="828" y="1047" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">exploration candidate</text>
+      <line x1="828" x2="1124" y1="1075" y2="1075" stroke="#dbe7ed"/>
+      <text x="828" y="1107" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="1088" cy="1101" r="7" fill="#06b6d4"/><circle cx="1108" cy="1101" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="1170" y="697" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="1170" y="697" width="8" height="470" rx="4" fill="#06b6d4"/>
+      <text x="1194" y="740" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">09</text>
+      <text x="1194" y="772" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">Black Wordmark + Cyan Cut</text>
+      <rect x="1408" y="719" width="84" height="25" rx="12" fill="#0e7490"/><text x="1450" y="736" fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="700" text-anchor="middle">UTILITY</text>
+      <rect x="1194" y="797" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(1201 804) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M92 56c-40 0-66 28-66 72s26 72 66 72c22 0 38-8 50-22"/>
+        <path d="M112 72h98M112 128h72M112 184h98"/>
+        <path d="M72 128h38" stroke="#06b6d4" stroke-width="26"/>
+      </g></g>
+      <rect x="1354" y="797" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(1361 804) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M92 56c-40 0-66 28-66 72s26 72 66 72c22 0 38-8 50-22"/>
+        <path d="M112 72h98M112 128h72M112 184h98"/>
+        <path d="M72 128h38" stroke="#67e8f9" stroke-width="26"/>
+      </g></g>
+      <text x="1194" y="983" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">minimal cyan cut</text>
+      <text x="1194" y="1013" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="1194" y="1047" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">shortlist candidate</text>
+      <line x1="1194" x2="1490" y1="1075" y2="1075" stroke="#dbe7ed"/>
+      <text x="1194" y="1107" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="1454" cy="1101" r="7" fill="#06b6d4"/><circle cx="1474" cy="1101" r="7" fill="#f59e0b"/>
+    </g><g filter="url(#shadow)">
+      <rect x="1536" y="697" width="344" height="470" rx="26" fill="url(#card)"/>
+      <rect x="1536" y="697" width="8" height="470" rx="4" fill="#f59e0b"/>
+      <text x="1560" y="740" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="800" text-anchor="start">10</text>
+      <text x="1560" y="772" fill="#102a43" font-family="Inter,Segoe UI,sans-serif" font-size="17px" font-weight="800" text-anchor="start">Mark-First Monogram System</text>
+
+      <rect x="1560" y="797" width="142" height="142" rx="20" fill="#f8fafc" stroke="#dbe7ed"/>
+      <g transform="translate(1567 804) scale(.50)"><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="42" y="42" width="172" height="172" rx="42"/>
+        <path d="M42 102h58M156 102h58M42 154h58M156 154h58" stroke="#06b6d4"/>
+        <circle cx="128" cy="128" r="20" fill="#f59e0b" stroke="none"/>
+      </g></g>
+      <rect x="1720" y="797" width="136" height="142" rx="20" fill="#0b1220" stroke="#20334c"/>
+      <g transform="translate(1727 804) scale(.50)"><g fill="none" stroke="#f8fafc" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="42" y="42" width="172" height="172" rx="42"/>
+        <path d="M42 102h58M156 102h58M42 154h58M156 154h58" stroke="#67e8f9"/>
+        <circle cx="128" cy="128" r="20" fill="#fbbf24" stroke="none"/>
+      </g></g>
+      <text x="1560" y="983" fill="#0e7490" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="700" text-anchor="start">responsive mark system</text>
+      <text x="1560" y="1013" fill="#475569" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="600" text-anchor="start">24 / 32 px</text>
+      <text x="1560" y="1047" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="12px" font-weight="500" text-anchor="start">exploration candidate</text>
+      <line x1="1560" x2="1856" y1="1075" y2="1075" stroke="#dbe7ed"/>
+      <text x="1560" y="1107" fill="#64748b" font-family="Inter,Segoe UI,sans-serif" font-size="11px" font-weight="500" text-anchor="start">light  ·  dark  ·  mono  ·  inverse</text>
+      <circle cx="1820" cy="1101" r="7" fill="#06b6d4"/><circle cx="1840" cy="1101" r="7" fill="#f59e0b"/>
+    </g>
+    <rect x="72" y="1192" width="1776" height="76" rx="22" fill="#102a43"/>
+    <text x="102" y="1224" fill="#67e8f9" font-family="Inter,Segoe UI,sans-serif" font-size="13px" font-weight="800" text-anchor="start">Decision frame</text>
+    <text x="102" y="1251" fill="#e4f0f7" font-family="Inter,Segoe UI,sans-serif" font-size="16px" font-weight="600" text-anchor="start">24px recognition · single-color export · light/dark contrast · continuity · distinctiveness · system expansion</text>
+    <text x="1810" y="1240" fill="#fbbf24" font-family="Inter,Segoe UI,sans-serif" font-size="14px" font-weight="800" text-anchor="end">NYANKOFACE</text>
+  </svg>

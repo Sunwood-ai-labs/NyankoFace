@@ -1,0 +1,430 @@
+name: nyankoface
+
+networks:
+  nyankoface:
+    name: nyankoface
+  actions:
+    name: nyankoface_actions
+
+volumes:
+  forgejo-data:
+    name: nyankoface_forgejo-data
+  shared-token:
+    name: nyankoface_shared-token
+  agent-metrics-data:
+    name: nyankoface_agent-metrics-data
+  forgejo-runner-data:
+    name: nyankoface_forgejo-runner-data
+  forgejo-actions-docker-run:
+    name: nyankoface_forgejo-actions-docker-run
+  maintenance-agent-data:
+    name: nyankoface_maintenance-agent-data
+  postgres-data:
+    name: nyankoface_postgres-data
+  nyankoface-mcp-state:
+    name: nyankoface_mcp-state
+  nyankoface-mcp-admin-bridge:
+    name: nyankoface_mcp-admin-bridge
+
+secrets:
+  nyankoface-mcp-forgejo-user-token:
+    file: ${NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE:-./secrets/nyankoface-mcp-forgejo-user-token}
+  nyankoface-mcp-admin-internal-token:
+    file: ${NYANKOFACE_MCP_ADMIN_INTERNAL_TOKEN_FILE:-./secrets/nyankoface-mcp-admin-internal-token}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: nyankoface-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nyankoface}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nyankoface-postgres}
+      POSTGRES_DB: forgejo
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - nyankoface
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nyankoface} -d forgejo && psql -v ON_ERROR_STOP=1 -U ${POSTGRES_USER:-nyankoface} -d nyankoface_metrics -Atqc 'SELECT 1' >/dev/null && psql -v ON_ERROR_STOP=1 -U ${POSTGRES_USER:-nyankoface} -d nyankoface_maintenance -Atqc 'SELECT 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  gateway:
+    build:
+      context: ./gateway
+    container_name: nyankoface-gateway
+    restart: unless-stopped
+    ports:
+      - "${NYANKOFACE_PORT:-8090}:80"
+      - "${NYANKOFACE_HTTPS_PORT:-8443}:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+      - ./gateway/certs:/certs
+    networks:
+      - nyankoface
+    depends_on:
+      - frontend
+      - forgejo
+      - spaces-runner
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: nyankoface-frontend
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      APP_NAME: ${APP_NAME:-NyankoFace}
+      FORGEJO_API: http://forgejo:3000/api/v1
+      FORGEJO_TOKEN_FILE: /shared/token
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://localhost:8443}
+      RUNNER_API: http://spaces-runner:8000/api
+      README_CACHE_TTL_SECONDS: ${README_CACHE_TTL_SECONDS:-300}
+      KNOWLEDGE_CACHE_TTL_SECONDS: ${KNOWLEDGE_CACHE_TTL_SECONDS:-60}
+      NYANKOFACE_PERFORMANCE_LOG: ${NYANKOFACE_PERFORMANCE_LOG:-0}
+      NYANKOFACE_MCP_ADMIN_URL: http://mcp-admin:8001
+      NYANKOFACE_MCP_ADMIN_INTERNAL_TOKEN_FILE: /run/mcp-admin-bridge/token
+    volumes:
+      - shared-token:/shared:ro
+      - nyankoface-mcp-admin-bridge:/run/mcp-admin-bridge:ro
+    networks:
+      - nyankoface
+    depends_on:
+      forgejo:
+        condition: service_healthy
+
+  mcp-admin:
+    profiles: ["mcp"]
+    build:
+      context: ./nyankoface-mcp
+    command:
+      - sh
+      - -c
+      - >-
+        umask 0002 &&
+        install -D -m 0440 /run/secrets/nyankoface-mcp-admin-internal-token
+        /run/mcp-admin-bridge/token &&
+        chown 1001:1001 /run/mcp-admin-bridge/token &&
+        exec nyankoface-mcp-admin-server
+    # Lifecycle state is root-owned by design; this isolated service is the
+    # only writer and is not published outside the Compose network. CHOWN and
+    # FOWNER are the only capabilities needed to claim an operator-created
+    # bind mount and publish the private frontend bridge token.
+    user: "0:10001"
+    cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "FOWNER"]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    expose:
+      - "8001"
+    environment:
+      NYANKOFACE_MCP_ADMIN_INTERNAL_TOKEN_FILE: /run/secrets/nyankoface-mcp-admin-internal-token
+      NYANKOFACE_MCP_ADMIN_TEST_URL: http://nyankoface-mcp:8000/mcp
+      NYANKOFACE_MCP_ADMIN_LISTEN_PORT: "8001"
+      NYANKOFACE_MCP_TOKEN_FILE: /run/nyankoface-mcp/registry.json
+      NYANKOFACE_MCP_LIFECYCLE_AUDIT_PATH: /run/nyankoface-mcp/lifecycle-audit.jsonl
+      NYANKOFACE_MCP_REGISTRY_READER_GID: "10001"
+      NYANKOFACE_MCP_FORGEJO_TOKEN_ROOT: /run/secrets
+      NYANKOFACE_MCP_FORGEJO_TOKEN_ALLOWLIST: nyankoface-mcp-forgejo-user-token
+      NYANKOFACE_MCP_POLICY_STATE_PATH: /data/policy.sqlite3
+      NYANKOFACE_MCP_AUDIT_STATE_PATH: /data/audit.sqlite3
+      NYANKOFACE_MCP_AUDIT_RETENTION_SECONDS: ${NYANKOFACE_MCP_AUDIT_RETENTION_SECONDS:-7776000}
+    volumes:
+      - nyankoface-mcp-state:/data
+      - ${NYANKOFACE_MCP_STATE_DIR:-./secrets/nyankoface-mcp}:/run/nyankoface-mcp
+      - nyankoface-mcp-admin-bridge:/run/mcp-admin-bridge
+    secrets:
+      - nyankoface-mcp-admin-internal-token
+      - nyankoface-mcp-forgejo-user-token
+    networks:
+      - nyankoface
+    depends_on:
+      nyankoface-mcp:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 10s
+
+  nyankoface-mcp:
+    profiles: ["mcp"]
+    build:
+      context: ./nyankoface-mcp
+    command: ["sh", "-c", "umask 0002 && exec nyankoface-mcp-server"]
+    restart: unless-stopped
+    group_add:
+      - "10001"
+    deploy:
+      # One Compose host, two independent processes. The local named volume is
+      # deliberately the single-host coordination boundary for SQLite/WAL.
+      replicas: 2
+    expose:
+      - "8000"
+    environment:
+      FORGEJO_API: http://forgejo:3000/api/v1
+      NYANKOFACE_CATALOG_API: http://frontend:3000
+      RUNNER_API: http://spaces-runner:8000/api
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://localhost:8443}
+      NYANKOFACE_MCP_TOKEN_FILE: /run/nyankoface-mcp/registry.json
+      NYANKOFACE_MCP_JSON_RESPONSE: ${NYANKOFACE_MCP_JSON_RESPONSE:-false}
+      NYANKOFACE_MCP_ALLOWED_HOSTS: nyankoface-mcp:8000
+      NYANKOFACE_MCP_ALLOWED_ORIGINS: ${NYANKOFACE_MCP_ALLOWED_ORIGINS:-}
+      NYANKOFACE_MCP_WRITE_STATE_PATH: /data/write-safety.sqlite3
+      NYANKOFACE_MCP_POLICY_STATE_PATH: /data/policy.sqlite3
+      NYANKOFACE_MCP_AUDIT_STATE_PATH: /data/audit.sqlite3
+      NYANKOFACE_MCP_AUDIT_RETENTION_SECONDS: ${NYANKOFACE_MCP_AUDIT_RETENTION_SECONDS:-7776000}
+      NYANKOFACE_MCP_CONFIRMATION_TTL_SECONDS: ${NYANKOFACE_MCP_CONFIRMATION_TTL_SECONDS:-300}
+      NYANKOFACE_MCP_IDEMPOTENCY_TTL_SECONDS: ${NYANKOFACE_MCP_IDEMPOTENCY_TTL_SECONDS:-86400}
+    volumes:
+      - nyankoface-mcp-state:/data
+      - ${NYANKOFACE_MCP_STATE_DIR:-./secrets/nyankoface-mcp}:/run/nyankoface-mcp:ro
+    secrets:
+      - nyankoface-mcp-forgejo-user-token
+    networks:
+      - nyankoface
+    depends_on:
+      forgejo:
+        condition: service_healthy
+      spaces-runner:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8000), 2).close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+
+  forgejo:
+    build:
+      context: ./forgejo
+      additional_contexts:
+        frontend_assets: ./frontend
+    container_name: nyankoface-forgejo
+    restart: unless-stopped
+    ports:
+      - "2222:22"
+    expose:
+      - "3000"
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      APP_NAME: ${APP_NAME:-NyankoFace}
+      FORGEJO__server__ROOT_URL: ${FORGEJO_ROOT_URL:-${PUBLIC_BASE_URL:-https://localhost:8443}/git/}
+      # Keep browser links public while Actions workers use the Docker network.
+      FORGEJO__server__LOCAL_ROOT_URL: http://forgejo:3000/
+      FORGEJO__server__HTTP_PORT: 3000
+      FORGEJO__server__SSH_PORT: 22
+      FORGEJO__server__LFS_START_SERVER: "true"
+      FORGEJO__lfs__STORAGE_TYPE: local
+      FORGEJO__service__DISABLE_REGISTRATION: ${DISABLE_REGISTRATION:-true}
+      FORGEJO__session__COOKIE_NAME: nyankoface_session
+      FORGEJO__webhook__ALLOWED_HOST_LIST: "*"
+      FORGEJO__security__INSTALL_LOCK: "true"
+      FORGEJO__database__DB_TYPE: postgres
+      FORGEJO__database__HOST: postgres:5432
+      FORGEJO__database__NAME: forgejo
+      FORGEJO__database__USER: ${POSTGRES_USER:-nyankoface}
+      FORGEJO__database__PASSWD: ${POSTGRES_PASSWORD:-nyankoface-postgres}
+      FORGEJO__database__SSL_MODE: disable
+      FORGEJO__actions__ENABLED: "true"
+      FORGEJO__pwa__STANDALONE: "true"
+    volumes:
+      - forgejo-data:/data
+    networks:
+      - nyankoface
+      - actions
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3000/api/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  spaces-runner:
+    build:
+      context: ./spaces-runner
+    container_name: nyankoface-spaces-runner
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      FORGEJO_API: http://forgejo:3000/api/v1
+      FORGEJO_TOKEN_FILE: /shared/token
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://localhost:8443}
+      DOCKER_NETWORK: nyankoface
+      IDLE_TIMEOUT_MINUTES: ${IDLE_TIMEOUT_MINUTES:-0}
+      MAX_RUNNING_SPACES: ${MAX_RUNNING_SPACES:-24}
+      NYANKOFACE_SPACE_DEPLOY_TIMEOUT_SECONDS: ${NYANKOFACE_SPACE_DEPLOY_TIMEOUT_SECONDS:-540}
+      NYANKOFACE_SPACE_API_RATE_LIMIT_PER_MINUTE: ${NYANKOFACE_SPACE_API_RATE_LIMIT_PER_MINUTE:-60}
+      NYANKOFACE_PIPELINE_API_RATE_LIMIT_PER_MINUTE: ${NYANKOFACE_PIPELINE_API_RATE_LIMIT_PER_MINUTE:-60}
+      NYANKOFACE_PIPELINE_RECONCILE_INTERVAL_SECONDS: ${NYANKOFACE_PIPELINE_RECONCILE_INTERVAL_SECONDS:-60}
+      NYANKOFACE_GPU_WORKERS_ENABLED: ${NYANKOFACE_GPU_WORKERS_ENABLED:-false}
+      NYANKOFACE_GPU_WORKER_LEASE_SECONDS: ${NYANKOFACE_GPU_WORKER_LEASE_SECONDS:-90}
+      NYANKOFACE_GPU_WORKER_STALE_SECONDS: ${NYANKOFACE_GPU_WORKER_STALE_SECONDS:-120}
+      AGENT_DATA_DIR: /data/agents
+      NYANKOFACE_PIPELINE_DB_SCHEMA: ${NYANKOFACE_PIPELINE_DB_SCHEMA:-nyankoface_pipeline}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-nyankoface}:${POSTGRES_PASSWORD:-nyankoface-postgres}@postgres:5432/nyankoface_metrics
+    volumes:
+      - shared-token:/shared:ro
+      - agent-metrics-data:/data/agents
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - nyankoface
+    depends_on:
+      forgejo:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+
+  seed:
+    build:
+      context: ./seed
+    container_name: nyankoface-seed
+    restart: "no"
+    environment:
+      NYANKOFACE_ADMIN_USER: ${NYANKOFACE_ADMIN_USER:-nyankoface-admin}
+      NYANKOFACE_ADMIN_PASSWORD: ${NYANKOFACE_ADMIN_PASSWORD:-nyankoface1234}
+      NYANKOFACE_ADMIN_EMAIL: ${NYANKOFACE_ADMIN_EMAIL:-admin@example.com}
+      FORGEJO_API: http://forgejo:3000/api/v1
+      FORGEJO_TOKEN_FILE: /shared/token
+      FORGEJO_CONTAINER_NAME: nyankoface-forgejo
+      SPACES_RUNNER_API: http://spaces-runner:8000
+      MAINTENANCE_WEBHOOK_URL: http://maintenance-agent:8010/webhooks/forgejo
+      HF_CLONE_TIMEOUT_SECONDS: ${HF_CLONE_TIMEOUT_SECONDS:-20}
+      SPACE_ORG_NAME: ${SPACE_ORG_NAME:-seraphim-labs}
+    volumes:
+      - shared-token:/shared
+      - ./sample-spaces:/samples:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - nyankoface
+    depends_on:
+      forgejo:
+        condition: service_healthy
+      spaces-runner:
+        condition: service_started
+
+  maintenance-agent:
+    build:
+      context: ./maintenance-agent
+    container_name: nyankoface-maintenance-agent
+    init: true
+    restart: unless-stopped
+    expose:
+      - "8010"
+    env_file:
+      - ${ZAI_AGENT_CONFIG:-./maintenance-agent/zai.example.env}
+    environment:
+      FORGEJO_API: http://forgejo:3000/api/v1
+      FORGEJO_GIT_BASE: http://forgejo:3000
+      FORGEJO_TOKEN_FILE: /shared/maintenance-token
+      WEBHOOK_SECRET_FILE: /shared/maintenance-webhook-secret
+      ZAI_ANTHROPIC_BASE_URL: ${ZAI_ANTHROPIC_BASE_URL:-https://api.z.ai/api/anthropic}
+      MAINTENANCE_MODEL: ${MAINTENANCE_MODEL:-glm-5.2}
+      LITELLM_MASTER_KEY: ""
+      WEBUI_SECRET_KEY: ""
+      MAINTENANCE_ALLOWED_OWNER: ${MAINTENANCE_ALLOWED_OWNER:-nyankoface}
+      MAINTENANCE_CLAUDE_USER: maintainer
+      MAINTENANCE_GOAL_TIMEOUT_SECONDS: ${MAINTENANCE_GOAL_TIMEOUT_SECONDS:-3600}
+      MAINTENANCE_MAX_WORKERS: ${MAINTENANCE_MAX_WORKERS:-2}
+      MAINTENANCE_AUTO_MERGE: ${MAINTENANCE_AUTO_MERGE:-true}
+      MAINTENANCE_HUMANLESS_ENABLED: ${MAINTENANCE_HUMANLESS_ENABLED:-false}
+      MAINTENANCE_HUMANLESS_TOPIC: ${MAINTENANCE_HUMANLESS_TOPIC:-humanless}
+      MAINTENANCE_HUMANLESS_SCAN_SECONDS: ${MAINTENANCE_HUMANLESS_SCAN_SECONDS:-300}
+      MAINTENANCE_HUMANLESS_INTERVAL_MINUTES: ${MAINTENANCE_HUMANLESS_INTERVAL_MINUTES:-1440}
+      MAINTENANCE_HUMANLESS_RETRY_MINUTES: ${MAINTENANCE_HUMANLESS_RETRY_MINUTES:-60}
+      MAINTENANCE_HUMANLESS_MAX_ATTEMPTS: ${MAINTENANCE_HUMANLESS_MAX_ATTEMPTS:-3}
+      MAINTENANCE_HUMANLESS_STALE_SECONDS: ${MAINTENANCE_HUMANLESS_STALE_SECONDS:-900}
+      MAINTENANCE_AUTO_ISSUE_ENABLED: ${MAINTENANCE_AUTO_ISSUE_ENABLED:-true}
+      MAINTENANCE_AUTO_ISSUE_TOPIC: ${MAINTENANCE_AUTO_ISSUE_TOPIC:-humanless-issues}
+      MAINTENANCE_AUTOMATIC_RETRY_MAX_ATTEMPTS: ${MAINTENANCE_AUTOMATIC_RETRY_MAX_ATTEMPTS:-3}
+      MAINTENANCE_AUTO_LABEL_ENABLED: ${MAINTENANCE_AUTO_LABEL_ENABLED:-true}
+      MAINTENANCE_AUTO_LABEL_DRY_RUN: ${MAINTENANCE_AUTO_LABEL_DRY_RUN:-false}
+      MAINTENANCE_AUTO_LABEL_ALLOWED: ${MAINTENANCE_AUTO_LABEL_ALLOWED:-bug,enhancement,documentation,question,good first issue}
+      MAINTENANCE_AUTO_LABEL_CONFIDENCE: ${MAINTENANCE_AUTO_LABEL_CONFIDENCE:-0.85}
+      MAINTENANCE_DATA_DIR: /data
+      MAINTENANCE_WORKSPACE_DIR: /work
+      MAINTENANCE_AGENT_TOKEN_DIR: /shared/agent-tokens
+      DATABASE_URL: postgresql://${POSTGRES_USER:-nyankoface}:${POSTGRES_PASSWORD:-nyankoface-postgres}@postgres:5432/nyankoface_maintenance
+    volumes:
+      - shared-token:/shared:ro
+      - maintenance-agent-data:/data
+    networks:
+      - nyankoface
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8010/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Isolated Docker daemon for Forgejo Actions. Each workflow job receives a
+  # separate bridge; the DinD image forwards only Forgejo port 3000 from that
+  # bridge into the outer actions network.
+  forgejo-actions-dind:
+    build:
+      context: ./forgejo-actions-dind
+    container_name: nyankoface-forgejo-actions-dind
+    restart: unless-stopped
+    privileged: true
+    command:
+      - dockerd
+      - -H
+      - unix:///run/nyankoface-docker/docker.sock
+    volumes:
+      - forgejo-actions-docker-run:/run/nyankoface-docker
+    networks:
+      - actions
+    healthcheck:
+      test: ["CMD-SHELL", "DOCKER_HOST=unix:///run/nyankoface-docker/docker.sock docker info >/dev/null && wget -q -O - http://127.0.0.1:3000/api/healthz >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  forgejo-actions-runner:
+    build:
+      context: ./forgejo-actions-runner
+    container_name: nyankoface-forgejo-actions-runner
+    restart: unless-stopped
+    environment:
+      FORGEJO_INSTANCE_URL: http://forgejo:3000
+      FORGEJO_RUNNER_NAME: nyankoface-pages-runner
+      FORGEJO_RUNNER_CAPACITY: ${NYANKOFACE_ACTIONS_RUNNER_CAPACITY:-2}
+      FORGEJO_JOB_CPUS: ${NYANKOFACE_ACTIONS_JOB_CPUS:-2}
+      FORGEJO_JOB_MEMORY: ${NYANKOFACE_ACTIONS_JOB_MEMORY:-4g}
+      FORGEJO_JOB_PIDS_LIMIT: ${NYANKOFACE_ACTIONS_JOB_PIDS_LIMIT:-512}
+      DOCKER_HOST: unix:///run/nyankoface-docker/docker.sock
+    volumes:
+      - forgejo-runner-data:/data
+      - forgejo-actions-docker-run:/run/nyankoface-docker
+      - shared-token:/shared:ro
+    networks:
+      - actions
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+      forgejo-actions-dind:
+        condition: service_healthy

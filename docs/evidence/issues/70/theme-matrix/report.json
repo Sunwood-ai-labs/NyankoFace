@@ -1,0 +1,721 @@
+{
+  "generatedAt": "2026-07-31T02:45:02.478Z",
+  "baseUrl": "https://localhost:8443",
+  "targetUrl": "https://localhost:8443/nyankoface/pages-starter?tab=pipelines",
+  "results": [
+    {
+      "theme": "standard",
+      "viewport": "desktop",
+      "history": {
+        "theme": "standard",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [],
+        "wrapPressed": null,
+        "logWhiteSpace": null,
+        "stepContrast": [],
+        "shortControls": []
+      },
+      "detail": {
+        "theme": "standard",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "true",
+        "logWhiteSpace": "pre-wrap",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "jobLog": {
+        "theme": "standard",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "false",
+        "logWhiteSpace": "pre",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "screenshots": {
+        "history": "standard--desktop--history.png",
+        "detail": "standard--desktop--detail.png",
+        "jobLog": "standard--desktop--job-log.png"
+      }
+    },
+    {
+      "theme": "standard",
+      "viewport": "mobile",
+      "history": {
+        "theme": "standard",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [],
+        "wrapPressed": null,
+        "logWhiteSpace": null,
+        "stepContrast": [],
+        "shortControls": []
+      },
+      "detail": {
+        "theme": "standard",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "true",
+        "logWhiteSpace": "pre-wrap",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "jobLog": {
+        "theme": "standard",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "false",
+        "logWhiteSpace": "pre",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "screenshots": {
+        "history": "standard--mobile--history.png",
+        "detail": "standard--mobile--detail.png",
+        "jobLog": "standard--mobile--job-log.png"
+      }
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": "desktop",
+      "history": {
+        "theme": "solarpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [],
+        "wrapPressed": null,
+        "logWhiteSpace": null,
+        "stepContrast": [],
+        "shortControls": []
+      },
+      "detail": {
+        "theme": "solarpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "true",
+        "logWhiteSpace": "pre-wrap",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "jobLog": {
+        "theme": "solarpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "false",
+        "logWhiteSpace": "pre",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "screenshots": {
+        "history": "solarpunk--desktop--history.png",
+        "detail": "solarpunk--desktop--detail.png",
+        "jobLog": "solarpunk--desktop--job-log.png"
+      }
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": "mobile",
+      "history": {
+        "theme": "solarpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [],
+        "wrapPressed": null,
+        "logWhiteSpace": null,
+        "stepContrast": [],
+        "shortControls": []
+      },
+      "detail": {
+        "theme": "solarpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "true",
+        "logWhiteSpace": "pre-wrap",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "jobLog": {
+        "theme": "solarpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "false",
+        "logWhiteSpace": "pre",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "screenshots": {
+        "history": "solarpunk--mobile--history.png",
+        "detail": "solarpunk--mobile--detail.png",
+        "jobLog": "solarpunk--mobile--job-log.png"
+      }
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": "desktop",
+      "history": {
+        "theme": "cyberpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [],
+        "wrapPressed": null,
+        "logWhiteSpace": null,
+        "stepContrast": [],
+        "shortControls": []
+      },
+      "detail": {
+        "theme": "cyberpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "true",
+        "logWhiteSpace": "pre-wrap",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "jobLog": {
+        "theme": "cyberpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "false",
+        "logWhiteSpace": "pre",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "screenshots": {
+        "history": "cyberpunk--desktop--history.png",
+        "detail": "cyberpunk--desktop--detail.png",
+        "jobLog": "cyberpunk--desktop--job-log.png"
+      }
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": "mobile",
+      "history": {
+        "theme": "cyberpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [],
+        "wrapPressed": null,
+        "logWhiteSpace": null,
+        "stepContrast": [],
+        "shortControls": []
+      },
+      "detail": {
+        "theme": "cyberpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "true",
+        "logWhiteSpace": "pre-wrap",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "jobLog": {
+        "theme": "cyberpunk",
+        "overflow": 0,
+        "panelVisible": true,
+        "dispatchVisible": true,
+        "runCount": 8,
+        "runnerOptions": [
+          "node20",
+          "gpu"
+        ],
+        "runnerOptionStates": [
+          {
+            "value": "node20",
+            "label": "CPU · Node.js 20 · オンライン",
+            "disabled": false
+          },
+          {
+            "value": "gpu",
+            "label": "GPU · CUDA · 利用不可",
+            "disabled": true
+          }
+        ],
+        "openJobs": [
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrapPressed": "false",
+        "logWhiteSpace": "pre",
+        "stepContrast": [
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598,
+          14.894588477600598
+        ],
+        "shortControls": []
+      },
+      "screenshots": {
+        "history": "cyberpunk--mobile--history.png",
+        "detail": "cyberpunk--mobile--detail.png",
+        "jobLog": "cyberpunk--mobile--job-log.png"
+      }
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "owner": "Sunwood-ai-labs",
+  "verifiedAt": "2026-07-14",
+  "entries": [
+    {
+      "name": "android-termux-ssh-bootstrap-skill",
+      "kind": "skill",
+      "description": "Bootstrap a fresh Android device for Termux over SSH from Windows",
+      "source": "https://github.com/Sunwood-ai-labs/android-termux-ssh-bootstrap-skill.git",
+      "branch": "main"
+    },
+    { "name": "cc-orchestrator-cli-skill", "kind": "skill", "description": "Orchestrate Claude Code agent teams from the CLI with logs and reports", "source": "https://github.com/Sunwood-ai-labs/cc-orchestrator-cli-skill.git", "branch": "main" },
+    { "name": "cities-skylines1-agent-skill", "kind": "skill", "description": "Build and inspect Cities: Skylines cities through an agent bridge", "source": "https://github.com/Sunwood-ai-labs/cities-skylines1-agent-skill.git", "branch": "main" },
+    {
+      "name": "draw-io-skill",
+      "kind": "skill",
+      "description": "Create, edit, export, and visually lint native draw.io diagrams",
+      "source": "https://github.com/Sunwood-ai-labs/draw-io-skill.git",
+      "branch": "main",
+      "dependencies": []
+    },
+    {
+      "name": "frontend-design-skill",
+      "kind": "skill",
+      "description": "Create distinctive production-grade frontend interfaces",
+      "source": "https://github.com/Sunwood-ai-labs/frontend-design-skill.git",
+      "branch": "main",
+      "dependencies": []
+    },
+    {
+      "name": "gh-release-notes-skill",
+      "kind": "skill",
+      "description": "Draft GitHub release notes from real diffs, tags, and evidence",
+      "source": "https://github.com/Sunwood-ai-labs/gh-release-notes-skill.git",
+      "branch": "main",
+      "dependencies": [
+        {
+          "repo": "git-flow-skill",
+          "type": "recommended",
+          "reason": "Pair release evidence with the repository's actual release and hotfix branch boundaries.",
+          "evidence": "gh-release-notes SKILL.md: Default Workflow §2; git-flow SKILL.md: Standard Flows / Release and Hotfix"
+        }
+      ]
+    },
+    {
+      "name": "git-flow-skill",
+      "kind": "skill",
+      "description": "Plan and validate Git Flow branches, releases, and hotfixes",
+      "source": "https://github.com/Sunwood-ai-labs/git-flow-skill.git",
+      "branch": "main",
+      "dependencies": []
+    },
+    {
+      "name": "jupytext-skill",
+      "kind": "skill",
+      "description": "Round-trip Jupyter notebooks and Markdown with Jupytext",
+      "source": "https://github.com/Sunwood-ai-labs/jupytext-skill.git",
+      "branch": "main",
+      "dependencies": []
+    },
+    { "name": "m5stack-arduino-cli-skill", "kind": "skill", "description": "Set up, diagnose, and flash M5Stack boards with Arduino CLI", "source": "https://github.com/Sunwood-ai-labs/m5stack-arduino-cli-skill.git", "branch": "main" },
+    {
+      "name": "repository-polish-skill",
+      "kind": "skill",
+      "description": "Polish repositories with docs, CI, metadata, and release structure",
+      "source": "https://github.com/Sunwood-ai-labs/repository-polish-skill.git",
+      "branch": "main",
+      "dependencies": [
+        {
+          "repo": "frontend-design-skill",
+          "type": "recommended",
+          "reason": "Use focused interface design when polish work changes a docs or Pages user-facing surface.",
+          "evidence": "repository-polish SKILL.md: QA Workflow §3; frontend-design SKILL.md: Design Thinking"
+        },
+        {
+          "repo": "gh-release-notes-skill",
+          "type": "recommended",
+          "reason": "Use diff-backed notes when repository polish reaches release publication and docs truth-sync.",
+          "evidence": "repository-polish SKILL.md: Close out at the actual finish line; gh-release-notes SKILL.md: Docs Truth-Sync"
+        },
+        {
+          "repo": "draw-io-skill",
+          "type": "recommended",
+          "reason": "Use editable, visually verified diagrams when public documentation needs architecture visuals.",
+          "evidence": "repository-polish SKILL.md: Common Scope / visual polish; draw-io SKILL.md: Default Workflow"
+        }
+      ]
+    },
+    { "name": "aira-mcp-server", "kind": "mcp", "description": "MCP server for the AIRA repository automation workflow", "source": "https://github.com/Sunwood-ai-labs/aira-mcp-server.git", "branch": "main" },
+    { "name": "command-executor-mcp-server", "kind": "mcp", "description": "Safely execute pre-approved commands through MCP", "source": "https://github.com/Sunwood-ai-labs/command-executor-mcp-server.git", "branch": "master" },
+    { "name": "discord-mcp", "kind": "mcp", "description": "Connect MCP clients to Discord messaging and community tools", "source": "https://github.com/Sunwood-ai-labs/discord-mcp.git", "branch": "main" },
+    { "name": "duckduckgo-web-search", "kind": "mcp", "description": "Search the web through DuckDuckGo from an MCP client", "source": "https://github.com/Sunwood-ai-labs/duckduckgo-web-search.git", "branch": "main" },
+    { "name": "github-kanban-mcp-server", "kind": "mcp", "description": "Manage GitHub project boards and issues through MCP", "source": "https://github.com/Sunwood-ai-labs/github-kanban-mcp-server.git", "branch": "main" },
+    { "name": "gitlab-kanban-mcp-server", "kind": "mcp", "description": "Operate GitLab Kanban boards through an MCP server", "source": "https://github.com/Sunwood-ai-labs/gitlab-kanban-mcp-server.git", "branch": "master" },
+    { "name": "ideagram-mcp-server", "kind": "mcp", "description": "Generate visual ideas and images through an MCP server", "source": "https://github.com/Sunwood-ai-labs/ideagram-mcp-server.git", "branch": "main" },
+    { "name": "mcp-voicevox", "kind": "mcp", "description": "Generate Japanese speech with VOICEVOX through MCP", "source": "https://github.com/Sunwood-ai-labs/mcp-voicevox.git", "branch": "main" },
+    { "name": "mcp-weather-service-server", "kind": "mcp", "description": "Expose weather forecasts and observations as MCP tools", "source": "https://github.com/Sunwood-ai-labs/mcp-weather-service-server.git", "branch": "main" },
+    { "name": "source-sage-mcp-server", "kind": "mcp", "description": "Analyze and document source repositories through MCP", "source": "https://github.com/Sunwood-ai-labs/source-sage-mcp-server.git", "branch": "master" },
+    {
+      "name": "lumi-jelly-pngtuber",
+      "kind": "character",
+      "description": "Lumi Jelly upper-body PuruPuru PNGtuber with six frontal expression states",
+      "source": "https://github.com/Sunwood-ai-labs/lumi-jelly-pngtuber.git",
+      "branch": "main",
+      "topics": ["purupuru", "pngtuber", "upper-body", "six-state"]
+    },
+    {
+      "name": "lumi-jelly-head-motion-pngtuber",
+      "kind": "character",
+      "description": "Lumi Jelly head-only PuruPuru model with five directions, 30 states, and a direction-control patch",
+      "source": "https://github.com/Sunwood-ai-labs/lumi-jelly-head-motion-pngtuber.git",
+      "branch": "main",
+      "topics": ["purupuru", "pngtuber", "head-motion", "five-direction", "thirty-state", "motion-patch"]
+    },
+    {
+      "name": "character-design-images",
+      "kind": "character-bundle",
+      "description": "Eight character sheets and installable Codex pet packages with spritesheets and QA evidence",
+      "source": "https://github.com/Sunwood-ai-labs/character-design-images.git",
+      "branch": "main",
+      "topics": ["character-source", "eight-characters", "qa"],
+      "splitAssets": true
+    }
+  ]
+}

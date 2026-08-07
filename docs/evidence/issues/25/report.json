@@ -1,0 +1,102 @@
+{
+  "passed": 6,
+  "total": 6,
+  "results": [
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "/",
+      "audit": {
+        "authenticatedVisible": true,
+        "anonymousVisible": false,
+        "accountText": "nyankoface-adminログイン中 nyankoface-adminプロフィール設定ログアウト",
+        "avatarSrc": "/git/avatars/e64c7d89f26bd1972efa854d13d7dd61?size=48",
+        "avatarLoaded": true,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "desktop--authenticated--home.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "/spaces",
+      "audit": {
+        "authenticatedVisible": true,
+        "anonymousVisible": false,
+        "accountText": "nyankoface-adminログイン中 nyankoface-adminプロフィール設定ログアウト",
+        "avatarSrc": "/git/avatars/e64c7d89f26bd1972efa854d13d7dd61?size=48",
+        "avatarLoaded": true,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "desktop--authenticated--spaces.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "path": "/ server markup",
+      "audit": {
+        "accountPresent": true
+      },
+      "defects": []
+    },
+    {
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "path": "/",
+      "audit": {
+        "authenticatedVisible": true,
+        "anonymousVisible": false,
+        "accountText": "nyankoface-adminログアウト",
+        "avatarSrc": "/git/avatars/e64c7d89f26bd1972efa854d13d7dd61?size=48",
+        "avatarLoaded": true,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "mobile--authenticated--home.png"
+    },
+    {
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "path": "/spaces",
+      "audit": {
+        "authenticatedVisible": true,
+        "anonymousVisible": false,
+        "accountText": "nyankoface-adminログアウト",
+        "avatarSrc": "/git/avatars/e64c7d89f26bd1972efa854d13d7dd61?size=48",
+        "avatarLoaded": true,
+        "horizontalOverflow": 0
+      },
+      "defects": [],
+      "screenshot": "mobile--authenticated--spaces.png"
+    },
+    {
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "path": "/ server markup",
+      "audit": {
+        "accountPresent": true
+      },
+      "defects": []
+    }
+  ]
+}

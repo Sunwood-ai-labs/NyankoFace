@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "nyankoface": {
+      "type": "http",
+      "url": "https://<NYANKOFACE_HOST>/mcp",
+      "headers": {
+        "Authorization": "Bearer ${input:nyankoface-token}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "id": "nyankoface-token",
+      "type": "promptString",
+      "description": "NyankoFace MCP token",
+      "password": true
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="candidate-06-title candidate-06-desc">
+    <title id="candidate-06-title">Cat Signal</title><desc id="candidate-06-desc">NyankoFace brand exploration candidate 06.</desc>
+    <g><g fill="none" stroke="#102a43" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M54 104V52l48 34 26-16 26 16 48-34v52"/>
+        <path d="M54 104c0 70 32 106 74 106s74-36 74-106"/>
+        <circle cx="98" cy="132" r="9" fill="#06b6d4" stroke="none"/><circle cx="158" cy="132" r="9" fill="#06b6d4" stroke="none"/>
+        <path d="M110 166q18 12 36 0" stroke="#f59e0b"/>
+      </g></g>
+  </svg>

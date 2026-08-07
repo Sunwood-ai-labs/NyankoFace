@@ -1,0 +1,62 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+**/credentials.json
+**/*token*
+!**/*token*.py
+/secrets/
+
+# Docker/build runtime state
+/.docker-tmp/
+*.pid
+
+# Dependencies and generated builds
+**/node_modules/
+**/.next/
+**/dist/
+**/build/
+**/.cache/
+**/__pycache__/
+*.py[cod]
+*.tsbuildinfo
+.venv/
+venv/
+
+# Persistent runtime databases
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# Local diagnostics and visual verification artifacts
+*.log
+/forgejo-*.html
+/screenshots/
+/visual-tests/artifacts/
+/visual-tests/artifacts-*/
+/visual-tests/*-artifacts/
+/visual-tests/visual-tests/
+/docs/.vitepress/cache/
+/docs/evidence/community-ui/issues-current-*.png
+/docs/evidence/community-ui/*-avatar-check.png
+/.sync-probe
+/gateway/certs/
+
+# These are independent Git repositories published to the local Forgejo.
+# Keep the publishing helper here, but do not turn the checkouts into nested
+# gitlinks inside the NyankoFace platform repository.
+/sample-spaces/*/
+!/sample-spaces/sample-environment-secrets/
+!/sample-spaces/sample-environment-secrets/Dockerfile
+!/sample-spaces/sample-environment-secrets/README.md
+!/sample-spaces/sample-environment-secrets/main.py
+!/sample-spaces/sample-environment-secrets/requirements.txt
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,336 @@
+{
+  "passed": 6,
+  "total": 6,
+  "results": [
+    {
+      "viewport": {
+        "id": "desktop-1280",
+        "width": 1280,
+        "height": 900
+      },
+      "route": {
+        "id": "settings",
+        "path": "/git/user/settings",
+        "bodyAttribute": "data-nyankoface-settings",
+        "contentSelector": ".user-setting-content"
+      },
+      "audit": {
+        "viewportWidth": 1280,
+        "horizontalOverflow": 0,
+        "hasBodyAttribute": true,
+        "page": {
+          "x": 32,
+          "width": 1216,
+          "right": 1248,
+          "display": "block",
+          "maxWidth": "1216px",
+          "gridTemplateColumns": "none"
+        },
+        "container": {
+          "x": 150,
+          "width": 980,
+          "right": 1130,
+          "display": "flex",
+          "maxWidth": "980px",
+          "gridTemplateColumns": "none"
+        },
+        "mainContent": {
+          "x": 406,
+          "width": 724,
+          "right": 1130,
+          "display": "block",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "nav": {
+          "x": 0,
+          "width": 1280,
+          "right": 1280,
+          "display": "flex",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "strayRepositoryLandingCount": 0,
+        "pagePaddingLeft": 32,
+        "pagePaddingRight": 32
+      },
+      "defects": [],
+      "screenshot": "desktop-1280--settings.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop-1280",
+        "width": 1280,
+        "height": 900
+      },
+      "route": {
+        "id": "notifications",
+        "path": "/git/notifications/subscriptions",
+        "bodyAttribute": "data-nyankoface-notifications",
+        "contentSelector": "#notification_table, .notification-list, .ui.segment"
+      },
+      "audit": {
+        "viewportWidth": 1280,
+        "horizontalOverflow": 0,
+        "hasBodyAttribute": true,
+        "page": {
+          "x": 32,
+          "width": 1216,
+          "right": 1248,
+          "display": "block",
+          "maxWidth": "1216px",
+          "gridTemplateColumns": "none"
+        },
+        "container": {
+          "x": 64,
+          "width": 1152,
+          "right": 1216,
+          "display": "block",
+          "maxWidth": "1216px",
+          "gridTemplateColumns": "none"
+        },
+        "mainContent": {
+          "x": 64,
+          "width": 1152,
+          "right": 1216,
+          "display": "block",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "nav": {
+          "x": 0,
+          "width": 1280,
+          "right": 1280,
+          "display": "flex",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "strayRepositoryLandingCount": 0,
+        "pagePaddingLeft": 32,
+        "pagePaddingRight": 32
+      },
+      "defects": [],
+      "screenshot": "desktop-1280--notifications.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop-1280",
+        "width": 1280,
+        "height": 900
+      },
+      "route": {
+        "id": "admin",
+        "path": "/git/admin",
+        "bodyAttribute": "data-nyankoface-admin-page",
+        "contentSelector": ".admin-setting-content"
+      },
+      "audit": {
+        "viewportWidth": 1280,
+        "horizontalOverflow": 0,
+        "hasBodyAttribute": true,
+        "page": {
+          "x": 32,
+          "width": 1216,
+          "right": 1248,
+          "display": "block",
+          "maxWidth": "1216px",
+          "gridTemplateColumns": "none"
+        },
+        "container": {
+          "x": 64,
+          "width": 1152,
+          "right": 1216,
+          "display": "flex",
+          "maxWidth": "1216px",
+          "gridTemplateColumns": "none"
+        },
+        "mainContent": {
+          "x": 320,
+          "width": 896,
+          "right": 1216,
+          "display": "block",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "nav": {
+          "x": 0,
+          "width": 1280,
+          "right": 1280,
+          "display": "flex",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "strayRepositoryLandingCount": 0,
+        "pagePaddingLeft": 32,
+        "pagePaddingRight": 32
+      },
+      "defects": [],
+      "screenshot": "desktop-1280--admin.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop-1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "route": {
+        "id": "settings",
+        "path": "/git/user/settings",
+        "bodyAttribute": "data-nyankoface-settings",
+        "contentSelector": ".user-setting-content"
+      },
+      "audit": {
+        "viewportWidth": 1440,
+        "horizontalOverflow": 0,
+        "hasBodyAttribute": true,
+        "page": {
+          "x": 80,
+          "width": 1280,
+          "right": 1360,
+          "display": "block",
+          "maxWidth": "1280px",
+          "gridTemplateColumns": "none"
+        },
+        "container": {
+          "x": 230,
+          "width": 980,
+          "right": 1210,
+          "display": "flex",
+          "maxWidth": "980px",
+          "gridTemplateColumns": "none"
+        },
+        "mainContent": {
+          "x": 486,
+          "width": 724,
+          "right": 1210,
+          "display": "block",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "nav": {
+          "x": 0,
+          "width": 1440,
+          "right": 1440,
+          "display": "flex",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "strayRepositoryLandingCount": 0,
+        "pagePaddingLeft": 32,
+        "pagePaddingRight": 32
+      },
+      "defects": [],
+      "screenshot": "desktop-1440--settings.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop-1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "route": {
+        "id": "notifications",
+        "path": "/git/notifications/subscriptions",
+        "bodyAttribute": "data-nyankoface-notifications",
+        "contentSelector": "#notification_table, .notification-list, .ui.segment"
+      },
+      "audit": {
+        "viewportWidth": 1440,
+        "horizontalOverflow": 0,
+        "hasBodyAttribute": true,
+        "page": {
+          "x": 80,
+          "width": 1280,
+          "right": 1360,
+          "display": "block",
+          "maxWidth": "1280px",
+          "gridTemplateColumns": "none"
+        },
+        "container": {
+          "x": 112,
+          "width": 1216,
+          "right": 1328,
+          "display": "block",
+          "maxWidth": "1216px",
+          "gridTemplateColumns": "none"
+        },
+        "mainContent": {
+          "x": 112,
+          "width": 1216,
+          "right": 1328,
+          "display": "block",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "nav": {
+          "x": 0,
+          "width": 1440,
+          "right": 1440,
+          "display": "flex",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "strayRepositoryLandingCount": 0,
+        "pagePaddingLeft": 32,
+        "pagePaddingRight": 32
+      },
+      "defects": [],
+      "screenshot": "desktop-1440--notifications.png"
+    },
+    {
+      "viewport": {
+        "id": "desktop-1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "route": {
+        "id": "admin",
+        "path": "/git/admin",
+        "bodyAttribute": "data-nyankoface-admin-page",
+        "contentSelector": ".admin-setting-content"
+      },
+      "audit": {
+        "viewportWidth": 1440,
+        "horizontalOverflow": 0,
+        "hasBodyAttribute": true,
+        "page": {
+          "x": 80,
+          "width": 1280,
+          "right": 1360,
+          "display": "block",
+          "maxWidth": "1280px",
+          "gridTemplateColumns": "none"
+        },
+        "container": {
+          "x": 112,
+          "width": 1216,
+          "right": 1328,
+          "display": "flex",
+          "maxWidth": "1216px",
+          "gridTemplateColumns": "none"
+        },
+        "mainContent": {
+          "x": 368,
+          "width": 960,
+          "right": 1328,
+          "display": "block",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "nav": {
+          "x": 0,
+          "width": 1440,
+          "right": 1440,
+          "display": "flex",
+          "maxWidth": "none",
+          "gridTemplateColumns": "none"
+        },
+        "strayRepositoryLandingCount": 0,
+        "pagePaddingLeft": 32,
+        "pagePaddingRight": 32
+      },
+      "defects": [],
+      "screenshot": "desktop-1440--admin.png"
+    }
+  ]
+}

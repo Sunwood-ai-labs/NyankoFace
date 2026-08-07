@@ -1,0 +1,36 @@
+{
+  "name": "nyankoface-visual-qa",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture": "node capture.mjs",
+    "capture:themes": "node theme-matrix.mjs",
+    "capture:scroll": "node scroll-audit.mjs",
+    "audit:organization": "node organization-audit.mjs",
+    "audit:organization-edit": "node organization-edit-audit.mjs",
+    "audit:peripheral-layout": "node peripheral-layout-audit.mjs",
+    "audit:container-width": "node container-width-audit.mjs",
+    "audit:interactions": "node interaction-audit.mjs",
+    "audit:theme-selector": "node theme-selector-audit.mjs",
+    "audit:i18n": "node i18n-audit.mjs",
+    "audit:characters": "node character-audit.mjs",
+    "audit:mermaid": "node mermaid-audit.mjs",
+    "audit:readme-layout": "node readme-layout-audit.mjs",
+    "audit:syntax-highlighting": "node syntax-highlighting-audit.mjs",
+    "audit:app-name": "node app-name-audit.mjs",
+    "audit:stopwatch-indicator": "node stopwatch-indicator-audit.mjs",
+    "audit:auth-session": "node auth-session-audit.mjs",
+    "audit:platform-home": "node platform-home-audit.mjs",
+    "audit:pages-deploy": "node pages-deploy-audit.mjs",
+    "audit:pipeline": "node pipeline-audit.mjs",
+    "audit:space-environment-api": "node space-environment-api-audit.mjs",
+    "audit:public-space": "node public-space-audit.mjs",
+    "benchmark:space-navigation": "node space-navigation-benchmark.mjs",
+    "audit:automation": "node automation-audit.mjs",
+    "audit:navigation-brand": "node navigation-brand-audit.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.61.1"
+  }
+}

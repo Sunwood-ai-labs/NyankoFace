@@ -1,0 +1,63 @@
+x-mcp: &mcp
+  build: ./nyankoface-mcp
+  environment: &mcp-env
+    FORGEJO_API: http://fixture:8001/api/v1
+    NYANKOFACE_CATALOG_API: http://fixture:8001
+    RUNNER_API: http://fixture:8001/api
+    PUBLIC_BASE_URL: https://ha.test
+    NYANKOFACE_MCP_TOKEN_FILE: /fixtures/registry.json
+    NYANKOFACE_MCP_ALLOWED_HOSTS: mcp.test
+    NYANKOFACE_MCP_ALLOWED_ORIGINS: https://ha.test
+    NYANKOFACE_MCP_WRITE_STATE_PATH: /state/write.sqlite3
+    NYANKOFACE_MCP_POLICY_STATE_PATH: /state/policy.sqlite3
+    NYANKOFACE_MCP_AUDIT_STATE_PATH: /state/audit.sqlite3
+  volumes:
+    - mcp-state:/state
+    - ./nyankoface-mcp/tests/ha:/fixtures:ro
+  depends_on:
+    fixture:
+      condition: service_healthy
+
+services:
+  fixture:
+    build: ./nyankoface-mcp
+    user: root
+    command: python /fixtures/fixture.py
+    environment:
+      NYANKOFACE_MCP_POLICY_STATE_PATH: /state/policy.sqlite3
+      NYANKOFACE_MCP_AUDIT_STATE_PATH: /state/audit.sqlite3
+    volumes:
+      - mcp-state:/state
+      - ./nyankoface-mcp/tests/ha:/fixtures:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/healthz')"]
+      interval: 1s
+      timeout: 2s
+      retries: 20
+
+  mcp-a:
+    <<: *mcp
+    environment:
+      <<: *mcp-env
+      NYANKOFACE_MCP_INSTANCE_ID: mcp-a
+      NYANKOFACE_MCP_JSON_RESPONSE: "true"
+
+  mcp-b:
+    <<: *mcp
+    environment:
+      <<: *mcp-env
+      NYANKOFACE_MCP_INSTANCE_ID: mcp-b
+      NYANKOFACE_MCP_JSON_RESPONSE: "false"
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "127.0.0.1::443"
+    volumes:
+      - ./nyankoface-mcp/tests/ha/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
+    depends_on:
+      - mcp-a
+      - mcp-b
+
+volumes:
+  mcp-state:

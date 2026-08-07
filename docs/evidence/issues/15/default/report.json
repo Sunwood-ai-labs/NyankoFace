@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-07-27T21:05:21.165Z",
+  "baseUrl": "http://localhost:8090",
+  "expectedAppName": "NyankoFace",
+  "cases": 4,
+  "failures": 0,
+  "results": [
+    {
+      "route": "portal-home",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "audit": {
+        "title": "NyankoFace - ローカルで育てるAIコミュニティ",
+        "brand": "NyankoFace",
+        "searchLabel": "NyankoFaceを検索",
+        "metaAppName": "",
+        "viewportWidth": 1440,
+        "scrollWidth": 1440
+      },
+      "defects": [],
+      "screenshot": "C:\\Users\\makim\\Claude\\Projects\\NyankoFace\\docs\\evidence\\issues\\15\\default\\screenshots\\portal-home--desktop.png"
+    },
+    {
+      "route": "forgejo-login",
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "audit": {
+        "title": "Sign in - NyankoFace",
+        "brand": "NyankoFace",
+        "searchLabel": "",
+        "metaAppName": "NyankoFace",
+        "viewportWidth": 1440,
+        "scrollWidth": 1440
+      },
+      "defects": [],
+      "screenshot": "C:\\Users\\makim\\Claude\\Projects\\NyankoFace\\docs\\evidence\\issues\\15\\default\\screenshots\\forgejo-login--desktop.png"
+    },
+    {
+      "route": "portal-home",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "audit": {
+        "title": "NyankoFace - ローカルで育てるAIコミュニティ",
+        "brand": "NyankoFace",
+        "searchLabel": "NyankoFaceを検索",
+        "metaAppName": "",
+        "viewportWidth": 390,
+        "scrollWidth": 390
+      },
+      "defects": [],
+      "screenshot": "C:\\Users\\makim\\Claude\\Projects\\NyankoFace\\docs\\evidence\\issues\\15\\default\\screenshots\\portal-home--mobile.png"
+    },
+    {
+      "route": "forgejo-login",
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "audit": {
+        "title": "Sign in - NyankoFace",
+        "brand": "NyankoFace",
+        "searchLabel": "",
+        "metaAppName": "NyankoFace",
+        "viewportWidth": 390,
+        "scrollWidth": 390
+      },
+      "defects": [],
+      "screenshot": "C:\\Users\\makim\\Claude\\Projects\\NyankoFace\\docs\\evidence\\issues\\15\\default\\screenshots\\forgejo-login--mobile.png"
+    }
+  ]
+}

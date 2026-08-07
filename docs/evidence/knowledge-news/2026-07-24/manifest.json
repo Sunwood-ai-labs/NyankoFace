@@ -1,0 +1,2033 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-24T11:45:02.119Z",
+  "baseUrl": "https://example.invalid",
+  "dimensions": {
+    "themes": [
+      "standard",
+      "solarpunk",
+      "cyberpunk"
+    ],
+    "colorSchemes": [
+      "light",
+      "dark"
+    ],
+    "viewports": [
+      {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "routes": [
+      {
+        "id": "docs",
+        "path": "/docs"
+      },
+      {
+        "id": "docs-news",
+        "path": "/docs?type=news"
+      },
+      {
+        "id": "doc-news-detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh"
+      }
+    ]
+  },
+  "summary": {
+    "total": 36,
+    "passed": 36,
+    "failed": 0,
+    "screenshots": 36,
+    "auditedTextNodes": 2110,
+    "imageBackedTextNodes": 2060,
+    "minimumContrastMargin": 1.1
+  },
+  "results": [
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 4543,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 623,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 23 views #release #knowl",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 10,
+      "imageBackedTextCount": 29,
+      "minimumContrast": 14.33,
+      "minimumContrastMargin": 3.18,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4726,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2379,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 240,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4376,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 656,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 58,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 5231,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 546,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 24 views #release #knowledge Knowledge一覧をSpaces型のカードUIへ刷新 NyankoFaceのKnowledge一覧を、Spacesと同じ情報密度で探せるディレク",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 9,
+      "imageBackedTextCount": 19,
+      "minimumContrast": 14.33,
+      "minimumContrastMargin": 3.18,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 5481,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2292,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 238,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 5240,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 569,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 56,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 4541,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 623,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 21 views #release #knowl",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 10,
+      "imageBackedTextCount": 29,
+      "minimumContrast": 14.33,
+      "minimumContrastMargin": 3.18,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4851,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2379,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 240,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4646,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 656,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 58,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 4724,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 546,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 22 views #release #knowledge Knowledge一覧をSpaces型のカードUIへ刷新 NyankoFaceのKnowledge一覧を、Spacesと同じ情報密度で探せるディレク",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 9,
+      "imageBackedTextCount": 19,
+      "minimumContrast": 14.33,
+      "minimumContrastMargin": 3.18,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4629,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2292,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 238,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4722,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 569,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 56,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 4468,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 623,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 19 views #release #knowl",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 22,
+      "imageBackedTextCount": 17,
+      "minimumContrast": 5.24,
+      "minimumContrastMargin": 1.17,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4777,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2379,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 47,
+      "imageBackedTextCount": 207,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4420,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 656,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 48,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 4688,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 546,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 20 views #release #knowledge Knowledge一覧をSpaces型のカードUIへ刷新 NyankoFaceのKnowledge一覧を、Spacesと同じ情報密度で探せるディレク",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 11,
+      "imageBackedTextCount": 17,
+      "minimumContrast": 5.24,
+      "minimumContrastMargin": 1.17,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4978,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2292,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 35,
+      "imageBackedTextCount": 207,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4694,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 569,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 36,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 4426,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 623,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 17 views #release #knowl",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 22,
+      "imageBackedTextCount": 17,
+      "minimumContrast": 5.24,
+      "minimumContrastMargin": 1.17,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4889,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2379,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 47,
+      "imageBackedTextCount": 207,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4436,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 656,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 48,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 5282,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 546,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 18 views #release #knowledge Knowledge一覧をSpaces型のカードUIへ刷新 NyankoFaceのKnowledge一覧を、Spacesと同じ情報密度で探せるディレク",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 11,
+      "imageBackedTextCount": 17,
+      "minimumContrast": 5.24,
+      "minimumContrastMargin": 1.17,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 5294,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2292,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 35,
+      "imageBackedTextCount": 207,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 5289,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 569,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 36,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 4545,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 623,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 3分前に更新 · 読了 1分 · 15 views #release #knowl",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 39,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 8.61,
+      "minimumContrastMargin": 1.91,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4958,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2379,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 50,
+      "imageBackedTextCount": 204,
+      "minimumContrast": 8.61,
+      "minimumContrastMargin": 1.91,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4557,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 656,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 51,
+      "imageBackedTextCount": 21,
+      "minimumContrast": 8.61,
+      "minimumContrastMargin": 1.91,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 3801,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 546,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 4分前に更新 · 読了 1分 · 16 views #release #knowledge Knowledge一覧をSpaces型のカードUIへ刷新 NyankoFaceのKnowledge一覧を、Spacesと同じ情報密度で探せるディレク",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 28,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 8.61,
+      "minimumContrastMargin": 1.91,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4298,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2292,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 38,
+      "imageBackedTextCount": 204,
+      "minimumContrast": 8.61,
+      "minimumContrastMargin": 1.91,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 3928,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 569,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 39,
+      "imageBackedTextCount": 21,
+      "minimumContrast": 8.61,
+      "minimumContrastMargin": 1.91,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 2545,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 623,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 3分前に更新 · 読了 1分 · 13 views #release #knowl",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 39,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 6.85,
+      "minimumContrastMargin": 1.52,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 2799,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2379,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 50,
+      "imageBackedTextCount": 204,
+      "minimumContrast": 7.73,
+      "minimumContrastMargin": 1.72,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 2500,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 656,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 51,
+      "imageBackedTextCount": 21,
+      "minimumContrast": 5.47,
+      "minimumContrastMargin": 1.22,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "doc-news-detail",
+        "label": "Knowledge news detail",
+        "path": "/docs/nyankoface/knowledge-directory-refresh",
+        "focus": "News and article role badges, release metadata, readable Markdown, repository source actions, responsive width, and theme contrast"
+      },
+      "requestedUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "finalUrl": "https://example.invalid/docs/nyankoface/knowledge-directory-refresh",
+      "status": 200,
+      "durationMs": 3025,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--doc-news-detail.png",
+      "title": "Knowledge一覧をSpaces型のカードUIへ刷新 - ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 546,
+      "bodyPreview": "NyankoFace ナレッジ一覧 nyankoface 📰 ニュース 記事 Knowledge一覧をSpaces型のカードUIへ刷新 Knowledge一覧のカードUI、ニュースカテゴリ、記事別絵文字を公開 3分前に更新 · 読了 1分 · 14 views #release #knowledge Knowledge一覧をSpaces型のカードUIへ刷新 NyankoFaceのKnowledge一覧を、Spacesと同じ情報密度で探せるディレク",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 28,
+      "imageBackedTextCount": 0,
+      "minimumContrast": 6.85,
+      "minimumContrastMargin": 1.52,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge directory",
+        "path": "/docs",
+        "focus": "Spaces-style compact directory, composable roles, topic rail, search, filters, sorting, card density, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 3427,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2292,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 38,
+      "imageBackedTextCount": 204,
+      "minimumContrast": 7.73,
+      "minimumContrastMargin": 1.72,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 3036,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 569,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items #automation 2 it",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 39,
+      "imageBackedTextCount": 21,
+      "minimumContrast": 5.47,
+      "minimumContrastMargin": 1.22,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    }
+  ]
+}

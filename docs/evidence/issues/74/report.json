@@ -1,0 +1,119 @@
+{
+  "baseUrl": "https://localhost:8443",
+  "owner": "seraphim-labs",
+  "repo": "weekly-repository-report",
+  "immutableRef": "v1.0.0",
+  "api": {
+    "preflightStatus": 200,
+    "bundleStatus": 200,
+    "sourceSha": "c4bb6ba586bbb9260faf761b7b0000c355903196",
+    "sourceHash": "2049c2aa29c4618789a2fb87cc6d1d701ab4ec052465285dc39d8053bcbdeb72",
+    "missingRepositoryStatus": 404,
+    "mutableRevisionStatus": 400,
+    "importState": "disabled"
+  },
+  "interactions": {
+    "listNavigation": true,
+    "copiedDisabledConfiguration": true,
+    "downloadedDisabledConfiguration": true,
+    "suggestedFilename": "weekly-repository-report-automation.toml"
+  },
+  "results": [
+    {
+      "theme": "standard",
+      "viewport": "desktop",
+      "listScreenshot": "docs/evidence/issues/74/standard-desktop-list.png",
+      "detailScreenshot": "docs/evidence/issues/74/standard-desktop-detail.png",
+      "listMetrics": {
+        "viewportWidth": 1440,
+        "bodyWidth": 1440,
+        "theme": "standard"
+      },
+      "detailMetrics": {
+        "viewportWidth": 1440,
+        "bodyWidth": 1440,
+        "theme": "standard"
+      }
+    },
+    {
+      "theme": "standard",
+      "viewport": "mobile",
+      "listScreenshot": "docs/evidence/issues/74/standard-mobile-list.png",
+      "detailScreenshot": "docs/evidence/issues/74/standard-mobile-detail.png",
+      "listMetrics": {
+        "viewportWidth": 390,
+        "bodyWidth": 390,
+        "theme": "standard"
+      },
+      "detailMetrics": {
+        "viewportWidth": 390,
+        "bodyWidth": 390,
+        "theme": "standard"
+      }
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": "desktop",
+      "listScreenshot": "docs/evidence/issues/74/solarpunk-desktop-list.png",
+      "detailScreenshot": "docs/evidence/issues/74/solarpunk-desktop-detail.png",
+      "listMetrics": {
+        "viewportWidth": 1440,
+        "bodyWidth": 1440,
+        "theme": "solarpunk"
+      },
+      "detailMetrics": {
+        "viewportWidth": 1440,
+        "bodyWidth": 1440,
+        "theme": "solarpunk"
+      }
+    },
+    {
+      "theme": "solarpunk",
+      "viewport": "mobile",
+      "listScreenshot": "docs/evidence/issues/74/solarpunk-mobile-list.png",
+      "detailScreenshot": "docs/evidence/issues/74/solarpunk-mobile-detail.png",
+      "listMetrics": {
+        "viewportWidth": 390,
+        "bodyWidth": 390,
+        "theme": "solarpunk"
+      },
+      "detailMetrics": {
+        "viewportWidth": 390,
+        "bodyWidth": 390,
+        "theme": "solarpunk"
+      }
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": "desktop",
+      "listScreenshot": "docs/evidence/issues/74/cyberpunk-desktop-list.png",
+      "detailScreenshot": "docs/evidence/issues/74/cyberpunk-desktop-detail.png",
+      "listMetrics": {
+        "viewportWidth": 1440,
+        "bodyWidth": 1440,
+        "theme": "cyberpunk"
+      },
+      "detailMetrics": {
+        "viewportWidth": 1440,
+        "bodyWidth": 1440,
+        "theme": "cyberpunk"
+      }
+    },
+    {
+      "theme": "cyberpunk",
+      "viewport": "mobile",
+      "listScreenshot": "docs/evidence/issues/74/cyberpunk-mobile-list.png",
+      "detailScreenshot": "docs/evidence/issues/74/cyberpunk-mobile-detail.png",
+      "listMetrics": {
+        "viewportWidth": 390,
+        "bodyWidth": 390,
+        "theme": "cyberpunk"
+      },
+      "detailMetrics": {
+        "viewportWidth": 390,
+        "bodyWidth": 390,
+        "theme": "cyberpunk"
+      }
+    }
+  ]
+}

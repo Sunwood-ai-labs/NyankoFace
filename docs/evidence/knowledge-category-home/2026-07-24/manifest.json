@@ -1,0 +1,2033 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-24T11:58:27.652Z",
+  "baseUrl": "https://example.invalid",
+  "dimensions": {
+    "themes": [
+      "standard",
+      "solarpunk",
+      "cyberpunk"
+    ],
+    "colorSchemes": [
+      "light",
+      "dark"
+    ],
+    "viewports": [
+      {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "routes": [
+      {
+        "id": "docs",
+        "path": "/docs"
+      },
+      {
+        "id": "docs-category-sort",
+        "path": "/docs?articleSort=trending&newsSort=trending"
+      },
+      {
+        "id": "docs-news",
+        "path": "/docs?type=news"
+      }
+    ]
+  },
+  "summary": {
+    "total": 36,
+    "passed": 36,
+    "failed": 0,
+    "screenshots": 36,
+    "auditedTextNodes": 3504,
+    "imageBackedTextNodes": 3312,
+    "minimumContrastMargin": 1.1
+  },
+  "results": [
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 6527,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2389,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 243,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 6271,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2416,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 244,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 6345,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 675,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 60,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4360,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2280,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 238,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 4348,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2307,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 239,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4422,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--dark--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 588,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 58,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 5784,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2389,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 243,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 5766,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2416,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 244,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 5430,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 675,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 60,
+      "imageBackedTextCount": 14,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.77,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4171,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2280,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 238,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 4020,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 2307,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 239,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 3995,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/cyberpunk--light--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "cyberpunk",
+        "label": "Cyberpunk",
+        "colorScheme": "dark"
+      },
+      "bodyTextLength": 588,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 58,
+      "imageBackedTextCount": 4,
+      "minimumContrast": 6.78,
+      "minimumContrastMargin": 1.51,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4770,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2389,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 67,
+      "imageBackedTextCount": 190,
+      "minimumContrast": 5.65,
+      "minimumContrastMargin": 1.26,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 4521,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2416,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 67,
+      "imageBackedTextCount": 191,
+      "minimumContrast": 5.65,
+      "minimumContrastMargin": 1.26,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4218,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 675,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 50,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 5319,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2280,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 52,
+      "imageBackedTextCount": 190,
+      "minimumContrast": 5.65,
+      "minimumContrastMargin": 1.26,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 5591,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2307,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 52,
+      "imageBackedTextCount": 191,
+      "minimumContrast": 5.65,
+      "minimumContrastMargin": 1.26,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4910,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--dark--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 588,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 38,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4805,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2389,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 67,
+      "imageBackedTextCount": 190,
+      "minimumContrast": 5.65,
+      "minimumContrastMargin": 1.26,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 4791,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2416,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 67,
+      "imageBackedTextCount": 191,
+      "minimumContrast": 5.65,
+      "minimumContrastMargin": 1.26,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4242,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 675,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 50,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 3375,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2280,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 52,
+      "imageBackedTextCount": 190,
+      "minimumContrast": 5.65,
+      "minimumContrastMargin": 1.26,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 3366,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2307,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 52,
+      "imageBackedTextCount": 191,
+      "minimumContrast": 5.65,
+      "minimumContrastMargin": 1.26,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 2850,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/solarpunk--light--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "solarpunk",
+        "label": "Solarpunk",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 588,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 38,
+      "imageBackedTextCount": 24,
+      "minimumContrast": 4.94,
+      "minimumContrastMargin": 1.1,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 4613,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2389,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 70,
+      "imageBackedTextCount": 187,
+      "minimumContrast": 7.24,
+      "minimumContrastMargin": 1.61,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 4286,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2416,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 70,
+      "imageBackedTextCount": 188,
+      "minimumContrast": 7.24,
+      "minimumContrastMargin": 1.61,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 4268,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 675,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 53,
+      "imageBackedTextCount": 21,
+      "minimumContrast": 8.61,
+      "minimumContrastMargin": 1.91,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 3856,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2280,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 55,
+      "imageBackedTextCount": 187,
+      "minimumContrast": 7.24,
+      "minimumContrastMargin": 1.61,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 3847,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2307,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 55,
+      "imageBackedTextCount": 188,
+      "minimumContrast": 7.24,
+      "minimumContrastMargin": 1.61,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 3297,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--dark--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 588,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 41,
+      "imageBackedTextCount": 21,
+      "minimumContrast": 8.61,
+      "minimumContrastMargin": 1.91,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "dark",
+        "label": "Dark OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 5878,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2389,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 70,
+      "imageBackedTextCount": 187,
+      "minimumContrast": 5.47,
+      "minimumContrastMargin": 1.22,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 5882,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2416,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 70,
+      "imageBackedTextCount": 188,
+      "minimumContrast": 5.47,
+      "minimumContrastMargin": 1.22,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 5307,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--desktop--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 675,
+      "bodyPreview": "NyankoFace Models Datasets Spaces Skills MCPs Prompts Knowledge Characters JA ログイン 新規登録 Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #archi",
+      "viewportWidth": 1440,
+      "scrollWidth": 1440,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 32,
+        "rightInset": 32,
+        "minimumInset": 32
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 53,
+      "imageBackedTextCount": 21,
+      "minimumContrast": 5.47,
+      "minimumContrastMargin": 1.22,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "desktop",
+        "width": 1440,
+        "height": 1000
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs",
+        "label": "Knowledge category home",
+        "path": "/docs",
+        "focus": "Overall, Article, Procedure, Wiki, and News sections with independent latest/popular controls, Spaces-style cards, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs",
+      "finalUrl": "https://example.invalid/docs",
+      "status": 200,
+      "durationMs": 3374,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--docs.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2280,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 55,
+      "imageBackedTextCount": 187,
+      "minimumContrast": 5.47,
+      "minimumContrastMargin": 1.22,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-category-sort",
+        "label": "Knowledge category popular sort",
+        "path": "/docs?articleSort=trending&newsSort=trending",
+        "focus": "Independent Article and News popular-sort states remain active together without affecting other category sections"
+      },
+      "requestedUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "finalUrl": "https://example.invalid/docs?articleSort=trending&newsSort=trending",
+      "status": 200,
+      "durationMs": 3363,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--docs-category-sort.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 2307,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 55,
+      "imageBackedTextCount": 188,
+      "minimumContrast": 5.47,
+      "minimumContrastMargin": 1.22,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    },
+    {
+      "route": {
+        "id": "docs-news",
+        "label": "Knowledge news directory",
+        "path": "/docs?type=news",
+        "focus": "News category count, magenta-orange news cards, composable news and article badges, distinct emoji watermarks, and responsive layout"
+      },
+      "requestedUrl": "https://example.invalid/docs?type=news",
+      "finalUrl": "https://example.invalid/docs?type=news",
+      "status": 200,
+      "durationMs": 2831,
+      "disclosureOpen": null,
+      "screenshot": "screenshots/standard--light--mobile--docs-news.png",
+      "title": "ナレッジ - NyankoFace",
+      "theme": {
+        "id": "standard",
+        "label": "Standard",
+        "colorScheme": "light"
+      },
+      "bodyTextLength": 588,
+      "bodyPreview": "NyankoFace Knowledge · ナレッジ一覧 新規ナレッジ はじめ方 全体 · 20 カテゴリ別ホーム 記事 · 6 背景・調査・実践の記録 手順 · 5 再現できる作業手順 Wiki · 11 育ち続ける共有ページ ニュース · 2 更新情報とコミュニティ速報 #architecture 4 items #docker 4 items #agents 3 items #forgejo 3 items #api 2 items",
+      "viewportWidth": 390,
+      "scrollWidth": 390,
+      "horizontalOverflow": 0,
+      "primaryRail": {
+        "selector": "portal-main",
+        "leftInset": 20,
+        "rightInset": 20,
+        "minimumInset": 20
+      },
+      "contrastRiskCount": 0,
+      "auditedTextCount": 41,
+      "imageBackedTextCount": 21,
+      "minimumContrast": 5.47,
+      "minimumContrastMargin": 1.22,
+      "lowestContrast": null,
+      "contrastRisks": [],
+      "repositoryNotFound": false,
+      "applicationUnavailable": false,
+      "organizationAudit": null,
+      "colorScheme": {
+        "id": "light",
+        "label": "Light OS"
+      },
+      "viewport": {
+        "id": "mobile",
+        "width": 390,
+        "height": 844
+      },
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": [],
+      "defects": [],
+      "passed": true
+    }
+  ]
+}
