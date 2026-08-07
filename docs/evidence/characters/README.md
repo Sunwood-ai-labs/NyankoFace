@@ -21,9 +21,9 @@ NyankoFaceの`Characters`は、単なるtopic分類ではなく、Forgejoへ取�
     <th>Cyberpunk mobile</th>
   </tr>
   <tr>
-    <td valign="top"><img src="./standard-mobile-directory.png" alt="Standard mobile Characters directory"></td>
-    <td valign="top"><img src="./solarpunk-desktop-directory.png" alt="Solarpunk desktop Characters directory"></td>
-    <td valign="top"><img src="./cyberpunk-mobile-directory.png" alt="Cyberpunk mobile Characters directory"></td>
+    <td valign="top"><img src="./standard-mobile-directory-en.png" alt="Standard mobile Characters directory"></td>
+    <td valign="top"><img src="./solarpunk-desktop-directory-en.png" alt="Solarpunk desktop Characters directory"></td>
+    <td valign="top"><img src="./cyberpunk-mobile-directory-en.png" alt="Cyberpunk mobile Characters directory"></td>
   </tr>
 </table>
 

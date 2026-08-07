@@ -23,12 +23,12 @@ the brand remains recognizable from 24 px upward.
 
 ### Mobile
 
-![Generated paw logo on the mobile home page](./imagegen-paw-logo-mobile.jpg)
+![Generated paw logo on the mobile home page](./imagegen-paw-logo-mobile-en.jpg)
 
 ### Mobile menu
 
-![Generated paw logo with the mobile navigation open](./imagegen-paw-logo-mobile-menu.jpg)
+![Generated paw logo with the mobile navigation open](./imagegen-paw-logo-mobile-menu-en.jpg)
 
 ### Desktop
 
-![Generated paw logo on the desktop home page](./imagegen-paw-logo-desktop.jpg)
+![Generated paw logo on the desktop home page](./imagegen-paw-logo-desktop-en.jpg)

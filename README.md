@@ -23,7 +23,7 @@
   <img alt="Forgejo" src="https://img.shields.io/badge/Git-Forgejo-fb923c">
 </p>
 
-![NyankoFace home showing models, datasets, Spaces, Skills, MCPs, and Prompts](docs/images/nyankoface-home.png)
+![NyankoFace home showing models, datasets, Spaces, Skills, MCPs, and Prompts](docs/images/nyankoface-home-en.png)
 
 NyankoFace turns one Docker host into a self-contained AI collaboration platform. Forgejo stores real Git repositories, histories, tags, issues, permissions, and LFS objects. A Next.js portal presents those repositories in a Hugging Face-style catalog, while a FastAPI runner builds and embeds CPU-capable Docker applications. nginx exposes the portal, Git UI, apps, APIs, and Pages through one HTTPS gateway.
 
@@ -84,9 +84,9 @@ Application naming is controlled by one `APP_NAME` value and is verified on both
 | [#38](https://github.com/Sunwood-ai-labs/NyankoFace/issues/38) | Deterministic Issue/PR auto-labeling with an existing-label allowlist, confidence threshold, dry-run, preview API, and PostgreSQL audit trail. | [Configuration, safety rules, API, and screenshot evidence](docs/evidence/issues/37-38/README.md) |
 | Sample | Production CPU Space that consumes three runtime Variables and uses an encrypted Secret to create a server-side HMAC receipt without exposing the raw value. | [Source, live URLs, assertions, and desktop/mobile screenshots](docs/evidence/environment-space-sample/README.md) |
 
-| Seed source guide | Production Issue auto-label |
+| Seed source guide | Production docs-only PR auto-label |
 |---|---|
-| ![Seed application guide with source-of-truth table](docs/evidence/issues/37-38/seed-guide-desktop.png) | ![Issue showing automatic documentation and question labels](docs/evidence/issues/37-38/issue-27-mobile.png) |
+| ![Seed application guide with source-of-truth table](docs/evidence/issues/37-38/seed-guide-desktop-en.png) | ![Pull request showing the automatic documentation label](docs/evidence/issues/37-38/pr-28-desktop.png) |
 
 ## 🚀 Quick start
 
@@ -360,7 +360,7 @@ NyankoFace reads repository contents rather than trusting labels alone. The dire
 
 | Standard mobile | Cyberpunk mobile |
 |---|---|
-| <a href="docs/evidence/characters/standard-mobile-directory.png"><img src="docs/evidence/characters/standard-mobile-directory.png" alt="Characters directory in Standard theme on mobile" width="320"></a> | <a href="docs/evidence/characters/cyberpunk-mobile-directory.png"><img src="docs/evidence/characters/cyberpunk-mobile-directory.png" alt="Characters directory in Cyberpunk theme on mobile" width="320"></a> |
+| <a href="docs/evidence/characters/standard-mobile-directory-en.png"><img src="docs/evidence/characters/standard-mobile-directory-en.png" alt="Characters directory in Standard theme on mobile" width="320"></a> | <a href="docs/evidence/characters/cyberpunk-mobile-directory-en.png"><img src="docs/evidence/characters/cyberpunk-mobile-directory-en.png" alt="Characters directory in Cyberpunk theme on mobile" width="320"></a> |
 
 </details>
 
@@ -370,7 +370,7 @@ The [Characters verification record](docs/evidence/characters/README.md) contain
 
 The seed creates four real Forgejo organizations rather than static profile fixtures:
 
-- [`nyankoface`](https://localhost:8443/git/nyankoface) uses a compact aperture mark for the main local AI community.
+- [`nyankoface`](https://localhost:8443/git/nyankoface) uses the orange paw mark for the main local AI community.
 - [`seraphim-labs`](https://localhost:8443/git/seraphim-labs) is an angel-inspired AI safety collective with its own repositories and visual identity.
 - `vault-research` is a private research organization. Its private `internal-knowledge` repository and articles are visible only to organization members.
 - `local-makers` is a private community organization used to verify ordinary-user invitations and member-only articles.
@@ -383,7 +383,7 @@ NyankoFace keeps `nyankoface-admin`, `aiko-mesh`, `ren-vector`, and `mira-signal
 
 | NyankoFace | Seraphim Labs |
 |---|---|
-| <a href="docs/images/nyankoface-organization-mobile.png"><img src="docs/images/nyankoface-organization-mobile.png" alt="NyankoFace organization page with the compact aperture logo" height="360"></a> | <a href="docs/images/seraphim-labs-organization-mobile.png"><img src="docs/images/seraphim-labs-organization-mobile.png" alt="Seraphim Labs organization page with the halo and wing logo" height="360"></a> |
+| <a href="docs/images/nyankoface-organization-mobile-en.png"><img src="docs/images/nyankoface-organization-mobile-en.png" alt="NyankoFace organization page with the orange paw mark" height="360"></a> | <a href="docs/images/seraphim-labs-organization-mobile.png"><img src="docs/images/seraphim-labs-organization-mobile.png" alt="Seraphim Labs organization page with the halo and wing logo" height="360"></a> |
 
 | Team page | Generated character portraits |
 |---|---|
@@ -488,9 +488,9 @@ Add the `space` topic and a root `Dockerfile`. The application container must li
 
 Stopped public Spaces show **On demand** and any visitor can start and use them without signing in. Stop, environment-variable, and settings controls remain restricted to signed-in maintainers with write permission. The runner clones the repository, builds the image, starts the container, and proxies it under `/run/OWNER/REPOSITORY/`.
 
-![NyankoFace Spaces directory with running CPU applications](docs/images/nyankoface-spaces.png)
+![NyankoFace Spaces directory with running CPU applications](docs/images/nyankoface-spaces-en.png)
 
-![A React Space embedded in an NyankoFace repository page](docs/images/nyankoface-space-app.png)
+![A React Space embedded in an NyankoFace repository page](docs/images/nyankoface-space-app-en.png)
 
 Capacity controls:
 
@@ -518,7 +518,7 @@ The initial seed includes a one-file page, an HTML/CSS/JavaScript portfolio, a m
 
 | Repository Pages card | Live seeded site |
 |---|---|
-| ![Repository Pages card](docs/evidence/pages/repository-pages-card.png) | ![NyankoFace Pages starter](docs/evidence/pages/pages-starter-live.png) |
+| ![Repository Pages card](docs/evidence/pages/repository-pages-card-en.png) | ![NyankoFace Pages starter](docs/evidence/pages/pages-starter-live.png) |
 
 Follow the canonical [NyankoFace Pages publishing workflow](https://sunwood-ai-labs.github.io/NyankoFace/guide/pages) for the source decision, minimal HTML, VitePress/Forgejo Actions deployment, live verification, updates, removal, security, and troubleshooting. The [browser verification record](docs/evidence/pages/README.md) contains the tested examples.
 
@@ -592,9 +592,9 @@ Skill repositories can also declare typed Skill-to-Skill relationships in an edi
 
 | Skills | MCPs |
 |---|---|
-| ![Skills directory](docs/evidence/skills-mcps/skills-directory.png) | ![MCP directory](docs/evidence/skills-mcps/mcps-directory.png) |
+| ![Skills directory](docs/evidence/skills-mcps/skills-directory-en.png) | ![MCP directory](docs/evidence/skills-mcps/mcps-directory-en.png) |
 
-![Skill workflow-link counts](docs/evidence/skill-relationships/skills-desktop.png)
+![Skill workflow-link counts](docs/evidence/skill-relationships/skills-desktop-en.png)
 
 <details>
 <summary><strong>Open the full-height evidence-backed relationship sidebar</strong></summary>
@@ -615,13 +615,13 @@ Prompts use a stable repository slug. Versions are represented by `version-v*` t
 
 ### 日本語／英語UI
 
-ヘッダーのコンパクトな言語切替で、日本語と英語を選択できます。選択はページ移動・再読み込み後も保持されます。グローバルナビゲーションは両言語とも `Models / Datasets / Spaces / Knowledge / Benchmarks / Characters / Skills / MCPs / Prompts` に統一しています。主要12画面を両言語・PC／スマートフォンで撮影する監査は **48 / 48 成功**しています。実際の切替操作とスクリーンショットは[日本語／英語UI検証](docs/evidence/i18n/README.md)に記録しています。
+The compact language switcher in the header supports Japanese and English, and the selection persists across navigation and reloads. The global navigation is aligned in both languages as `Models / Datasets / Spaces / Knowledge / Benchmarks / Characters / Skills / MCPs / Prompts`. A 12-screen desktop/mobile audit passed **48 / 48** checks across both locales. The actual switch procedure and screenshots are recorded in the [Japanese/English UI audit](docs/evidence/i18n/README.md).
 
 The theme selector stores Standard, Solarpunk, or Cyberpunk in `localStorage` and restores it before the first visible render.
 
 | Standard | Solarpunk | Cyberpunk |
 |---|---|---|
-| ![Standard theme](docs/evidence/themes/standard-home.png) | ![Solarpunk theme](docs/evidence/themes/solarpunk-home.png) | ![Cyberpunk theme](docs/evidence/themes/cyberpunk-home.png) |
+| ![Standard theme](docs/evidence/themes/standard-home-en.png) | ![Solarpunk theme](docs/evidence/themes/solarpunk-home-en.png) | ![Cyberpunk theme](docs/evidence/themes/cyberpunk-home-en.png) |
 
 Additional screenshot-backed QA lives under [`docs/evidence/`](docs/evidence/): community UI, enterprise access, Pages, Prompts, scalability, Skills/MCPs, sorting, and themes.
 

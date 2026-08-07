@@ -27,15 +27,15 @@ the reproducible import list lives in
 
 ### Home
 
-![Agent tooling on the NyankoFace home page](home-agent-tooling.png)
+![Agent tooling on the NyankoFace home page](home-agent-tooling-en.png)
 
 ### Skills directory
 
-![Skills directory with ten imported repositories](skills-directory.png)
+![Skills directory with ten imported repositories](skills-directory-en.png)
 
 ### MCP directory
 
-![MCP directory with ten imported repositories](mcps-directory.png)
+![MCP directory with ten imported repositories](mcps-directory-en.png)
 
 ### Skill detail
 

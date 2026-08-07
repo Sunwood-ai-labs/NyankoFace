@@ -9,7 +9,7 @@
 最新リリースは[v0.6.0リリースノート](docs/ja/guide/releases/v0.6.0.md)と、案内記事[実測するsurfaceと証跡を守る](docs/ja/articles/nyankoface-v0-6-0.md)にまとめています。既存環境を更新する場合は[upgradeとデータ保持のrunbook](docs/ja/guide/upgrading.md)も確認してください。[v0.5.0ノート](docs/ja/guide/releases/v0.5.0.md)と過去releaseのノートも参照できます。
 
 <p align="center">
-  <img src="docs/images/nyankoface-home.png" alt="NyankoFace のホーム画面" width="100%">
+  <img src="docs/images/nyankoface-home-ja.png" alt="NyankoFace のホーム画面" width="100%">
 </p>
 
 計画: Claude Fable 5 / 実装: Claude Sonnet 5
@@ -68,7 +68,7 @@ NyankoFace は次のサービスで構成されています。
 
 | seed生成元ガイド | 本番Issueの自動ラベル |
 |---|---|
-| ![生成元の対応表を表示したseedアプリガイド](docs/evidence/issues/37-38/seed-guide-desktop.png) | ![documentationとquestionが自動付与されたIssue](docs/evidence/issues/37-38/issue-27-mobile.png) |
+| ![生成元の対応表を表示したseedアプリガイド](docs/evidence/issues/37-38/seed-guide-desktop-ja.png) | ![documentationとquestionが自動付与されたIssue](docs/evidence/issues/37-38/issue-27-mobile.png) |
 
 ### 編集可能な組織アカウント
 
@@ -76,7 +76,7 @@ NyankoFace は次のサービスで構成されています。
 
 | NyankoFace | Seraphim Labs |
 |---|---|
-| <a href="docs/images/nyankoface-organization-mobile.png"><img src="docs/images/nyankoface-organization-mobile.png" alt="新しいシンプルなロゴを使ったNyankoFace組織ページ" height="360"></a> | <a href="docs/images/seraphim-labs-organization-mobile.png"><img src="docs/images/seraphim-labs-organization-mobile.png" alt="天使の翼と光輪を使ったSeraphim Labs組織ページ" height="360"></a> |
+| <a href="docs/images/nyankoface-organization-mobile-ja.png"><img src="docs/images/nyankoface-organization-mobile-ja.png" alt="オレンジの肉球ロゴを使ったNyankoFace組織ページ" height="360"></a> | <a href="docs/images/seraphim-labs-organization-mobile.png"><img src="docs/images/seraphim-labs-organization-mobile.png" alt="天使の翼と光輪を使ったSeraphim Labs組織ページ" height="360"></a> |
 
 | チームページ | 生成キャラクターポートレート |
 |---|---|
@@ -148,11 +148,11 @@ Standard／Solarpunk／Cyberpunkの3テーマと、PC／幅390pxのモバイル�
 
 | Spaces ディレクトリ | 埋め込みアプリ |
 |---|---|
-| <img src="docs/images/nyankoface-spaces.png" alt="CPU で稼働中の Space が並ぶ NyankoFace の Spaces ディレクトリ" width="100%"> | <img src="docs/images/nyankoface-space-app.png" alt="NyankoFace 内に埋め込まれた React Space" width="100%"> |
+| <img src="docs/images/nyankoface-spaces-ja.png" alt="CPU で稼働中の Space が並ぶ NyankoFace の Spaces ディレクトリ" width="100%"> | <img src="docs/images/nyankoface-space-app-ja.png" alt="NyankoFace 内に埋め込まれた React Space" width="100%"> |
 
 | ホーム | リポジトリの Files 画面 |
 |---|---|
-| <img src="docs/images/nyankoface-home.png" alt="モデル、Space、データセットを表示する NyankoFace のホーム画面" width="100%"> | <img src="docs/images/nyankoface-files.png" alt="NyankoFace の Space リポジトリにある Files 画面" width="100%"> |
+| <img src="docs/images/nyankoface-home-ja.png" alt="モデル、Space、データセットを表示する NyankoFace のホーム画面" width="100%"> | <img src="docs/images/nyankoface-files-ja.png" alt="NyankoFace の Space リポジトリにある Files 画面" width="100%"> |
 
 ### テーマ切替
 
@@ -177,7 +177,7 @@ Standard／Solarpunk／Cyberpunkの3テーマと、PC／幅390pxのモバイル�
 
 | Standard mobile | Cyberpunk mobile |
 |---|---|
-| <a href="docs/evidence/characters/standard-mobile-directory.png"><img src="docs/evidence/characters/standard-mobile-directory.png" alt="StandardテーマのCharacters一覧" width="320"></a> | <a href="docs/evidence/characters/cyberpunk-mobile-directory.png"><img src="docs/evidence/characters/cyberpunk-mobile-directory.png" alt="CyberpunkテーマのCharacters一覧" width="320"></a> |
+| <a href="docs/evidence/characters/standard-mobile-directory-ja.png"><img src="docs/evidence/characters/standard-mobile-directory-ja.png" alt="StandardテーマのCharacters一覧" width="320"></a> | <a href="docs/evidence/characters/cyberpunk-mobile-directory-ja.png"><img src="docs/evidence/characters/cyberpunk-mobile-directory-ja.png" alt="CyberpunkテーマのCharacters一覧" width="320"></a> |
 
 </details>
 

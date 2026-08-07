@@ -16,7 +16,7 @@ private repository content.
 
 | Repository detection | Published static page |
 |---|---|
-| ![Repository detail with the NyankoFace Pages card](repository-pages-card.png) | ![Published pages-starter site](pages-starter-live.png) |
+| ![Repository detail with the NyankoFace Pages card](repository-pages-card-en.png) | ![Published pages-starter site](pages-starter-live.png) |
 
 The left capture shows that the repository detail detected `gh-pages` and
 rendered the **Visit site** button. The right capture is the page rendered at

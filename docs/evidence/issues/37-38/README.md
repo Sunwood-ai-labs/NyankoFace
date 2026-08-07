@@ -18,7 +18,7 @@ the root README files.
 
 | Desktop (1440 × 1000) | Mobile (390 × 844) |
 |---|---|
-| ![Seed guide desktop](seed-guide-desktop.png) | ![Seed guide mobile](seed-guide-mobile.png) |
+| ![Seed guide desktop](seed-guide-desktop-en.png) | ![Seed guide mobile](seed-guide-mobile-en.png) |
 
 The desktop capture shows the source-of-truth table, left navigation, and page
 outline together. The mobile capture confirms that the title and source table
@@ -43,8 +43,7 @@ configured allowlist and labels already present in the repository.
 
 | Surface | Desktop (1440 × 1000) | Mobile (390 × 844) |
 |---|---|---|
-| Issue | ![Issue with documentation and question labels on desktop](issue-27-desktop.png) | ![Issue with documentation and question labels on mobile](issue-27-mobile.png) |
-| Pull Request | ![Docs-only PR with documentation label on desktop](pr-28-desktop.png) | ![Docs-only PR with documentation label on mobile](pr-28-mobile-label.png) |
+| Pull Request (English UI/content) | ![Docs-only PR with documentation label on desktop](pr-28-desktop.png) | ![Docs-only PR with documentation label on mobile](pr-28-mobile-label.png) |
 
 The captures were inspected after page load. They show the real
 `glm-maintainer added the … label` timeline events, not manually composed

@@ -20,7 +20,7 @@ evidence-backed `skill.json` metadata.
 
 | Directory | Relationship sidebar |
 | --- | --- |
-| ![Skills directory with workflow-link counts](./skills-desktop.png) | ![Desktop Skill relationship sidebar](./graph-desktop.png) |
+| ![Skills directory with workflow-link counts](./skills-desktop-en.png) | ![Desktop Skill relationship sidebar](./graph-desktop.png) |
 
 | Mobile directory | Mobile relationship map |
 | --- | --- |
