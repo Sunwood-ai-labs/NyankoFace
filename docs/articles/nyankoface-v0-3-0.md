@@ -26,7 +26,7 @@ The Space repository shell arrives before the container. One runtime state sourc
 
 ## Keep code and controls recognizable
 
-Server-side syntax highlighting removes the need for a client highlighting runtime and maps tokens into Standard, Solarpunk, and Cyberpunk themes. Unknown languages fall back safely. Portal and Forgejo navigation now share a versioned contract, and one canonical cat mark identifies the platform from favicon to documentation.
+Server-side syntax highlighting removes the need for a client highlighting runtime and maps tokens into Standard, Solarpunk, and Cyberpunk themes. Unknown languages fall back safely. Portal and Forgejo navigation now share a versioned contract, and one canonical paw mark identifies the platform from favicon to documentation.
 
 The result is not a claim that every request became five times faster. It is a system that reports intent quickly, measures bounded route classes, exposes runtime phases, and documents where local evidence ends.
 

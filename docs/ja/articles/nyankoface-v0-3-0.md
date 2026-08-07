@@ -26,7 +26,7 @@ containerより先にSpace repository shellを表示します。badgeとapp pane
 
 ## コードと操作を同じ顔で案内する
 
-server-side syntax highlightingはclient runtimeを不要にし、tokenをStandard、Solarpunk、Cyberpunkへ割り当てます。未知languageは安全にfallbackします。portal／Forgejo navigationはversion付きcontractを共有し、faviconからdocsまでcanonicalな猫のmarkを使います。
+server-side syntax highlightingはclient runtimeを不要にし、tokenをStandard、Solarpunk、Cyberpunkへ割り当てます。未知languageは安全にfallbackします。portal／Forgejo navigationはversion付きcontractを共有し、faviconからdocsまでcanonicalな肉球markを使います。
 
 これは、すべてのrequestが5倍速くなったという主張ではありません。操作へ素早く応答し、有限のroute classを計測し、runtime phaseを公開し、ローカル根拠の範囲を明記する仕組みです。
 

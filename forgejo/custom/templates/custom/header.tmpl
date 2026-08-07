@@ -5,11 +5,11 @@
 */}}
 <meta name="nyankoface-app-name" content="{{AppDisplayName}}">
 <meta id="nyankoface-theme-color" name="theme-color" content="#ffffff">
-<link rel="icon" type="image/svg+xml" sizes="any" href="{{AssetUrlPrefix}}/img/favicon.svg?v=20260801-cat-v1">
-<link rel="icon" type="image/png" sizes="32x32" href="{{AssetUrlPrefix}}/img/favicon.png?v=20260801-cat-v1">
-<link rel="shortcut icon" href="{{AssetUrlPrefix}}/img/favicon.ico?v=20260801-cat-v1">
-<link rel="apple-touch-icon" sizes="180x180" href="{{AssetUrlPrefix}}/img/apple-touch-icon.png?v=20260801-cat-v1">
-<link rel="mask-icon" href="{{AssetUrlPrefix}}/img/mask-icon.svg?v=20260801-cat-v1" color="#14dee1">
+<link rel="icon" type="image/svg+xml" sizes="any" href="{{AssetUrlPrefix}}/img/favicon.svg?v=20260807-paw-v1">
+<link rel="icon" type="image/png" sizes="32x32" href="{{AssetUrlPrefix}}/img/favicon.png?v=20260807-paw-v1">
+<link rel="shortcut icon" href="{{AssetUrlPrefix}}/img/favicon.ico?v=20260807-paw-v1">
+<link rel="apple-touch-icon" sizes="180x180" href="{{AssetUrlPrefix}}/img/apple-touch-icon.png?v=20260807-paw-v1">
+<link rel="mask-icon" href="{{AssetUrlPrefix}}/img/mask-icon.svg?v=20260807-paw-v1" color="#f59e0b">
 <link rel="manifest" href="/manifest.webmanifest">
 <script>
 (() => {
@@ -394,7 +394,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
       ["lucien sol", "lucien-sol"],
       ["lucien-sol", "lucien-sol"],
     ]);
-    const slug = map.get(normalized) || "openface-labs";
+    const slug = map.get(normalized) || "nyankoface-labs";
     return `/git/assets/img/avatars/${slug}.png?v=20260718-seraphim-characters3`;
   };
 
@@ -2244,7 +2244,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
         const hero = document.createElement("section");
         hero.className = "nyankoface-org-hero";
         hero.innerHTML = `
-          <div class="nyankoface-org-avatar"><img src="{{AssetUrlPrefix}}/img/logo.png?v=20260801-cat-v1" alt="NyankoFace mark"></div>
+          <div class="nyankoface-org-avatar"><img src="{{AssetUrlPrefix}}/img/logo.png?v=20260807-paw-v1" alt="NyankoFace mark"></div>
           <div>
             <h1>nyankoface</h1>
             <div class="nyankoface-org-badges">
@@ -2448,7 +2448,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
             </section>
             <section>
               <h2>${fontAwesomeIcon("building", 384, 512, "M48 0C21.5 0 0 21.5 0 48L0 464c0 26.5 21.5 48 48 48l96 0 0-80c0-26.5 21.5-48 48-48s48 21.5 48 48l0 80 96 0c26.5 0 48-21.5 48-48l0-416c0-26.5-21.5-48-48-48L48 0zM64 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm112-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zm80 16c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM80 96l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zm80 16c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm112-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16z")}Organizations</h2>
-              <a class="nyankoface-user-org-chip" href="/git/nyankoface"><span><img src="{{AssetUrlPrefix}}/img/logo.png?v=20260801-cat-v1" alt=""></span> nyankoface</a>
+              <a class="nyankoface-user-org-chip" href="/git/nyankoface"><span><img src="{{AssetUrlPrefix}}/img/logo.png?v=20260807-paw-v1" alt=""></span> nyankoface</a>
             </section>
             <section>
               <h2>${fontAwesomeIcon("bolt", 448, 512, "M349.4 44.6c5.9-13.7 1.5-29.7-10.6-38.5s-28.6-8-39.9 1.8l-256 224c-10 8.8-13.6 22.9-8.9 35.3S50.7 288 64 288l111.5 0-76.9 179.4c-5.9 13.7-1.5 29.7 10.6 38.5s28.6 8 39.9-1.8l256-224c10-8.8 13.6-22.9 8.9-35.3S397.3 224 384 224l-111.5 0 76.9-179.4z")}Recent Activity</h2>
@@ -3305,7 +3305,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
     const navbar = document.querySelector("#navbar .navbar-left");
     const logo = document.querySelector("#navbar-logo");
     if (logo && !logo.querySelector(".nyankoface-logo-mark")) {
-      logo.innerHTML = `<img class="nyankoface-logo-image" src="{{AssetUrlPrefix}}/img/logo.png?v=20260801-cat-v1" alt=""><span class="nyankoface-logo-word">${escapeHtml(appName)}</span>`;
+      logo.innerHTML = `<img class="nyankoface-logo-image" src="{{AssetUrlPrefix}}/img/logo.png?v=20260807-paw-v1" alt=""><span class="nyankoface-logo-word">${escapeHtml(appName)}</span>`;
     }
     if (navbar && logo && !document.querySelector(".nyankoface-hf-search")) {
       const form = document.createElement("form");

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getAppName } from '@/lib/app-config';
 
-const BRAND_VERSION = '20260801-cat-v1';
+const BRAND_VERSION = '20260807-paw-v1';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +25,7 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'any',
       },
       {
-        src: `/brand/nyankoface-cat-logo.png?v=${BRAND_VERSION}`,
+        src: `/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`,
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',

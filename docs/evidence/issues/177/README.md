@@ -1,8 +1,7 @@
 # NyankoFace brand exploration — Issue #177
 
-Status: design exploration complete; production asset replacement is a separate
-approval step. The current canonical cat asset is intentionally unchanged by
-this evidence PR.
+Status: historical design exploration. Production now uses the canonical orange
+paw asset; the candidates below remain evidence of the earlier design review.
 
 ## Evidence files
 

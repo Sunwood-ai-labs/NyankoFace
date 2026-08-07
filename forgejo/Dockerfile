@@ -10,10 +10,10 @@ ENV GITEA_CUSTOM=/custom
 
 COPY custom/ /custom/
 
-# Brand outputs are derived from the same checked-in cat mark used by the
+# Brand outputs are derived from the same checked-in paw mark used by the
 # portal. A named build context keeps Forgejo's raw overrides synchronized
 # without making the whole repository the Docker context.
-COPY --from=frontend_assets public/brand/nyankoface-cat-logo.png /custom/public/assets/img/logo.png
+COPY --from=frontend_assets public/brand/nyankoface-paw-logo.png /custom/public/assets/img/logo.png
 COPY --from=frontend_assets public/brand/favicon.svg /custom/public/assets/img/favicon.svg
 COPY --from=frontend_assets public/brand/favicon-32x32.png /custom/public/assets/img/favicon.png
 COPY --from=frontend_assets app/favicon.ico /custom/public/assets/img/favicon.ico

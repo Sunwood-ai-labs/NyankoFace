@@ -12,7 +12,7 @@ import { forgejoBrowserSession } from '@/lib/forgejo-session';
 import NavigationFeedback from '@/components/NavigationFeedback';
 import { Suspense } from 'react';
 
-const BRAND_VERSION = '20260801-cat-v1';
+const BRAND_VERSION = '20260807-paw-v1';
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -36,14 +36,14 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
       shortcut: `/favicon.ico?v=${BRAND_VERSION}`,
       apple: [{ url: `/apple-icon.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '180x180' }],
-      other: [{ rel: 'mask-icon', url: `/brand/mask-icon.svg?v=${BRAND_VERSION}`, color: '#14dee1' }],
+      other: [{ rel: 'mask-icon', url: `/brand/mask-icon.svg?v=${BRAND_VERSION}`, color: '#f59e0b' }],
     },
-    openGraph: {
-      images: [{ url: `/brand/nyankoface-cat-logo.png?v=${BRAND_VERSION}`, width: 512, height: 512, alt: `${appName} cat mark` }],
+      openGraph: {
+        images: [{ url: `/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`, width: 512, height: 512, alt: `${appName} paw mark` }],
     },
     twitter: {
       card: 'summary',
-      images: [`/brand/nyankoface-cat-logo.png?v=${BRAND_VERSION}`],
+      images: [`/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`],
     },
   };
 }

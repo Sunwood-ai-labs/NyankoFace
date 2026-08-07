@@ -3,7 +3,7 @@
   "brand": {
     "name": "NyankoFace",
     "homeHref": "/",
-    "markSrc": "/brand/nyankoface-cat-logo.png"
+    "markSrc": "/brand/nyankoface-paw-logo.png"
   },
   "primary": [
     { "id": "models", "href": "/models", "icon": "model", "label": "Models", "labelJa": "Models" },

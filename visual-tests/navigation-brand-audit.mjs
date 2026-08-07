@@ -41,8 +41,8 @@ const normalizeHref = (href) => {
 };
 
 const canonicalBrandRequirements = {
-  portal: { all: ['/brand/favicon.svg'], any: [], visibleAll: ['/brand/nyankoface-cat-logo.png'], visibleAny: [] },
-  forgejo: { all: ['/img/favicon.svg'], any: [], visibleAll: [], visibleAny: ['/img/logo.png', '/brand/nyankoface-cat-logo.png'] },
+  portal: { all: ['/brand/favicon.svg'], any: [], visibleAll: ['/brand/nyankoface-paw-logo.png'], visibleAny: [] },
+  forgejo: { all: ['/img/favicon.svg'], any: [], visibleAll: [], visibleAny: ['/img/logo.png', '/brand/nyankoface-paw-logo.png'] },
   docs: { all: ['/pwa-192x192.png'], any: [], visibleAll: ['/pwa-512x512.png'], visibleAny: [] },
 };
 
@@ -86,7 +86,7 @@ async function sourceAudit() {
   const hrefs = allItems.map((item) => item.href);
   checks.push(check('navigation manifest has one versioned source of truth',
     Number.isInteger(navigation.version) && navigation.version > 0
-      && navigation.brand?.markSrc === '/brand/nyankoface-cat-logo.png'
+      && navigation.brand?.markSrc === '/brand/nyankoface-paw-logo.png'
       && new Set(ids).size === ids.length
       && hrefs.every((href) => typeof href === 'string' && href.length > 0),
     { version: navigation.version, itemCount: allItems.length, duplicateIds: ids.filter((id, index) => ids.indexOf(id) !== index) }));
@@ -105,7 +105,7 @@ async function sourceAudit() {
       && source.forgejoHeader.includes('config.brand.markSrc'),
     { file: sourcePaths.forgejoHeader }));
   checks.push(check('Forgejo image wiring points to generated canonical assets',
-    source.forgejoDockerfile.includes('public/brand/nyankoface-cat-logo.png')
+    source.forgejoDockerfile.includes('public/brand/nyankoface-paw-logo.png')
       && source.forgejoDockerfile.includes('/custom/public/assets/img/logo.png')
       && source.forgejoDockerfile.includes('public/brand/favicon.svg'),
     { file: sourcePaths.forgejoDockerfile }));

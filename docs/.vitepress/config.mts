@@ -7,12 +7,12 @@ import { fileURLToPath } from 'node:url'
 
 const repository = 'https://github.com/Sunwood-ai-labs/NyankoFace'
 const base = process.env.VITEPRESS_BASE ?? '/NyankoFace/'
-const brandVersion = '20260801-cat-v1'
+const brandVersion = '20260807-paw-v1'
 const configDir = dirname(fileURLToPath(import.meta.url))
 const sharedBrandAssets = {
   'apple-touch-icon.png': resolve(configDir, '../../frontend/app/apple-icon.png'),
   'pwa-192x192.png': resolve(configDir, '../../frontend/public/brand/pwa-192x192.png'),
-  'pwa-512x512.png': resolve(configDir, '../../frontend/public/brand/nyankoface-cat-logo.png'),
+  'pwa-512x512.png': resolve(configDir, '../../frontend/public/brand/nyankoface-paw-logo.png'),
   'maskable-512x512.png': resolve(configDir, '../../frontend/public/brand/maskable-512x512.png'),
   'mask-icon.svg': resolve(configDir, '../../frontend/public/brand/mask-icon.svg')
 } as const
@@ -75,7 +75,7 @@ export default withMermaid(defineConfig({
     ['link', { rel: 'icon', type: 'image/png', sizes: '192x192', href: `${base}pwa-192x192.png?v=${brandVersion}` }],
     ['link', { rel: 'shortcut icon', href: `${base}nyankoface.svg?v=${brandVersion}` }],
     ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: `${base}apple-touch-icon.png?v=${brandVersion}` }],
-    ['link', { rel: 'mask-icon', href: `${base}mask-icon.svg?v=${brandVersion}`, color: '#14dee1' }],
+    ['link', { rel: 'mask-icon', href: `${base}mask-icon.svg?v=${brandVersion}`, color: '#f59e0b' }],
     ['link', { rel: 'manifest', href: `${base}manifest.webmanifest?v=${brandVersion}` }],
     ['meta', { id: 'nyankoface-theme-color', name: 'theme-color', content: '#ffffff' }],
     ['meta', { property: 'og:image', content: `${base}social-card.svg?v=${brandVersion}` }],
