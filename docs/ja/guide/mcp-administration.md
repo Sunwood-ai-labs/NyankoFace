@@ -11,6 +11,22 @@
 - サービスアカウントのcredential参照名は`NYANKOFACE_MCP_FORGEJO_TOKEN_ALLOWLIST`にあるものだけを許可します。参照先は`NYANKOFACE_MCP_FORGEJO_TOKEN_ROOT`直下のreadableなregular fileかつnon-symlinkでなければなりません。内部admin credentialをallowlistへ追加しないでください。
 - client Tokenの平文は、認証済みBFFへのissue／rotate成功responseだけで返され、一度だけ表示されます。その後のstate、list、revoke、audit、connection-test responseは平文を返しません。dialogを閉じるか破棄した後、UIは平文を保持せず、registry、log、auditにも復元可能な平文を残しません。
 
+## Agentの認証: Forgejo credentialを一本化
+
+Agentは、Forgejo APIで使っているものと**まったく同じForgejo token**を
+MCPの`Authorization: Bearer`にも使えます。NyankoFaceは提示されたtokenを
+Forgejoの`/user`で検証し、そのtokenをForgejo／Runnerへ渡すため、read／write
+の権限判定はForgejoをsource of truthにします。Agentごとに別のMCP tokenや
+別のpermission mappingを作成しません。
+
+直接提示されたtokenはlifecycle registry、MCP response、log、auditへ保存・返却
+しません。MCPのwrite safety（policy、preview、confirmation、idempotency、
+secret redaction）はそのまま有効です。Forgejo側でtokenをrevoke／rotateすれば、
+次の認証からMCPも利用できなくなります。
+
+短いTTLやscope／repositoryのsubsetが必要なclient向けには、下記のlifecycle
+service-account方式も残しています。Agentにとっては任意の互換方式です。
+
 ## MCP profileを起動する
 
 secretとMCP stateはrepositoryの外で作成します。Composeの`./secrets/...` defaultはlocal development用で、repository外のsecret境界にはなりません。Compose起動前に次の3つのpathをabsolute pathへ設定します。Windows PowerShellの例は内部credentialだけを生成するため、Forgejo token fileはdeploymentのsecret管理手順で投入してください。
@@ -54,21 +70,21 @@ docker compose --profile mcp ps
 ## 操作手順
 
 1. Forgejo管理者で`/admin/mcp`を開き、再認証を完了します。proofがない、期限切れ、改変、別session、別subjectに束縛されている場合はfail closedで拒否されなければなりません。
-2. サービスアカウント対応付けを追加または選択します。Forgejo user、allowlist済みsecret参照名、必要最小限のscope、明示したrepository権限を選びます。
-3. 対応付けのscopeとrepositoryのsubsetだけを持つclient Tokenを発行します。TTLは実運用で必要な最短値にします。
+2. lifecycle clientでは、サービスアカウント対応付けを追加または選択します。Forgejo user、allowlist済みsecret参照名、必要最小限のscope、明示したrepository権限を選びます。Forgejo tokenを直接使うAgentはこの手順を省略できます。
+3. lifecycle clientでは、対応付けのscopeとrepositoryのsubsetだけを持つclient Tokenを発行します。TTLは実運用で必要な最短値にします。Agentは既存のForgejo tokenをそのまま使います。
 4. 一度きりのdialogを開いたまま**接続を確認**を実行し、`initialize`、`tools/list`、`resources/list`を確認します。到達性、HTTP／認証失敗、JSON-RPC失敗、利用可能なtool／resource数を区別し、Tokenや上流error本文をechoしません。
 5. Tokenは保護されたclient secret storeへコピーしたらdialogを閉じるか破棄します。平文をticket、shell history、screenshot、browser bookmark、source fileへ置かないでください。
 6. 対応付けを無効化または再マッピングしたときは、以前のmapping versionに紐付くTokenが失効したことを確認します。Tokenのrotateでは前のTokenが失効します。
 
 ### 安全なclient snippet
 
-以下はplaceholderだけを含む例です。`<NYANKOFACE_HOST>`と`<TOKEN_FILE>`はローカルで置換し、実Tokenをcommitしないでください。
+以下はplaceholderだけを含む例です。`<NYANKOFACE_HOST>`と`<FORGEJO_TOKEN_FILE>`はローカルで置換し、実Tokenをcommitしないでください。
 
 #### Codex CLI
 
 ```powershell
-$env:NYANKOFACE_MCP_TOKEN_FILE = '<TOKEN_FILE>'
-$env:NYANKOFACE_MCP_TOKEN = (Get-Content -LiteralPath $env:NYANKOFACE_MCP_TOKEN_FILE -Raw).Trim()
+$env:NYANKOFACE_FORGEJO_TOKEN_FILE = '<FORGEJO_TOKEN_FILE>'
+$env:NYANKOFACE_MCP_TOKEN = (Get-Content -LiteralPath $env:NYANKOFACE_FORGEJO_TOKEN_FILE -Raw).Trim()
 codex mcp add nyankoface --url https://<NYANKOFACE_HOST>/mcp --bearer-token-env-var NYANKOFACE_MCP_TOKEN
 ```
 
@@ -81,7 +97,7 @@ codex mcp add nyankoface --url https://<NYANKOFACE_HOST>/mcp --bearer-token-env-
       "command": "nyankoface-mcp-stdio",
       "env": {
         "NYANKOFACE_MCP_REMOTE_URL": "https://<NYANKOFACE_HOST>/mcp",
-        "NYANKOFACE_MCP_CLIENT_TOKEN_FILE": "<TOKEN_FILE>"
+        "NYANKOFACE_MCP_CLIENT_TOKEN_FILE": "<FORGEJO_TOKEN_FILE>"
       }
     }
   }
@@ -103,7 +119,7 @@ codex mcp add nyankoface --url https://<NYANKOFACE_HOST>/mcp --bearer-token-env-
     {
       "id": "nyankoface-token",
       "type": "promptString",
-      "description": "NyankoFace MCP token",
+      "description": "Forgejo token (MCP Bearerにも同じ値を使用)",
       "password": true
     }
   ]
@@ -118,7 +134,8 @@ Policy更新には画面に表示されたrevisionを含めます。同時更新
 
 ## 障害対応Runbook
 
-- **Token紛失:** 直ちに失効し、最小scopeで再発行して、clientの保護されたsecret storeを更新します。
+- **Forgejo token紛失:** Forgejoで直ちにrevoke／rotateし、clientの保護されたsecret storeにある唯一のForgejo tokenを更新します。別のMCP tokenをrotateする必要はありません。
+- **lifecycle Token紛失:** 直ちに失効し、最小scopeで再発行して、clientの保護されたsecret storeを更新します。
 - **サービスアカウント侵害の疑い:** 先に対応付けを無効化し、Forgejo credential secretをrotateし、再対応付けしてから新しいclient Tokenを発行します。
 - **Policy conflict:** 再読み込みしてから再実行します。未確認のrevisionを上書きしません。
 - **Admin backend停止:** `mcp-admin`のhealth、Docker secret mount、lifecycle／policy／audit volumeの権限を確認します。BFFを迂回する公開portは追加しません。
