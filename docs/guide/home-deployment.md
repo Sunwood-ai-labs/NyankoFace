@@ -62,6 +62,8 @@ NYANKOFACE_GATEWAY_CERT_DIR=/srv/nyankoface-private/gateway-certs
 COMPOSE_PROFILES=mcp
 # Optional: preserve a host-only Compose override, if one exists.
 NYANKOFACE_COMPOSE_OVERRIDE_FILE=/srv/nyankoface-private/docker-compose.override.yml
+# Optional, explicit exceptions for services intentionally left unconfigured.
+NYANKOFACE_DEPLOY_IGNORE_HEALTH_SERVICES=maintenance-agent
 ```
 
 `NYANKOFACE_DEPLOY_ENV_FILE` and `NYANKOFACE_GATEWAY_CERT_DIR` must be absolute
@@ -78,6 +80,11 @@ If the private `.env` directory contains `docker-compose.override.yml`, the
 deployment uses it automatically. Set `NYANKOFACE_COMPOSE_OVERRIDE_FILE` only
 when the override is stored elsewhere. This keeps host-only port mappings and
 other private Compose settings attached to the existing deployment.
+
+Use `NYANKOFACE_DEPLOY_IGNORE_HEALTH_SERVICES` sparingly. It only prevents the
+deployment wait from blocking on a named service; it does not make that service
+healthy. Remove the exception after its missing credential or configuration is
+fixed.
 
 ## What a deployment does
 

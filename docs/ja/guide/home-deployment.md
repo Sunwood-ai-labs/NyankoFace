@@ -59,6 +59,8 @@ NYANKOFACE_GATEWAY_CERT_DIR=/srv/nyankoface-private/gateway-certs
 COMPOSE_PROFILES=mcp
 # ホスト専用のCompose overrideがある場合は維持します。
 NYANKOFACE_COMPOSE_OVERRIDE_FILE=/srv/nyankoface-private/docker-compose.override.yml
+# 意図的に未設定のserviceだけ、明示的にhealth待ちから除外します。
+NYANKOFACE_DEPLOY_IGNORE_HEALTH_SERVICES=maintenance-agent
 ```
 
 `NYANKOFACE_DEPLOY_ENV_FILE` と `NYANKOFACE_GATEWAY_CERT_DIR` は絶対パスにします。
@@ -73,6 +75,9 @@ NYANKOFACE_COMPOSE_OVERRIDE_FILE=/srv/nyankoface-private/docker-compose.override
 非公開 `.env` と同じディレクトリに `docker-compose.override.yml` があれば、配備時に自動で
 読み込みます。別の場所に置く場合だけ `NYANKOFACE_COMPOSE_OVERRIDE_FILE` を設定してください。
 これにより、既存配備のホスト専用port mappingなどを維持できます。
+
+`NYANKOFACE_DEPLOY_IGNORE_HEALTH_SERVICES` は慎重に使います。指定serviceのhealthが正常になるわけではなく、
+配備の待機だけを止めない設定です。不足しているcredentialや設定を直したら、例外を削除してください。
 
 ## 配備で実行されること
 

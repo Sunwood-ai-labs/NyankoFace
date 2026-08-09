@@ -13,6 +13,8 @@ Optional runner environment:
   COMPOSE_PROFILES              Compose profiles to include, for example: mcp
   NYANKOFACE_COMPOSE_OVERRIDE_FILE
                                  Optional private Compose override file
+  NYANKOFACE_DEPLOY_IGNORE_HEALTH_SERVICES
+                                 Comma-separated known health exceptions
   NYANKOFACE_DEPLOY_TIMEOUT_SECONDS
 EOF
 }
@@ -24,6 +26,21 @@ die() {
 
 log() {
   printf '[nyankoface-deploy] %s\n' "$*"
+}
+
+is_ignored_health_service() {
+  local service="$1"
+  local candidate
+  local candidates=()
+  IFS=',' read -r -a candidates <<< "${NYANKOFACE_DEPLOY_IGNORE_HEALTH_SERVICES:-}"
+  for candidate in "${candidates[@]}"; do
+    candidate="${candidate#"${candidate%%[![:space:]]*}"}"
+    candidate="${candidate%"${candidate##*[![:space:]]}"}"
+    if [[ "$candidate" == "$service" ]]; then
+      return 0
+    fi
+  done
+  return 1
 }
 
 validate_only=0
@@ -182,7 +199,7 @@ while :; do
     found_services["$service"]=1
     case "$state" in
       running)
-        if [[ "$health" == "starting" || "$health" == "unhealthy" ]]; then
+        if [[ "$health" == "starting" || "$health" == "unhealthy" ]] && ! is_ignored_health_service "$service"; then
           pending=1
         fi
         ;;
