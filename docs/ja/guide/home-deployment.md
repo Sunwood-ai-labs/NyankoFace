@@ -1,7 +1,7 @@
 ---
 title: 自宅環境への自動配備
 type: guide
-description: 信頼済みのdevelopへのpushを、非公開DockerホストへのNyankoFace配備につなげます。
+description: 信頼済みのmainへのpushを、非公開DockerホストへのNyankoFace配備につなげます。
 readingTime: 8分
 tags: [deployment, docker, github-actions, operations]
 related:
@@ -13,14 +13,14 @@ related:
 
 # 自宅環境への自動配備
 
-信頼済みの `develop` ブランチへpushすると、GitHub Actionsのself-hosted
+信頼済みの `main` ブランチへpushすると、GitHub Actionsのself-hosted
 runnerを経由して、非公開のDockerホストへNyankoFaceを自動配備できます。
 runnerはGitHubへ外向きに接続するため、DockerホストでSSHやアプリケーションを
 インターネットへ公開する必要はありません。
 
 ```mermaid
 flowchart LR
-    Push[信頼済みdevelopへのpush] --> Actions[GitHub Actions]
+    Push[信頼済みmainへのpush] --> Actions[GitHub Actions]
     Actions --> Runner[非公開Linux runner<br/>label: nyankoface-home]
     Runner --> Checkout[対象commitを正確にcheckout]
     Checkout --> Compose[Docker Compose<br/>config、build、up]
@@ -29,7 +29,7 @@ flowchart LR
 
 ## 有効化する前に
 
-- `develop` ブランチを作成し、配備用ブランチとして保護します。pushできる人は
+- `main` ブランチを配備用ブランチとして保護します。pushできる人は
   信頼できるmaintainerに限定してください。
 - Dockerホスト上、または同じDocker daemonへ接続できる非公開Linux
   self-hosted runnerを専用に用意します。無関係なリポジトリとrunnerを共有しないでください。
@@ -38,8 +38,9 @@ flowchart LR
 - 初回の自動配備前に、database、Forgejo data、credential、gateway証明書のbackupと
   復旧手順を用意します。
 
-workflowは意図的に `develop` だけを配備対象にしており、pull requestでは配備しません。
-通常のCIを `develop` へ入れる前のrequired checkとして維持してください。
+workflowは意図的に `main` だけを配備対象にしており、pull requestと
+`develop`へのintegration pushでは配備しません。通常のCIを `main` へ入れる前の
+required checkとして維持してください。
 
 ## runnerを登録する
 
@@ -81,7 +82,7 @@ NYANKOFACE_DEPLOY_IGNORE_HEALTH_SERVICES=maintenance-agent
 
 ## 配備で実行されること
 
-`develop` にpushされると、workflowは次を行います。
+`main` にpushされると、workflowは次を行います。
 
 1. credentialをcheckoutへ残さず、pushされたcommitを正確にcheckoutする。
 2. Docker Compose設定を検証する。
@@ -93,7 +94,7 @@ workflowは `down`、`down --volumes`、`--remove-orphans` を実行しません
 そのためNyankoFaceのnamed volumeは維持され、無関係なCompose serviceも配備によって削除されません。
 非公開 `.env`、証明書、token、ホスト固有ファイルをGitからcheckoutすることもありません。
 
-`develop` を選択したworkflowの **Run workflow** から、手動配備を実行することもできます。
+`main` を選択したworkflowの **Run workflow** から、手動配備を実行することもできます。
 その前にrunnerがonlineで、service accountが非公開パスを読めることを確認してください。
 
 ## stackを再起動せずに検証する
@@ -114,12 +115,12 @@ containerのbuildや再起動は行いません。
 配備状態を追跡可能にするため、通常のGit revertを使います。
 
 ```bash
-git switch develop
+git switch main
 git revert <bad-commit>
-git push origin develop
+git push origin main
 ```
 
-revert後の `develop` commitで、もう一度配備が始まります。rollbackでnamed volumeを削除しないでください。
+revert後の `main` commitで、もう一度配備が始まります。rollbackでnamed volumeを削除しないでください。
 migrationやdata corruptionの復旧が必要な場合は、workflow内でCompose volume commandを試さず、
 非公開のbackup runbookを使います。
 

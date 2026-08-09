@@ -57,8 +57,8 @@ case "${1:-}" in
     ;;
 esac
 
-if [[ -n "${NYANKOFACE_DEPLOY_REF:-}" && "${NYANKOFACE_DEPLOY_REF}" != "refs/heads/develop" ]]; then
-  die "refusing to deploy ${NYANKOFACE_DEPLOY_REF}; this workflow is limited to develop"
+if [[ -n "${NYANKOFACE_DEPLOY_REF:-}" && "${NYANKOFACE_DEPLOY_REF}" != "refs/heads/main" ]]; then
+  die "refusing to deploy ${NYANKOFACE_DEPLOY_REF}; this workflow is limited to main"
 fi
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
