@@ -37,6 +37,16 @@ NyankoFaceは、`develop`を統合ブランチ、`main`を本番・リリース�
 - デプロイ対象は原則として`main`のマージ済みrevisionです。例外が必要な場合は、IssueとPRに理由、対象revision、rollback方法を記録してください。
 - ローカルworktreeのbranch、remoteの追跡先、運用メモが食い違う場合は、マージ前に停止してbranch modelを確認してください。推測で`main`を統合先に選ばないでください。
 
+## Forgejo・MCP credential contract
+
+NyankoFace MCPを利用するagentは、Forgejo APIとMCPの両方に同じForgejo tokenを使用します。
+
+- MCPの`Authorization: Bearer`には、そのagentがForgejo APIへ送るtokenと同じ値を設定してください。
+- Forgejoをrepositoryの可視性と読み書き権限の唯一のsource of truthとし、MCP専用tokenや別の権限registryを追加しないでください。
+- agent側で別のMCP tokenを生成・mount・provisionせず、既存のForgejo token fileを読み取ってください。
+- token値をログ、Issue、PR、レスポンスへ出力しないでください。NyankoFace側の直接Forgejo認証もtoken値を永続化しません。
+- credential変更時は、Forgejo APIのidentity/read/write権限とMCPのinitialize/read/write経路を同一tokenで検証してください。
+
 ## Parallel agent and CLI-first policy
 
 - 独立したIssueでwrite setとstate schemaが重ならない場合は、可能な限りサブエージェントへboundedな監査・実装・検証を分担し、Issueごとの専用worktreeで並列処理してください。各agentの担当範囲、対象Issue、変更ファイルを開始時に固定してください。
