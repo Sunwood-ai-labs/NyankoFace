@@ -171,6 +171,34 @@ docker compose --profile mcp up -d --build nyankoface-mcp gateway
 [`nyankoface-mcp/README.md`](https://github.com/Sunwood-ai-labs/NyankoFace/blob/main/nyankoface-mcp/README.md)にあります。
 browser clientは`NYANKOFACE_MCP_ALLOWED_ORIGINS`へ完全一致Originを設定します。
 
+### TLS終端reverse proxy
+
+gatewayは、credentialなしHTTP listenerの`/mcp`に対して意図的に
+`426 Upgrade Required`を返します。これはbearer credentialを平文で送らないためです。
+外側のproxyでclient TLSを終端する場合は、upstreamをgatewayのHTTPS listener
+（`NYANKOFACE_HTTPS_PORT`。local defaultは`8443`）へ向けてください。
+`NYANKOFACE_PORT`（local defaultは`8090`）へ向けてはいけません。local self-signed
+certificateを使うTailscale Serveなら次のように設定します。
+
+```bash
+tailscale serve --bg --https=443 https+insecure://127.0.0.1:8443
+```
+
+routeを変更した後は、最小権限tokenでsecret-safeなlive protocol checkを実行します。
+これは実際のJSON-RPC `initialize`を送り、`426`、`502`、redirect、未対応Content-Type、
+不正なMCP responseを失敗にします。
+
+```bash
+python nyankoface-mcp/scripts/run_live_client_protocol.py \
+  --url https://YOUR_NYANKOFACE_HOST/mcp \
+  --token-file /restricted/nyankoface-mcp.token \
+  --client codex \
+  --client-version verified
+```
+
+外側のproxyから`/mcp`をcredentialなしHTTP listenerへ転送しないでください。
+そのrouteを通すためにHTTP側の`426` guardを弱めないでください。
+
 remote static Bearer endpointはClaude Desktop connector互換を保証しません。現在のClaude Desktopの
 [remote custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)は
 `claude_desktop_config.json`ではなく**Settings > Connectors**から設定し、authless

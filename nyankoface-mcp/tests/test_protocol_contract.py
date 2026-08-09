@@ -337,6 +337,18 @@ def test_production_ha_e2e_uses_the_shipped_compose_and_gateway():
     assert 'f"{PROJECT}_production-mcp-state"' in runner
 
 
+def test_production_ha_e2e_regresses_public_tls_initialize_route():
+    runner = (ROOT / "nyankoface-mcp/scripts/run_production_ha_e2e.py").read_text(
+        encoding="utf-8"
+    )
+    assert '"method": "initialize"' in runner
+    assert '"Accept": "application/json, text/event-stream"' in runner
+    assert '"Content-Type": "application/json"' in runner
+    assert 'URL = f"https://localhost:' in runner
+    assert "wait_for_unauthorized(lambda: request(URL))" in runner
+    assert "assert_stable(lambda: request(URL), standby_instance)" in runner
+
+
 @pytest.mark.asyncio
 async def test_invalid_token_is_rejected(tmp_path):
     app = create_server(make_settings(tmp_path, json_response=True), FakeAdapter()).streamable_http_app()

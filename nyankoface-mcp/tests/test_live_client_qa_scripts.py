@@ -17,6 +17,8 @@ TRANSCRIPTS = EVIDENCE / "client-state-transcripts.jsonl"
 RAW_MANIFEST = EVIDENCE / "raw-artifact-manifest.json"
 GUIDE_EN = Path(__file__).parents[2] / "docs" / "guide" / "mcp-live-clients.md"
 GUIDE_JA = Path(__file__).parents[2] / "docs" / "ja" / "guide" / "mcp-live-clients.md"
+MCP_SERVER_GUIDE_EN = Path(__file__).parents[2] / "docs" / "guide" / "mcp-server.md"
+MCP_SERVER_GUIDE_JA = Path(__file__).parents[2] / "docs" / "ja" / "guide" / "mcp-server.md"
 VALID_CAPABILITIES = {"tools": {}, "resources": {}}
 VALID_SEARCH_TOOL = {"name": "search_catalog", "inputSchema": {"type": "object"}}
 VALID_REPOSITORY_TOOL = {"name": "get_repository", "inputSchema": {"type": "object"}}
@@ -68,6 +70,15 @@ def test_live_protocol_runner_never_serializes_the_token():
     assert "--expect-read-error" in source
     assert "EXPECTED_CATALOG_SCOPE_DENIAL" in source
     assert "require_result" in source
+
+
+def test_live_guides_keep_tls_terminating_proxies_on_the_gateway_https_listener():
+    for guide in (MCP_SERVER_GUIDE_EN, MCP_SERVER_GUIDE_JA):
+        source = guide.read_text(encoding="utf-8")
+        assert "426" in source
+        assert "https+insecure://127.0.0.1:8443" in source
+        assert "run_live_client_protocol.py" in source
+        assert "initialize" in source
 
 
 def test_vscode_remote_http_example_uses_a_masked_input():
