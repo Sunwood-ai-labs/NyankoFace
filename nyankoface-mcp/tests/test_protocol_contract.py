@@ -31,7 +31,9 @@ class FakeAdapter:
         self.repository_access = True
 
     async def get_current_user_id(self, token):
-        return 42
+        if token == "caller-pat":
+            return 42
+        raise ToolError("invalid Forgejo token")
 
     async def search_catalog(self, kind, query="", page=1, limit=20):
         return {"kind": kind, "items": [{"full_name": "nyankoface/demo", "private": False}]}

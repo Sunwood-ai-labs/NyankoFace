@@ -11,6 +11,25 @@
 - Service-account credentials may reference only names in `NYANKOFACE_MCP_FORGEJO_TOKEN_ALLOWLIST`. Each reference must be a readable, regular, non-symlink file directly below `NYANKOFACE_MCP_FORGEJO_TOKEN_ROOT`. Do not add the internal admin credential to this allowlist.
 - Client token plaintext is returned only in a successful issue/rotate response to the already-authenticated BFF and is displayed once. Subsequent state, list, revoke, audit, and connection-test responses do not return it. After the dialog is closed or discarded, the UI no longer holds it and the registry, logs, and audit records do not retain recoverable plaintext.
 
+## Agent authentication: one Forgejo credential
+
+Agents may use the exact same Forgejo token for Forgejo API calls and the MCP
+`Authorization: Bearer` header. NyankoFace validates the presented token with
+Forgejo `/user`, passes that token to the upstream Forgejo/Runner calls, and
+uses Forgejo's current repository permissions for both reads and writes. Do
+not create a second per-agent MCP token or a second permission mapping for
+this mode.
+
+The directly presented token is not inserted into the lifecycle registry and
+is not returned in MCP results, logs, or audit records. The normal MCP write
+safeguards—policy, preview, confirmation, idempotency, and secret redaction—
+still apply. Revoking or rotating the Forgejo token revokes MCP access at the
+next authentication attempt.
+
+The lifecycle service-account flow below remains available when a client
+specifically needs a separate short-lived credential with narrower scope or
+repository limits. It is optional for agents.
+
 ## Start the MCP profile
 
 Create secrets and MCP state outside the repository. Compose's `./secrets/...` defaults are convenient for local development but are not an external secret boundary. Set the three paths below to absolute locations before starting Compose. This Windows PowerShell example generates only the internal credential; use the deployment's secret-management procedure to populate the Forgejo token file.
@@ -54,21 +73,21 @@ Do not publish port `8001`, bypass the BFF, or put secret values in `docker-comp
 ## Operator flow
 
 1. Open `/admin/mcp` as a Forgejo administrator and complete re-authentication. If the proof is missing, expired, changed, or bound to another session or subject, the request must fail closed.
-2. Add or select one service-account mapping. Choose the Forgejo user, an allowlisted secret reference, the smallest required scopes, and explicit repository permissions.
-3. Issue a client token with a subset of the mapping's scopes and repositories. Set the shortest practical TTL.
+2. For lifecycle clients, add or select one service-account mapping. Choose the Forgejo user, an allowlisted secret reference, the smallest required scopes, and explicit repository permissions. Agents using a Forgejo token directly can skip this step.
+3. For lifecycle clients, issue a client token with a subset of the mapping's scopes and repositories. Set the shortest practical TTL. Agents use their existing Forgejo token instead.
 4. While the one-time dialog is open, use **Connection test** to check `initialize`, `tools/list`, and `resources/list`. The result separates reachability, HTTP/authentication failure, JSON-RPC failure, and usable tool/resource counts without echoing the token or upstream error text.
 5. Copy the token only into a protected client secret store, then close or discard the dialog. Never put the plaintext in a ticket, shell history, screenshot, browser bookmark, or source file.
 6. When a mapping is disabled or remapped, verify that its previous mapping-version tokens are revoked. Rotating a token revokes its predecessor.
 
 ### Safe client snippets
 
-These examples intentionally contain placeholders only. Replace `<NYANKOFACE_HOST>` and `<TOKEN_FILE>` locally; never commit a real token.
+These examples intentionally contain placeholders only. Replace `<NYANKOFACE_HOST>` and `<FORGEJO_TOKEN_FILE>` locally; never commit a real token.
 
 #### Codex CLI
 
 ```powershell
-$env:NYANKOFACE_MCP_TOKEN_FILE = '<TOKEN_FILE>'
-$env:NYANKOFACE_MCP_TOKEN = (Get-Content -LiteralPath $env:NYANKOFACE_MCP_TOKEN_FILE -Raw).Trim()
+$env:NYANKOFACE_FORGEJO_TOKEN_FILE = '<FORGEJO_TOKEN_FILE>'
+$env:NYANKOFACE_MCP_TOKEN = (Get-Content -LiteralPath $env:NYANKOFACE_FORGEJO_TOKEN_FILE -Raw).Trim()
 codex mcp add nyankoface --url https://<NYANKOFACE_HOST>/mcp --bearer-token-env-var NYANKOFACE_MCP_TOKEN
 ```
 
@@ -81,7 +100,7 @@ codex mcp add nyankoface --url https://<NYANKOFACE_HOST>/mcp --bearer-token-env-
       "command": "nyankoface-mcp-stdio",
       "env": {
         "NYANKOFACE_MCP_REMOTE_URL": "https://<NYANKOFACE_HOST>/mcp",
-        "NYANKOFACE_MCP_CLIENT_TOKEN_FILE": "<TOKEN_FILE>"
+        "NYANKOFACE_MCP_CLIENT_TOKEN_FILE": "<FORGEJO_TOKEN_FILE>"
       }
     }
   }
@@ -103,7 +122,7 @@ codex mcp add nyankoface --url https://<NYANKOFACE_HOST>/mcp --bearer-token-env-
     {
       "id": "nyankoface-token",
       "type": "promptString",
-      "description": "NyankoFace MCP token",
+      "description": "Forgejo token (also used as the MCP Bearer)",
       "password": true
     }
   ]
@@ -118,7 +137,8 @@ Audit filters cover actual outcomes (`allowed`, `denied`, `failed`, `replayed`, 
 
 ## Recovery runbook
 
-- **Lost token:** revoke it immediately, issue a replacement with the smallest scope, and update the client's protected token store.
+- **Lost Forgejo token:** revoke or rotate it in Forgejo immediately, then update the single Forgejo token in the client's protected secret store. No separate MCP token needs to be rotated.
+- **Lost lifecycle token:** revoke it immediately, issue a replacement with the smallest scope, and update the client's protected token store.
 - **Suspected service-account compromise:** disable the mapping first, rotate the Forgejo credential secret, remap the account, then issue new client tokens.
 - **Policy conflict:** reload before retrying. Never overwrite a revision that was not reviewed.
 - **Admin backend unavailable:** check `mcp-admin` health, Docker secret mounts, and lifecycle/policy/audit volume permissions. Do not expose a public port to bypass the BFF.

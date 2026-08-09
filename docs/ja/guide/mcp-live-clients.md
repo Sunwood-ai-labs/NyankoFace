@@ -8,18 +8,22 @@ description: Codex、Claude Desktop、VS CodeでNyankoFace MCPを安全に再現
 この手順では、**実クライアントの手動QA**とCIで自動化できるprotocol testを
 分離します。token、PAT、literal credentialを含む設定や生logはcommitしません。
 
+Agent modeではcredentialを一本化し、Forgejoで使うtokenとMCP Bearerに同じ
+Forgejo tokenを送ります。別のMCP lifecycle tokenは、任意のservice-account
+方式を検証するときだけ使います。
+
 ## 正式な接続経路
 
 | Client | 今回使うtransport | Credentialの渡し方 |
 |---|---|---|
-| Codex CLI | remote Streamable HTTP | 継承した環境変数からbearerを参照 |
-| Claude Desktop | local stdio adapter | `nyankoface-mcp-stdio`が制限付きtoken fileを読む |
-| VS Code | remote Streamable HTTP | 公式`mcp.json`のpassword input |
+| Codex CLI | remote Streamable HTTP | AgentのForgejo tokenを継承環境変数からbearerとして参照 |
+| Claude Desktop | local stdio adapter | 同じForgejo tokenを保護されたfileから読む |
+| VS Code | remote Streamable HTTP | 同じForgejo tokenを公式`mcp.json`のpassword inputへ渡す |
 
 Codexではtoken値をcommand lineに置かず登録します。
 
 ```powershell
-$env:NYANKOFACE_MCP_TOKEN = (Get-Content $env:NYANKOFACE_MCP_TOKEN_FILE -Raw).Trim()
+$env:NYANKOFACE_MCP_TOKEN = (Get-Content $env:NYANKOFACE_FORGEJO_TOKEN_FILE -Raw).Trim()
 codex mcp add nyankoface --url https://nyankoface.example/mcp `
   --bearer-token-env-var NYANKOFACE_MCP_TOKEN
 ```
@@ -37,7 +41,7 @@ installします（このcheckoutなら `python -m pip install --upgrade ./nyank
       "command": "nyankoface-mcp-stdio",
       "env": {
         "NYANKOFACE_MCP_REMOTE_URL": "https://nyankoface.example/mcp",
-        "NYANKOFACE_MCP_CLIENT_TOKEN_FILE": "C:\\restricted\\nyankoface.token"
+        "NYANKOFACE_MCP_CLIENT_TOKEN_FILE": "C:\\restricted\\forgejo.token"
       }
     }
   }
@@ -62,14 +66,14 @@ literal tokenへ置換してはいけません。
 
 ## 手動チェック
 
-1. clientごとに別の短期service credentialを発行します。
+1. Agent modeでは、そのAgentがForgejoで既に使っているForgejo tokenを使い、別のMCP tokenを発行しません。任意のlifecycle modeを試す場合だけ、短期service credentialを別に用意します。
 2. token値やtoken file内容を残さず、client／OS／server revision／実行日時を記録します。
 3. initialize、Tools、Resources、限定されたreadを1件確認します。AIへpromptを送るより、
    client nativeのresource browserを優先します。
-4. valid、scope不足、expired、revoked、invalidをprotocol levelで再確認します。
-   lifecycle不正はinitialize前の`401`が期待値です。scope不足ではgovernance上
-   許可済みの`search_catalog`をrepository-only credentialで呼び、
-   `catalog:read`不足という特定のdenialを確認します。
+4. Agent modeではvalid、revoked、invalidなForgejo credentialをprotocol levelで
+   再確認します。lifecycle modeではscope不足、expiredも確認します。すべての
+   repository read／writeの結果が、同じtokenをForgejoへ直接送った場合の権限と
+   一致することを確認します。
 5. 非公開配備に複数instanceがある場合のisolation checkは、その非公開環境内で実施します。
    instance名、image identifier、address、runtime identifierは公開しません。
 6. commit前にsanitized summaryへcredentialが混入していないかscanします。
