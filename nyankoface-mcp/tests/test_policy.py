@@ -40,6 +40,30 @@ def test_unconfigured_tool_is_default_deny(tmp_path):
     assert decision.matched_scope is None
 
 
+def test_direct_forgejo_reads_and_writes_use_upstream_permission_boundary(tmp_path):
+    store = PolicyStore(tmp_path / "policy.db")
+    direct = dict(subject_id="forgejo-user:42", subject_type="forgejo_user")
+
+    read = store.evaluate(request(**direct))
+    assert read.allowed is True
+    assert read.reason == "forgejo_token_read"
+    assert read.matched_scope == "subject_type:forgejo_user"
+
+    write = store.evaluate(request(**direct, tool="create_issue", access="write"))
+    assert write.allowed is True
+    assert write.reason == "forgejo_token_write"
+
+    store.set_tool_policy("subject", "forgejo-user:42", "get_repository", "deny")
+    denied_read = store.evaluate(request(**direct))
+    assert denied_read.allowed is False
+    assert denied_read.reason == "explicit_deny"
+
+    store.set_tool_policy("global", "*", "create_issue", "deny")
+    denied_write = store.evaluate(request(**direct, tool="create_issue", access="write"))
+    assert denied_write.allowed is False
+    assert denied_write.reason == "explicit_deny"
+
+
 def test_previously_issued_identifiers_with_spaces_remain_authorizable(tmp_path):
     store = PolicyStore(tmp_path / "policy.db")
     subject_id = "Human User " + "x" * 300

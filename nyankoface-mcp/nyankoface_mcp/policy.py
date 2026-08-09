@@ -342,6 +342,18 @@ class PolicyStore:
             if (str(row["scope"]), str(row["scope_id"])) in applicable
         ]
         if not matches:
+            if request.subject_type == "forgejo_user":
+                # A direct Forgejo bearer is already authenticated upstream.
+                # Repository-scoped reads and writes still pass the Forgejo
+                # credential through verifier.require() and the adapter's
+                # upstream permission check. Explicit policy denies and
+                # read-only rules above still take precedence.
+                return PolicyDecision(
+                    allowed=True,
+                    reason=f"forgejo_token_{request.access}",
+                    policy_version=version,
+                    matched_scope="subject_type:forgejo_user",
+                )
             return PolicyDecision(False, "default_deny", version)
         highest = max(
             applicable[(str(row["scope"]), str(row["scope_id"]))]
