@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -36,6 +37,9 @@ REQUIRED_OPERATIONAL_TOOLS = (
     "list_issues",
     "get_issue",
     "create_issue",
+)
+ARTICLE_PATH_PATTERN = re.compile(
+    r"""(?:^|[/\\("' ])articles/([A-Za-z0-9][A-Za-z0-9._-]*)(?:\.md)?"""
 )
 
 
@@ -132,6 +136,35 @@ def _require_items(payload: dict[str, Any], operation: str) -> list[dict[str, An
     if not isinstance(items, list) or not all(isinstance(item, dict) for item in items):
         raise RuntimeError(f"{operation} returned an invalid items list")
     return items
+
+
+def _article_slugs(
+    repository: dict[str, Any],
+    tree: dict[str, Any],
+    file_payload: dict[str, Any] | None,
+    repo_name: str,
+) -> list[str]:
+    sources = [json.dumps(repository, ensure_ascii=False)]
+    entries = tree.get("entries")
+    if isinstance(entries, list):
+        sources.append(json.dumps(entries, ensure_ascii=False))
+    if file_payload is not None:
+        sources.append(json.dumps(file_payload, ensure_ascii=False))
+    candidates: list[str] = []
+    for source in sources:
+        for match in ARTICLE_PATH_PATTERN.finditer(source):
+            slug = match.group(1).strip()
+            if slug.casefold().endswith(".md"):
+                slug = slug[:-3]
+            if slug and slug not in candidates:
+                candidates.append(slug)
+    published_slug = repository.get("slug")
+    if isinstance(published_slug, str) and published_slug.strip():
+        if published_slug not in candidates:
+            candidates.append(published_slug.strip())
+    if repo_name not in candidates:
+        candidates.append(repo_name)
+    return candidates
 
 
 def _preview_is_safe(preview: dict[str, Any]) -> None:
@@ -258,21 +291,26 @@ def run(
     )
     entries = tree.get("entries")
     file_meta = None
+    file_payload = None
     file_path = None
     if isinstance(entries, list):
+        file_entries = [
+            entry for entry in entries
+            if isinstance(entry, dict)
+            and entry.get("type") == "file"
+            and isinstance(entry.get("path"), str)
+            and entry["path"].strip()
+        ]
         file_entry = next(
             (
-                entry for entry in entries
-                if isinstance(entry, dict)
-                and entry.get("type") == "file"
-                and isinstance(entry.get("path"), str)
-                and entry["path"].strip()
+                entry for entry in file_entries
+                if Path(entry["path"]).name.casefold() == "readme.md"
             ),
-            None,
+            file_entries[0] if file_entries else None,
         )
         if file_entry is not None:
             file_path = file_entry["path"]
-            file_meta, _ = _call_tool(
+            file_meta, file_payload = _call_tool(
                 url,
                 token,
                 protocol_version,
@@ -286,14 +324,36 @@ def run(
                 },
             )
 
-    knowledge_meta, _ = _call_tool(
-        url,
-        token,
-        protocol_version,
-        14,
-        "get_knowledge",
-        {"owner": doc_owner, "slug": doc_repo},
+    knowledge_meta = None
+    knowledge_slug = None
+    knowledge_errors = []
+    knowledge_candidates = _article_slugs(
+        repository,
+        tree,
+        file_payload,
+        doc_repo,
     )
+    for offset, candidate in enumerate(knowledge_candidates):
+        try:
+            knowledge_meta, _ = _call_tool(
+                url,
+                token,
+                protocol_version,
+                14 + offset,
+                "get_knowledge",
+                {"owner": doc_owner, "slug": candidate},
+            )
+            knowledge_slug = candidate
+            break
+        except RuntimeError as exc:
+            if "not_found_or_unauthorized" not in str(exc):
+                raise
+            knowledge_errors.append(str(exc))
+    if knowledge_meta is None or knowledge_slug is None:
+        raise RuntimeError(
+            "no published Knowledge article slug was found in repository content: "
+            + "; ".join(knowledge_errors)
+        )
     summary["use_cases"]["catalog_to_knowledge"] = {
         "catalog_search": catalog_meta,
         "repository": repo_meta,
@@ -303,13 +363,14 @@ def run(
         "repository_identity": f"{doc_owner}/{doc_repo}",
         "tree_ref": ref,
         "file_path": file_path,
+        "knowledge_slug": knowledge_slug,
     }
 
     repositories_meta, repositories = _call_tool(
         url,
         token,
         protocol_version,
-        15,
+        30,
         "list_repositories",
         {"query": "", "page": 1, "limit": 100},
     )
@@ -327,7 +388,7 @@ def run(
         url,
         token,
         protocol_version,
-        16,
+        31,
         "list_issues",
         {
             "owner": issue_target[0],
@@ -350,7 +411,7 @@ def run(
             url,
             token,
             protocol_version,
-            17,
+            32,
             "get_issue",
             {
                 "owner": issue_target[0],
@@ -392,7 +453,7 @@ def run(
         url,
         token,
         protocol_version,
-        18,
+        33,
         "create_issue",
         {
             "owner": push_owner,
