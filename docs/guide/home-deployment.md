@@ -60,6 +60,8 @@ NYANKOFACE_DEPLOY_ENV_FILE=/srv/nyankoface-private/.env
 NYANKOFACE_GATEWAY_CERT_DIR=/srv/nyankoface-private/gateway-certs
 # Keep this only when the MCP profile is part of the running stack.
 COMPOSE_PROFILES=mcp
+# Optional: preserve a host-only Compose override, if one exists.
+NYANKOFACE_COMPOSE_OVERRIDE_FILE=/srv/nyankoface-private/docker-compose.override.yml
 ```
 
 `NYANKOFACE_DEPLOY_ENV_FILE` and `NYANKOFACE_GATEWAY_CERT_DIR` must be absolute
@@ -71,6 +73,11 @@ example, a relative `NYANKOFACE_MCP_STATE_DIR=./secrets/nyankoface-mcp` in the
 private `.env` is resolved relative to the `.env` directory rather than the
 temporary Actions checkout. Absolute values are recommended for credentials
 and other sensitive files.
+
+If the private `.env` directory contains `docker-compose.override.yml`, the
+deployment uses it automatically. Set `NYANKOFACE_COMPOSE_OVERRIDE_FILE` only
+when the override is stored elsewhere. This keeps host-only port mappings and
+other private Compose settings attached to the existing deployment.
 
 ## What a deployment does
 

@@ -57,6 +57,8 @@ NYANKOFACE_DEPLOY_ENV_FILE=/srv/nyankoface-private/.env
 NYANKOFACE_GATEWAY_CERT_DIR=/srv/nyankoface-private/gateway-certs
 # 稼働中のstackでMCP profileを使う場合だけ残します。
 COMPOSE_PROFILES=mcp
+# ホスト専用のCompose overrideがある場合は維持します。
+NYANKOFACE_COMPOSE_OVERRIDE_FILE=/srv/nyankoface-private/docker-compose.override.yml
 ```
 
 `NYANKOFACE_DEPLOY_ENV_FILE` と `NYANKOFACE_GATEWAY_CERT_DIR` は絶対パスにします。
@@ -67,6 +69,10 @@ COMPOSE_PROFILES=mcp
 `NYANKOFACE_MCP_STATE_DIR=./secrets/nyankoface-mcp` は、一時的なActions checkoutではなく
 `.env` のディレクトリを基準に解決されます。credentialなど機密ファイルは絶対パスにすることを
 推奨します。
+
+非公開 `.env` と同じディレクトリに `docker-compose.override.yml` があれば、配備時に自動で
+読み込みます。別の場所に置く場合だけ `NYANKOFACE_COMPOSE_OVERRIDE_FILE` を設定してください。
+これにより、既存配備のホスト専用port mappingなどを維持できます。
 
 ## 配備で実行されること
 

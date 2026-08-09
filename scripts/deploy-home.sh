@@ -11,6 +11,8 @@ Required runner environment:
 
 Optional runner environment:
   COMPOSE_PROFILES              Compose profiles to include, for example: mcp
+  NYANKOFACE_COMPOSE_OVERRIDE_FILE
+                                 Optional private Compose override file
   NYANKOFACE_DEPLOY_TIMEOUT_SECONDS
 EOF
 }
@@ -117,6 +119,19 @@ compose=(
   --file "$repo_root/docker-compose.yml"
 )
 
+override_file="${NYANKOFACE_COMPOSE_OVERRIDE_FILE:-$env_dir/docker-compose.override.yml}"
+if [[ "$override_file" != /* ]]; then
+  override_file="$env_dir/${override_file#./}"
+fi
+if [[ -f "$override_file" ]]; then
+  compose+=(--file "$override_file")
+  private_override_enabled=1
+elif [[ -n "${NYANKOFACE_COMPOSE_OVERRIDE_FILE:-}" ]]; then
+  die "NYANKOFACE_COMPOSE_OVERRIDE_FILE does not exist"
+else
+  private_override_enabled=0
+fi
+
 show_status() {
   "${compose[@]}" ps -a || true
 }
@@ -131,6 +146,9 @@ fi
 log "repository: NyankoFace"
 log "revision: $actual_sha"
 log "compose project: nyankoface"
+if (( private_override_enabled )); then
+  log "private Compose override: enabled"
+fi
 log "validating Docker Compose configuration"
 "${compose[@]}" config --quiet
 
