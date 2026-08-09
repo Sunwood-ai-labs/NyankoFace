@@ -313,6 +313,10 @@ def create_server(
     async def repositories_for_token(query: str, page: int, limit: int) -> dict[str, Any]:
         record = verifier.require("repos:read")
         upstream = verifier.upstream_token(record)
+        if record.upstream_token_value is not None:
+            # A direct Forgejo bearer uses Forgejo's repository visibility and
+            # permission model as the source of truth.
+            return await adapter.list_repositories(query, page, limit, upstream)
         mapped = {target for target, _permission in record.repository_permissions}
         allowed = set(record.repositories) if record.repositories else mapped
         normalized_query = query.casefold().strip()

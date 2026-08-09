@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hmac
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -9,12 +10,16 @@ from mcp.server.auth.provider import AccessToken, TokenVerifier
 from mcp.server.fastmcp.exceptions import ToolError
 
 from .lifecycle import (
+    DECLARED_SCOPES,
     LifecycleError,
     MUTATING_SCOPES,
     TokenLifecycleStore,
     parse_token_expiry,
     token_digest,
 )
+
+
+DIRECT_FORGEJO_CLIENT_PREFIX = "forgejo-user:"
 
 
 @dataclass(frozen=True)
@@ -29,6 +34,7 @@ class TokenRecord:
     subject_type: str = "human"
     repositories: tuple[str, ...] = ()
     repository_permissions: tuple[tuple[str, str], ...] = ()
+    upstream_token_value: str | None = None
 
 
 class NyankoFaceTokenVerifier(TokenVerifier):
@@ -132,10 +138,39 @@ class NyankoFaceTokenVerifier(TokenVerifier):
             ),
         )
 
+    def has_lifecycle_token(self, token: str) -> bool:
+        """Distinguish an expired lifecycle token from an unknown Forgejo PAT."""
+        digest = token_digest(token)
+        try:
+            data = self.store._read(strict_schema=False)
+        except (OSError, ValueError, LifecycleError):
+            return False
+        return any(
+            isinstance(item, dict)
+            and hmac.compare_digest(str(item.get("token_sha256", "")).lower(), digest)
+            for item in data.get("tokens", [])
+        )
+
     async def verify_token(self, token: str) -> AccessToken | None:
         record = self.find(token)
         if record is None:
-            return None
+            if self.has_lifecycle_token(token):
+                return None
+            # The agent may use its Forgejo PAT directly as the MCP bearer.
+            # Verify it against Forgejo on every MCP authentication attempt;
+            # never persist the presented credential in the lifecycle registry.
+            try:
+                forgejo_user_id = await self.forgejo_identity_resolver(token)
+            except (OSError, ToolError, ValueError):
+                return None
+            if forgejo_user_id <= 0:
+                return None
+            return AccessToken(
+                token=token,
+                client_id=f"{DIRECT_FORGEJO_CLIENT_PREFIX}{forgejo_user_id}",
+                scopes=sorted(DECLARED_SCOPES),
+                expires_at=None,
+            )
         upstream = self.upstream_token(record)
         if not upstream or record.forgejo_user_id <= 0:
             return None
@@ -155,6 +190,22 @@ class NyankoFaceTokenVerifier(TokenVerifier):
     def current_record(self) -> TokenRecord:
         access = get_access_token()
         record = self.find(access.token) if access else None
+        if record is None and access and access.client_id.startswith(DIRECT_FORGEJO_CLIENT_PREFIX):
+            try:
+                forgejo_user_id = int(access.client_id.removeprefix(DIRECT_FORGEJO_CLIENT_PREFIX))
+            except ValueError:
+                forgejo_user_id = 0
+            if forgejo_user_id > 0:
+                return TokenRecord(
+                    token_sha256=token_digest(access.token),
+                    client_id=access.client_id,
+                    scopes=tuple(access.scopes),
+                    expires_at=access.expires_at,
+                    forgejo_user_id=forgejo_user_id,
+                    subject_id=access.client_id,
+                    subject_type="forgejo_user",
+                    upstream_token_value=access.token,
+                )
         if record is None:
             raise ToolError("NyankoFace authentication is required")
         return record
@@ -166,6 +217,10 @@ class NyankoFaceTokenVerifier(TokenVerifier):
         if (owner is None) != (repo is None):
             raise ToolError("A complete repository target is required")
         if owner is not None and repo is not None:
+            if record.upstream_token_value is not None:
+                # Direct Forgejo credentials are authorized by Forgejo itself;
+                # do not replace repository permissions with MCP registry data.
+                return record
             target = f"{owner}/{repo}".lower()
             repositories = {item.lower() for item in record.repositories}
             if repositories and target not in repositories:
@@ -178,6 +233,8 @@ class NyankoFaceTokenVerifier(TokenVerifier):
         return record
 
     def upstream_token(self, record: TokenRecord) -> str | None:
+        if record.upstream_token_value is not None:
+            return record.upstream_token_value
         if not record.forgejo_token_file:
             return None
         try:

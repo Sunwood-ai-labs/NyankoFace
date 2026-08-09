@@ -6,12 +6,44 @@ from pathlib import Path
 import pytest
 
 from mcp.server.fastmcp.exceptions import ToolError
+from mcp.server.auth.provider import AccessToken
 
 from nyankoface_mcp.auth import NyankoFaceTokenVerifier, TokenRecord
+from nyankoface_mcp.lifecycle import DECLARED_SCOPES
 
 
 async def resolve_user_42(_token: str) -> int:
+    if _token not in {"caller-pat", "forgejo-pat-used-as-the-single-mcp-credential"}:
+        raise ToolError("invalid Forgejo token")
     return 42
+
+
+@pytest.mark.asyncio
+async def test_forgejo_token_is_accepted_directly_and_keeps_registry_empty(tmp_path, monkeypatch):
+    token = "forgejo-pat-used-as-the-single-mcp-credential"
+    verifier = NyankoFaceTokenVerifier(tmp_path / "missing-registry.json", resolve_user_42)
+
+    access = await verifier.verify_token(token)
+
+    assert access is not None
+    assert access.client_id == "forgejo-user:42"
+    assert set(access.scopes) == set(DECLARED_SCOPES)
+    assert verifier.records() == []
+    monkeypatch.setattr("nyankoface_mcp.auth.get_access_token", lambda: access)
+    record = verifier.current_record()
+    assert verifier.upstream_token(record) == token
+    assert verifier.require("issues:write", "nyankoface", "demo") == record
+    assert not (tmp_path / "missing-registry.json").exists()
+
+
+@pytest.mark.asyncio
+async def test_invalid_direct_forgejo_token_is_rejected(tmp_path):
+    async def reject(_token: str) -> int:
+        raise ToolError("invalid Forgejo token")
+
+    verifier = NyankoFaceTokenVerifier(tmp_path / "missing-registry.json", reject)
+
+    assert await verifier.verify_token("invalid-forgejo-pat") is None
 
 
 @pytest.mark.asyncio
