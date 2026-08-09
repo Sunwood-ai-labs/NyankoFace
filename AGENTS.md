@@ -1,5 +1,13 @@
 ## Imported Claude Cowork project instructions
 
+## Local-only deployment context
+
+このリポジトリに`agent.local.md`がある場合は、マシン固有の自宅・ローカル環境情報をそこから確認する。`agent.local.md`はGitへコミット・pushせず、公開ドキュメントへ転記しない。パスワード、APIキー、アクセストークン、秘密鍵の内容はどのファイルにも記載しない。
+
+## Project links
+
+- Issue窓口: https://github.com/Sunwood-ai-labs/NyankoFace/issues
+
 ## Git commit policy
 
 すべてのファイル変更を伴う実装タスクは、最終応答の前に git コミットで終了する必要があります。
