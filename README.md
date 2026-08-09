@@ -550,8 +550,9 @@ python skills/nyankoface-navigator/scripts/validate_repo.py PATH --goal knowledg
 | Skill | Use it when | Invocation | Important files |
 |---|---|---|---|
 | [NyankoFace Navigator](skills/nyankoface-navigator/SKILL.md) | Choose among every NyankoFace publishing surface, create the minimum contract, validate an existing repository, configure deployment/maintenance/GPU settings, or diagnose why content is not discovered or rendered. | `$nyankoface-navigator` | [`SKILL.md`](skills/nyankoface-navigator/SKILL.md), [publishing map](skills/nyankoface-navigator/references/publishing-map.md), [deployment environment](skills/nyankoface-navigator/references/deployment-environment.md), [validator](skills/nyankoface-navigator/scripts/validate_repo.py), [validator tests](skills/nyankoface-navigator/scripts/test_validate_repo.py), and [starter assets](skills/nyankoface-navigator/assets/) |
+| [NyankoFace Issue Report](skills/nyankoface-issue-report/SKILL.md) | Stage reproducible bug or improvement observations without exposing credentials, then let an operator search and publish them. | `$nyankoface-issue-report` | [`SKILL.md`](skills/nyankoface-issue-report/SKILL.md), [report contract](skills/nyankoface-issue-report/references/report-contract.md), [stager](skills/nyankoface-issue-report/scripts/stage_report.py), and [operator publisher](skills/nyankoface-issue-report/scripts/publish_report.py) |
 
-The repository currently bundles one installable agent Skill. The catalog can
+The repository currently bundles two installable agent Skills. The catalog can
 display many seeded or user-published Skills, but those catalog entries are not
 silently installed on the host. Copy only the Skill directory you intend to
 trust and use.

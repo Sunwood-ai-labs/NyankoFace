@@ -121,6 +121,17 @@ jobs:
           python -m unittest skills/nyankoface-navigator/scripts/test_verify_pages.py -v
           python skills/nyankoface-navigator/scripts/validate_repo.py \
             skills/nyankoface-navigator --goal skill --topics skill
+          for path in \
+            SKILL.md \
+            agents/openai.yaml \
+            references/report-contract.md \
+            scripts/stage_report.py \
+            scripts/publish_report.py; do
+            diff -u \
+              "skills/nyankoface-issue-report/$path" \
+              "seed/templates/nyankoface-issue-report/$path"
+          done
+          python -m unittest skills/nyankoface-issue-report/scripts/test_issue_report.py -v
 
   spaces_runner:
     name: Spaces runner tests
