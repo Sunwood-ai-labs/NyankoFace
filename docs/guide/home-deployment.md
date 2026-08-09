@@ -1,7 +1,7 @@
 ---
 title: Home deployment
 type: guide
-description: Deploy NyankoFace to a private Docker host after a trusted develop push.
+description: Deploy NyankoFace to a private Docker host after a trusted main push.
 readingTime: 8 min
 tags: [deployment, docker, github-actions, operations]
 related:
@@ -13,14 +13,14 @@ related:
 
 # Home deployment
 
-A push to the trusted `develop` branch can deploy NyankoFace to a private
+A push to the trusted `main` branch can deploy NyankoFace to a private
 Docker host through a GitHub Actions self-hosted runner. The runner makes an
 outbound connection to GitHub, so the Docker host does not need to expose SSH
 or the application to the internet.
 
 ```mermaid
 flowchart LR
-    Push[Trusted push to develop] --> Actions[GitHub Actions]
+    Push[Trusted push to main] --> Actions[GitHub Actions]
     Actions --> Runner[Private Linux runner<br/>label: nyankoface-home]
     Runner --> Checkout[Checkout exact commit]
     Checkout --> Compose[Docker Compose<br/>config, build, up]
@@ -29,7 +29,7 @@ flowchart LR
 
 ## Before enabling it
 
-- Create the `develop` branch and protect it like a deployment branch. Only
+- Protect the `main` branch like a deployment branch. Only
   trusted maintainers should be able to push to it.
 - Use a dedicated Linux self-hosted runner on the Docker host, or on a private
   host that can reach the same Docker daemon. Do not reuse a runner shared with
@@ -39,9 +39,10 @@ flowchart LR
 - Keep a backup and recovery plan for the database, Forgejo data, credentials,
   and gateway certificates before the first automated deployment.
 
-The workflow intentionally deploys only `develop`; pull requests never deploy.
+The workflow intentionally deploys only `main`; pull requests and `develop`
+integration pushes never deploy.
 The repository's normal CI should remain a required check before changes are
-allowed into `develop`.
+allowed into `main`.
 
 ## Register the runner
 
@@ -88,7 +89,7 @@ fixed.
 
 ## What a deployment does
 
-When `develop` receives a push, the workflow:
+When `main` receives a push, the workflow:
 
 1. checks out the exact pushed commit with credentials removed from the
    checkout;
@@ -102,7 +103,7 @@ NyankoFace's named volumes therefore remain in place, and unrelated Compose
 services are not removed by a deployment. The private `.env`, certificates,
 tokens, and host-specific files are never checked out from Git.
 
-Use the workflow's **Run workflow** button on `develop` for a controlled
+Use the workflow's **Run workflow** button on `main` for a controlled
 manual deployment. Before doing that, confirm that the runner is online and
 that the private paths are readable by its service account.
 
@@ -125,12 +126,12 @@ container.
 Prefer a normal Git revert so the deployed state remains auditable:
 
 ```bash
-git switch develop
+git switch main
 git revert <bad-commit>
-git push origin develop
+git push origin main
 ```
 
-The revert starts another deployment of the resulting `develop` commit. Do not
+The revert starts another deployment of the resulting `main` commit. Do not
 delete named volumes during rollback. If a migration or data corruption needs
 recovery, stop and use the private backup runbook rather than improvising a
 Compose volume command in the workflow.

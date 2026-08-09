@@ -2,7 +2,7 @@ name: Deploy NyankoFace to home
 
 on:
   push:
-    branches: [develop]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   deploy:
     name: Deploy NyankoFace
-    if: ${{ github.ref == 'refs/heads/develop' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: [self-hosted, linux, nyankoface-home]
     timeout-minutes: 30
     steps:
