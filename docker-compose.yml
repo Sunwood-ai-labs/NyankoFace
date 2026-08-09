@@ -65,7 +65,7 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./gateway/nginx.conf:/etc/nginx/templates/nginx.conf.template:ro
-      - ./gateway/certs:/certs
+      - ${NYANKOFACE_GATEWAY_CERT_DIR:-./gateway/certs}:/certs
     networks:
       - nyankoface
     depends_on:

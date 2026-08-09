@@ -25,17 +25,26 @@ ref.
 
 ## Security boundary
 
-- Every request requires an opaque NyankoFace Bearer token with audience
-  `nyankoface-api-v1`.
+- Every request requires either an opaque NyankoFace Bearer token with audience
+  `nyankoface-api-v1`, or the caller's Forgejo token itself.
 - Only the SHA-256 digest and non-secret lifecycle metadata are stored. Plaintext
   is returned exactly once by issue/rotation and cannot be listed later.
 - Scopes are checked per tool/resource: `catalog:read`, `repos:read`,
   `issues:read`, `issues:write`, `spaces:read`, `variables:write`,
   `secrets:write`, `spaces:run`, `pages:read`, and `pipelines:read`.
   Repository counters use the separate `metrics:read` scope.
-- A caller-specific Forgejo token may be mounted by file. No administrator PAT
-  is used or returned. Missing, disabled, stale, or insufficient subject
-  mappings fail closed before an upstream request.
+- Agents may send the same Forgejo token they already use for Forgejo as the
+  MCP Bearer. NyankoFace validates that token against Forgejo `/user` and
+  forwards the exact token upstream, so Forgejo remains the source of truth for
+  repository read and write permissions. No second MCP credential or separate
+  permission mapping is required for this mode.
+- A caller-specific Forgejo token may still be mounted by file for an opaque
+  lifecycle token mapping. No administrator PAT is used or returned. Missing,
+  disabled, stale, or insufficient lifecycle mappings fail closed before an
+  upstream request.
+- A directly presented Forgejo token is never written to the lifecycle
+  registry, logs, audit records, or MCP results. It remains request-scoped and
+  is only passed to Forgejo/Runner as the upstream credential.
 - Token scopes and repository constraints are checked on every request. Revoke,
   expiry, rotation, service-account disable, and remapping take effect on the
   next request.
@@ -90,6 +99,28 @@ the MCP JSON payload for client-side revalidation; it is not an HTTP response
 header. Errors are JSON objects with a stable code, safe message, retryability,
 and a suggested action. They never include upstream bodies, internal URLs, or
 credentials.
+
+## Authentication modes
+
+For an agent that already authenticates to Forgejo, use that exact Forgejo
+token as the MCP Bearer. The two requests below intentionally carry the same
+secret value; do not mint or configure a second MCP token:
+
+```http
+Authorization: Bearer <FORGEJO_TOKEN>
+```
+
+NyankoFace checks the token with Forgejo on authentication and uses Forgejo's
+current repository permissions for every repository operation. This means a
+Forgejo token with push access can perform an MCP write, while a token without
+that access receives the same denial it would receive from Forgejo. Preview,
+confirmation, idempotency, policy, and secret-redaction safeguards remain
+active for MCP writes.
+
+Opaque NyankoFace lifecycle tokens remain available for clients that need a
+separate, short-lived, repository- and scope-limited credential. That is an
+optional compatibility mode, not a requirement for agents using Forgejo
+tokens directly.
 
 ## Token lifecycle
 

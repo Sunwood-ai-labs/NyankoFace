@@ -1,0 +1,33 @@
+name: Deploy NyankoFace to home
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nyankoface-home-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy NyankoFace
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: [self-hosted, linux, nyankoface-home]
+    timeout-minutes: 30
+    steps:
+      - name: Check out the exact pushed revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          clean: true
+          persist-credentials: false
+
+      - name: Deploy NyankoFace with Docker Compose
+        env:
+          NYANKOFACE_DEPLOY_REF: ${{ github.ref }}
+          NYANKOFACE_DEPLOY_SHA: ${{ github.sha }}
+        run: bash ./scripts/deploy-home.sh

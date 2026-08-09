@@ -26,6 +26,17 @@
 - 各worktreeは1 Issue、1 acceptance criteria set、1 PRに限定してください。途中で見つけた別問題は別Issue・別worktreeへ分離してください。
 - PR mergeと本番確認が完了したら、未push commitやユーザー所有変更がないことを確認してからworktreeとlocal branchを削除してください。
 
+## Git Flow branch policy
+
+NyankoFaceは、`develop`を統合ブランチ、`main`を本番・リリースブランチとするGit Flow運用を採用します。
+
+- 通常のIssue、feature、bugfixは、最新の`origin/develop`から専用branchを作成し、PRのbaseを`develop`にしてください。既存の`fix/issue-*`命名もこのルールに従います。
+- 通常のIssue PRを`main`へ直接マージしないでください。`main`へ入れるのは、検証済みの`release/*`または緊急の`hotfix/*`だけです。
+- `release/*`は`develop`から作成し、CI・レビュー・本番検証後に`main`へマージします。リリースの結果は同じ変更が`develop`にも残るよう、必要なback-mergeを行ってください。
+- `hotfix/*`は`main`から作成し、修正検証後に`main`と`develop`の両方へ反映してください。
+- デプロイ対象は原則として`main`のマージ済みrevisionです。例外が必要な場合は、IssueとPRに理由、対象revision、rollback方法を記録してください。
+- ローカルworktreeのbranch、remoteの追跡先、運用メモが食い違う場合は、マージ前に停止してbranch modelを確認してください。推測で`main`を統合先に選ばないでください。
+
 ## Parallel agent and CLI-first policy
 
 - 独立したIssueでwrite setとstate schemaが重ならない場合は、可能な限りサブエージェントへboundedな監査・実装・検証を分担し、Issueごとの専用worktreeで並列処理してください。各agentの担当範囲、対象Issue、変更ファイルを開始時に固定してください。

@@ -9,19 +9,23 @@ This guide separates **real-client manual QA** from the protocol checks that are
 safe to automate. Never commit a token, PAT, client log, or client configuration
 containing a literal credential.
 
+Agents use one credential: the same Forgejo token is sent to Forgejo and as the
+MCP Bearer. A separate MCP lifecycle token is only needed when deliberately
+testing the optional scoped service-account mode.
+
 ## Supported client paths
 
 | Client | Supported transport used here | Credential handling |
 |---|---|---|
-| Codex CLI | remote Streamable HTTP | bearer from an inherited environment variable |
-| Claude Desktop | local stdio adapter | restricted token file read by `nyankoface-mcp-stdio` |
-| VS Code | remote Streamable HTTP | password input in the official `mcp.json` schema |
+| Codex CLI | remote Streamable HTTP | the Forgejo token from an inherited environment variable |
+| Claude Desktop | local stdio adapter | the same Forgejo token from a protected file |
+| VS Code | remote Streamable HTTP | the same Forgejo token in the password input |
 
 Codex can register the remote endpoint without putting the credential on its
 command line:
 
 ```powershell
-$env:NYANKOFACE_MCP_TOKEN = (Get-Content $env:NYANKOFACE_MCP_TOKEN_FILE -Raw).Trim()
+$env:NYANKOFACE_MCP_TOKEN = (Get-Content $env:NYANKOFACE_FORGEJO_TOKEN_FILE -Raw).Trim()
 codex mcp add nyankoface --url https://nyankoface.example/mcp `
   --bearer-token-env-var NYANKOFACE_MCP_TOKEN
 ```
@@ -40,7 +44,7 @@ validate its non-secret configuration, and register the local stdio adapter in
       "command": "nyankoface-mcp-stdio",
       "env": {
         "NYANKOFACE_MCP_REMOTE_URL": "https://nyankoface.example/mcp",
-        "NYANKOFACE_MCP_CLIENT_TOKEN_FILE": "C:\\restricted\\nyankoface.token"
+        "NYANKOFACE_MCP_CLIENT_TOKEN_FILE": "C:\\restricted\\forgejo.token"
       }
     }
   }
@@ -64,17 +68,16 @@ and [Claude remote connector guide](https://support.claude.com/en/articles/11175
 
 ## Manual checklist
 
-1. Provision a different short-lived service credential for each client.
+1. For agent-mode QA, use the Forgejo token already assigned to that agent; do not provision a second MCP token. Use a different short-lived lifecycle credential only when testing the optional lifecycle mode.
 2. Record client, OS, server revision, and execution time without recording the
    token value or token-file contents.
 3. Confirm initialize/capability negotiation, Tools, Resources, and one bounded
    read. A client-native resource browser is preferable to an AI chat prompt.
-4. Repeat protocol checks with valid, insufficient-scope, expired, revoked, and
-   invalid credentials. Expect `401` before initialization for invalid lifecycle
-   states. For insufficient scope, call a tool already allowed by governance so
-   the request reaches scope authorization; the versioned QA uses a
-   repository-only credential against the allowed `search_catalog` tool and
-   expects a missing-`catalog:read` denial.
+4. Repeat protocol checks with valid, revoked, and invalid Forgejo credentials.
+   For lifecycle mode, also check insufficient-scope, expired, and revoked
+   states. Expect `401` before initialization for invalid credentials. Forgejo
+   repository read/write authorization must match the same token used against
+   Forgejo directly.
 5. If a private deployment has multiple instances, perform any instance-isolation
    check inside that private environment. Do not publish instance names, image
    identifiers, addresses, or runtime identifiers.

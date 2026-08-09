@@ -13,7 +13,7 @@ if (!vitepressConfig.includes("logo: '/pwa-512x512.png'")) {
 const contentGroups = [
   ['articles', ['index.md', 'local-first-hub.md', 'independent-review.md', 'docker-spaces.md']],
   ['wiki', ['index.md', 'platform-map.md', 'catalog.md', 'runtime.md', 'agent-operations.md', 'glossary.md']],
-  ['guide', ['getting-started.md', 'architecture.md', 'spaces.md', 'pages.md', 'visual-qa.md', 'automated-maintenance.md', 'operations.md', 'troubleshooting.md']],
+  ['guide', ['getting-started.md', 'architecture.md', 'spaces.md', 'pages.md', 'visual-qa.md', 'automated-maintenance.md', 'operations.md', 'home-deployment.md', 'troubleshooting.md']],
 ]
 
 function listMarkdown(directory, prefix = '') {
