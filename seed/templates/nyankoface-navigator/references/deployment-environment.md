@@ -1,12 +1,15 @@
 # NyankoFace public deployment safety
 
-This starter intentionally omits private hostnames, network addresses, hardware
-topology, host-namespace settings, and environment-specific endpoints.
+This public snapshot intentionally omits private hostnames, network addresses,
+hardware topology, host-namespace settings, and environment-specific endpoints.
 
-Use the repository's `.env.example` as a local starting point. Keep credentials,
-tokens, certificates, and provider keys in untracked secret storage. Before
-sharing diagnostics, remove hostnames, addresses, internal URLs, and private
-screenshots.
+Use `.env.example` as the starting point for a local deployment. Put credentials,
+tokens, certificates, and provider keys in an untracked secret store or local
+secret file. Replace all bootstrap values before sharing a running instance.
 
-Deployment backups and database exports belong outside Git. Private deployment
-procedures should live in an access-controlled runbook, not in this starter.
+Before publishing diagnostics, remove hostnames, addresses, internal URLs,
+screenshots of private dashboards, and logs that contain identifiers. Keep
+deployment backups and database exports outside Git.
+
+The application source documents public contracts only; private deployment
+procedures belong in an access-controlled runbook outside this repository.
