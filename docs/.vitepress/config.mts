@@ -157,7 +157,8 @@ function enNav() {
         { text: 'Release v0.3.0', link: '/guide/releases/v0.3.0' },
         { text: 'Docker Spaces', link: '/guide/spaces' },
         { text: 'NyankoFace Pages', link: '/guide/pages' },
-        { text: 'Repository pipelines', link: '/guide/pipelines' }
+        { text: 'Repository pipelines', link: '/guide/pipelines' },
+        { text: 'Home deployment', link: '/guide/home-deployment' }
       ]
     },
     {
@@ -187,7 +188,8 @@ function jaNav() {
         { text: 'Release v0.3.0', link: '/ja/guide/releases/v0.3.0' },
         { text: 'Docker Spaces', link: '/ja/guide/spaces' },
         { text: 'NyankoFace Pages', link: '/ja/guide/pages' },
-        { text: 'Repository Pipelines', link: '/ja/guide/pipelines' }
+        { text: 'Repository Pipelines', link: '/ja/guide/pipelines' },
+        { text: '自宅環境への自動配備', link: '/ja/guide/home-deployment' }
       ]
     },
     {
@@ -282,6 +284,7 @@ function guideSidebar(prefix: string, ja = false) {
       { text: ja ? 'SpaceのVariables／Secrets' : 'Space Variables and Secrets', link: `${prefix}/guide/space-environment` },
       { text: 'NyankoFace Pages', link: `${prefix}/guide/pages` },
       { text: ja ? 'Repository Pipelines' : 'Repository pipelines', link: `${prefix}/guide/pipelines` },
+      { text: ja ? '自宅環境への自動配備' : 'Home deployment', link: `${prefix}/guide/home-deployment` },
       { text: 'NyankoFace MCP Server', link: `${prefix}/guide/mcp-server` },
       { text: ja ? 'MCP実クライアントQA' : 'Live MCP client QA', link: `${prefix}/guide/mcp-live-clients` },
       { text: ja ? 'MCP管理Runbook' : 'MCP administration runbook', link: `${prefix}/guide/mcp-administration` },
