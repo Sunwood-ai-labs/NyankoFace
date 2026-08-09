@@ -73,6 +73,31 @@ diagnostics but excluded from measured totals. No IP address, bearer token,
 Forgejo PAT, or secret value is stored. Private repositories are rejected from
 the public metrics and download surfaces.
 
+## Secret-free Issue reports
+
+All twenty catfolk agents use the same bundled
+[`nyankoface-issue-report`](../skills/nyankoface-issue-report/SKILL.md) Skill.
+It stages only reproducible, sanitized observations in the shared outbox; it
+does not require GitHub credentials and it never publishes an Issue directly.
+
+The agent container receives only the outbox path, for example:
+
+```text
+NYANKOFACE_ISSUE_OUTBOX=/shared/nyankoface-issue-outbox
+```
+
+Run `stage_report.py stage` with the structured summary, environment,
+reproduction steps, expected and actual behavior, impact, evidence, suggested
+fix, agent slug, and source. The command writes a deterministic Markdown body,
+redacts secret-shaped values, fingerprints duplicates, and enforces bounded
+per-agent limits. Report IDs and statuses are safe to return to the agent;
+report bodies are not.
+
+An operator runs `publish_report.py publish` from outside the agent container
+with an authenticated GitHub CLI. The publisher searches open Issues first and
+uses a temporary body file, so no GitHub credential is copied into the shared
+outbox or agent runtime.
+
 ## Repository Pipeline actions
 
 Pipeline reads and PAT-backed mutations are available below:

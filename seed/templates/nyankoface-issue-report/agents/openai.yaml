@@ -1,0 +1,4 @@
+interface:
+  display_name: "NyankoFace Issue Report"
+  short_description: "Stage safe, reproducible agent issue reports"
+  default_prompt: "Use $nyankoface-issue-report to stage a secret-free, reproducible NyankoFace issue report."

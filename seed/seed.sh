@@ -3543,6 +3543,18 @@ put_file "nyankoface-navigator-skill" "assets/automation-README.md" "/templates/
 put_file "nyankoface-navigator-skill" "assets/automation-LICENSE" "/templates/nyankoface-navigator/assets/automation-LICENSE" "Add Automation license template"
 
 # ------------------------------------------------------------------------
+# Secret-free Issue reporting Skill. Every catfolk agent can stage the same
+# contract; only the operator-side publisher has GitHub credentials.
+# ------------------------------------------------------------------------
+ensure_repo "nyankoface-issue-report" "Secret-free, reproducible NyankoFace Issue reports"
+set_topics "nyankoface-issue-report" "skill" "issue-reporting" "redaction" "operator-workflow"
+put_file "nyankoface-issue-report" "SKILL.md" "/templates/nyankoface-issue-report/SKILL.md" "Add NyankoFace Issue Report skill"
+put_file "nyankoface-issue-report" "agents/openai.yaml" "/templates/nyankoface-issue-report/agents/openai.yaml" "Add Issue Report UI metadata"
+put_file "nyankoface-issue-report" "references/report-contract.md" "/templates/nyankoface-issue-report/references/report-contract.md" "Document Issue report contract"
+put_file "nyankoface-issue-report" "scripts/stage_report.py" "/templates/nyankoface-issue-report/scripts/stage_report.py" "Add secret-safe report stager"
+put_file "nyankoface-issue-report" "scripts/publish_report.py" "/templates/nyankoface-issue-report/scripts/publish_report.py" "Add operator Issue publisher"
+
+# ------------------------------------------------------------------------
 # Portable Automation fixture. It is owned by the seeded angel organization,
 # remains disabled, carries an immutable SemVer tag, and is safe to inspect
 # without triggering registration or execution.

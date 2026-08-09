@@ -219,8 +219,9 @@ python skills/nyankoface-navigator/scripts/validate_repo.py PATH --goal automati
 | Skill | 使う場面 | 呼び出し | 主なファイル |
 |---|---|---|---|
 | [NyankoFace Navigator](skills/nyankoface-navigator/SKILL.md) | NyankoFaceの全公開先から選ぶ、最小構成を作る、既存repositoryを検証する、secret境界を確認する、一覧に出ない原因を調べる | `$nyankoface-navigator` | [`SKILL.md`](skills/nyankoface-navigator/SKILL.md)、[公開先対応表](skills/nyankoface-navigator/references/publishing-map.md)、[公開安全リファレンス](skills/nyankoface-navigator/references/deployment-environment.md)、[validator](skills/nyankoface-navigator/scripts/validate_repo.py)、[validator tests](skills/nyankoface-navigator/scripts/test_validate_repo.py)、[starter assets](skills/nyankoface-navigator/assets/) |
+| [NyankoFace Issue Report](skills/nyankoface-issue-report/SKILL.md) | credentialを露出せず、再現可能なbug／改善観測をstageし、operatorが重複確認後に公開する | `$nyankoface-issue-report` | [`SKILL.md`](skills/nyankoface-issue-report/SKILL.md)、[report contract](skills/nyankoface-issue-report/references/report-contract.md)、[stager](skills/nyankoface-issue-report/scripts/stage_report.py)、[operator publisher](skills/nyankoface-issue-report/scripts/publish_report.py) |
 
-このrepositoryに同梱しているインストール可能なエージェントSkillは現在1件です。NyankoFaceのカタログにはseed済み／利用者公開のSkillを複数表示できますが、それらをホストへ勝手にインストールすることはありません。信頼して使うSkillのディレクトリだけをコピーしてください。
+このrepositoryに同梱しているインストール可能なエージェントSkillは現在2件です。NyankoFaceのカタログにはseed済み／利用者公開のSkillを複数表示できますが、それらをホストへ勝手にインストールすることはありません。信頼して使うSkillのディレクトリだけをコピーしてください。
 
 Navigatorは、NyankoFaceが提供するリポジトリベースの公開先を次のように扱います。
 
