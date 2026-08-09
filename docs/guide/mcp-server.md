@@ -193,6 +193,35 @@ The public endpoint is `https://YOUR_NYANKOFACE_HOST/mcp`. Client snippets are i
 [`nyankoface-mcp/README.md`](https://github.com/Sunwood-ai-labs/NyankoFace/blob/main/nyankoface-mcp/README.md).
 For browser clients, configure an exact `NYANKOFACE_MCP_ALLOWED_ORIGINS` allowlist.
 
+### TLS-terminating reverse proxies
+
+The gateway intentionally returns `426 Upgrade Required` for `/mcp` on its
+certificate-free HTTP listener. This prevents a bearer credential from being
+sent over plaintext. If an outer proxy terminates client TLS, point its
+upstream at the gateway HTTPS listener (`NYANKOFACE_HTTPS_PORT`, `8443` in the
+local default), not at `NYANKOFACE_PORT` (`8090` in the local default). For a
+Tailscale Serve route using the local self-signed certificate, use:
+
+```bash
+tailscale serve --bg --https=443 https+insecure://127.0.0.1:8443
+```
+
+After changing the route, run the secret-safe live protocol check with a
+least-privileged token. It sends a real JSON-RPC `initialize` request and
+fails on `426`, `502`, redirects, unsupported content types, or an invalid MCP
+response:
+
+```bash
+python nyankoface-mcp/scripts/run_live_client_protocol.py \
+  --url https://YOUR_NYANKOFACE_HOST/mcp \
+  --token-file /restricted/nyankoface-mcp.token \
+  --client codex \
+  --client-version verified
+```
+
+Do not make the outer proxy forward `/mcp` to the certificate-free listener,
+and do not weaken the HTTP `426` guard to make such a route appear healthy.
+
 The remote static-Bearer endpoint does not claim Claude Desktop connector
 compatibility. Claude Desktop's current
 [remote custom connector](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp)
