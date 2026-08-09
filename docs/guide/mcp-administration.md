@@ -131,7 +131,7 @@ codex mcp add nyankoface --url https://<NYANKOFACE_HOST>/mcp --bearer-token-env-
 
 ## Policy and audit
 
-Policy updates include the displayed revision. A concurrent update returns a conflict; reload, inspect the new revision, and submit again. The default remains deny unless an explicit allow applies, and read-only rules deny matching writes.
+Policy updates include the displayed revision. A concurrent update returns a conflict; reload, inspect the new revision, and submit again. Lifecycle/service-account requests remain default-deny unless an explicit allow applies. Direct Forgejo bearer requests use the already authenticated Forgejo identity for their read/write policy path; upstream Forgejo permission checks still gate repository writes, while explicit policy denies and read-only rules deny matching requests.
 
 Audit filters cover actual outcomes (`allowed`, `denied`, `failed`, `replayed`, and `changed`), subject, client, tool, time range, and bounded cursor pagination. Summary counts cover all matching records, not only the current page. Expanded records expose approved detail fields only; they do not return token plaintext, token digests, Forgejo PAT paths, idempotency fingerprints, or audit-chain hashes.
 

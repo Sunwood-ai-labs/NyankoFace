@@ -128,7 +128,7 @@ codex mcp add nyankoface --url https://<NYANKOFACE_HOST>/mcp --bearer-token-env-
 
 ## Policyと監査
 
-Policy更新には画面に表示されたrevisionを含めます。同時更新があればconflictになるため、再読み込みして新しいrevisionを確認してから再送します。既定はdenyで、明示的なallowだけが適用され、read-only ruleは一致するwriteを拒否します。
+Policy更新には画面に表示されたrevisionを含めます。同時更新があればconflictになるため、再読み込みして新しいrevisionを確認してから再送します。lifecycle／service-account requestの既定はdenyで、明示的なallowだけが適用されます。直接Forgejo Bearerを使うrequestは、認証済みForgejo identityをread／write policyの基準にし、repository writeは上流Forgejoの権限確認で制限します。明示的なdenyとread-only ruleは、直接Forgejo Bearerにも適用されます。
 
 監査は実際のoutcome（`allowed`、`denied`、`failed`、`replayed`、`changed`）、subject、client、tool、期間、bounded cursorで絞り込めます。summaryは現在ページだけでなくfilterに一致する全recordを数えます。展開recordは承認済みfieldだけを返し、Token平文、Token digest、Forgejo PAT path、idempotency fingerprint、audit-chain hashは返しません。
 

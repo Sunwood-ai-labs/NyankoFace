@@ -134,7 +134,7 @@ class FakeAdapter:
         return {"data": {"openapi": "3.1.0"}, "_meta": {"mime_type": "application/json"}}
 
 
-def make_settings(tmp_path, *, json_response, scopes=None):
+def make_settings(tmp_path, *, json_response, scopes=None, configure_policy=True):
     token_file = tmp_path / ("tokens-json.json" if json_response else "tokens-sse.json")
     (tmp_path / "forgejo-token").write_text("caller-pat", encoding="utf-8")
     effective_scopes = scopes or [
@@ -175,8 +175,9 @@ def make_settings(tmp_path, *, json_response, scopes=None):
         audit_state_path=tmp_path / "audit.sqlite3",
     )
     policy = PolicyStore(settings.policy_state_path)
-    for tool in TOOL_ACCESS:
-        policy.set_tool_policy("global", "*", tool, "allow")
+    if configure_policy:
+        for tool in TOOL_ACCESS:
+            policy.set_tool_policy("global", "*", tool, "allow")
     return settings
 
 
@@ -193,14 +194,14 @@ def initialize_payload(request_id=1):
     }
 
 
-async def post(app, payload):
+async def post(app, payload, *, token="test-token"):
     transport = httpx.ASGITransport(app=app)
     async with app.router.lifespan_context(app):
         async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
             return await client.post(
                 "/mcp",
                 headers={
-                    "Authorization": "Bearer test-token",
+                    "Authorization": f"Bearer {token}",
                     "Accept": "application/json, text/event-stream",
                     "Content-Type": "application/json",
                 },
@@ -441,6 +442,52 @@ async def test_tool_scope_is_checked_per_call(tmp_path):
     result = response.json()["result"]
     assert result["isError"] is True
     assert "repos:read" in result["content"][0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_direct_forgejo_bearer_can_call_read_tool_without_policy_provisioning(tmp_path):
+    settings = make_settings(tmp_path, json_response=True, configure_policy=False)
+    response = await post(
+        create_server(settings, FakeAdapter()).streamable_http_app(),
+        tool_payload("search_catalog", {
+            "kind": "doc", "query": "", "page": 1, "limit": 1,
+        }, 5),
+        token="caller-pat",
+    )
+
+    result = structured(response)
+    assert result["kind"] == "doc"
+    assert result["items"]
+
+
+@pytest.mark.asyncio
+async def test_direct_forgejo_bearer_reaches_upstream_write_permission_check(tmp_path):
+    adapter = FakeAdapter()
+    settings = make_settings(tmp_path, json_response=True, configure_policy=False)
+    arguments = {
+        "owner": "nyankoface", "repo": "demo", "title": "direct Forgejo write",
+    }
+    preview = structured(await post(
+        create_server(settings, adapter).streamable_http_app(),
+        tool_payload("create_issue", arguments, 6),
+        token="caller-pat",
+    ))
+    assert preview["status"] == "preview"
+    assert adapter.authorizations == 1
+
+    execution = structured(await post(
+        create_server(settings, adapter).streamable_http_app(),
+        tool_payload("create_issue", {
+            **arguments,
+            "preview": False,
+            "confirmation": preview["confirmation"],
+            "idempotency_key": "direct-forgejo-write",
+        }, 7),
+        token="caller-pat",
+    ))
+    assert execution["status"] == "completed"
+    assert adapter.authorizations == 2
+    assert len(adapter.mutations) == 1
 
 
 def tool_payload(name, arguments, request_id):
