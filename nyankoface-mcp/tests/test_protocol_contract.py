@@ -50,8 +50,8 @@ class FakeAdapter:
     async def get_file(self, owner, repo, path, ref, token):
         return {"path": path, "ref": ref, "text": "hello"}
 
-    async def get_tree(self, owner, repo, ref, token):
-        return {"owner": owner, "repo": repo, "ref": ref, "entries": []}
+    async def get_tree(self, owner, repo, ref, token, path=None):
+        return {"owner": owner, "repo": repo, "ref": ref, "path": path, "entries": []}
 
     async def get_knowledge(self, owner, slug, token):
         return {"owner": owner, "slug": slug, "title": "Example"}

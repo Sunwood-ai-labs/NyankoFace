@@ -1082,6 +1082,23 @@ async def test_tree_sends_valid_utf8_and_plus_refs_to_upstream(ref):
 
 
 @pytest.mark.asyncio
+async def test_tree_can_read_one_safe_directory_without_changing_ref_contract():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/repos/alice/repo"):
+            return httpx.Response(200, json={"name": "repo", "private": False})
+        assert request.url.path == "/api/v1/repos/alice/repo/contents/articles"
+        assert request.url.params["ref"] == "main"
+        return httpx.Response(200, json=[{
+            "name": "article.md", "path": "articles/article.md", "type": "file",
+        }])
+
+    adapter = NyankoFaceAdapter(Settings(), httpx.MockTransport(handler))
+    result = await adapter.get_tree("alice", "repo", "main", None, "articles")
+    assert result["path"] == "articles"
+    assert result["entries"][0]["path"] == "articles/article.md"
+
+
+@pytest.mark.asyncio
 async def test_tree_denies_other_subject_before_returning_private_content():
     requests = []
 

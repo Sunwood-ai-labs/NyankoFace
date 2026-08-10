@@ -127,14 +127,16 @@ upstream body, internal address, log/trace text, or credential. Unauthorized
 and absent repositories intentionally remain indistinguishable.
 Every catalog/list/tree/Knowledge result includes `_meta` with MIME type,
 effective `updated_at`, ETag, and cache policy. A tree request always names and
-returns one validated ref; encoded or literal traversal is rejected before an
-upstream request. Resources call the same adapter and scope checks as Tools, so
-they cannot bypass caller repository authorization or redaction.
+returns one validated ref; `get_tree` may also receive a safe directory `path`
+such as `articles` to list its direct entries. Encoded or literal traversal is
+rejected before an upstream request. Resources call the same adapter and scope
+checks as Tools, so they cannot bypass caller repository authorization or
+redaction.
 
 `ref_b64` is the unpadded UTF-8 base64url form of the ref, which keeps refs with
 slashes inside one Resource URI segment. `main` becomes `bWFpbg`, while
-`refs/heads/release` becomes `cmVmcy9oZWFkcy9yZWxlYXNl`. Pass the plain ref to
-the `get_tree` Tool.
+`refs/heads/release` becomes `cmVmcy9oZWFkcy9yZWxlYXNl`. Pass the plain ref and,
+when needed, a repository-relative directory path to the `get_tree` Tool.
 
 ## Official prompts
 

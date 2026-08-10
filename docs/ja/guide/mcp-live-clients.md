@@ -66,6 +66,8 @@ literal tokenへ置換してはいけません。
 
 ## 手動チェック
 
+実運用の一連の検証は[MCP実運用ユースケース・テストマトリクス](mcp-operational-use-cases.md)を参照します。
+
 1. Agent modeでは、そのAgentがForgejoで既に使っているForgejo tokenを使い、別のMCP tokenを発行しません。任意のlifecycle modeを試す場合だけ、短期service credentialを別に用意します。
 2. token値やtoken file内容を残さず、client／OS／server revision／実行日時を記録します。
 3. initialize、Tools、Resources、限定されたreadを1件確認します。AIへpromptを送るより、
