@@ -41,6 +41,53 @@ REQUIRED_OPERATIONAL_TOOLS = (
 ARTICLE_PATH_PATTERN = re.compile(
     r"""(?:^|[/\\("' ])articles/([A-Za-z0-9][A-Za-z0-9._-]*)(?:\.md)?"""
 )
+MAX_CATALOG_PAGES = 20
+
+
+def _catalog_candidate_error_is_skippable(message: str) -> bool:
+    lowered = message.casefold()
+    if any(
+        marker in lowered
+        for marker in (
+            "upstream_unavailable",
+            "temporarily unavailable",
+            "rate_limited",
+            "rate limit",
+            "http 5",
+        )
+    ):
+        return False
+    return any(
+        marker in lowered
+        for marker in (
+            "not_found_or_unauthorized",
+            "catalog item is missing",
+            "returned no structured object payload",
+            "returned an invalid",
+            "returned no root entries",
+            "has no articles/ directory",
+            "articles/ returned no entries",
+            "has no markdown article",
+            "no published knowledge article slug",
+        )
+    )
+
+
+def _catalog_candidate_skip_reason(message: str) -> str:
+    lowered = message.casefold()
+    if "not_found_or_unauthorized" in lowered:
+        return "not_found_or_unauthorized"
+    if "has no articles/ directory" in lowered:
+        return "missing_articles_directory"
+    if "articles/ returned no entries" in lowered:
+        return "empty_articles_directory"
+    if "has no markdown article" in lowered:
+        return "no_markdown_article"
+    if "no published knowledge article slug" in lowered:
+        return "knowledge_not_published"
+    if "catalog item is missing" in lowered:
+        return "invalid_catalog_identity"
+    return "invalid_catalog_candidate"
 
 
 def _content_text(result: dict[str, Any]) -> str:
@@ -255,160 +302,185 @@ def run(
         "resources_list_count": len(resources),
     }
 
-    catalog_meta, catalog = _call_tool(
-        url,
-        token,
-        protocol_version,
-        10,
-        "search_catalog",
-        {"kind": "doc", "query": "", "page": 1, "limit": 20},
-    )
-    catalog_items = _require_items(catalog, "search_catalog")
-    public_doc = next(
-        (
-            item for item in catalog_items
-            if item.get("private") is not True
-            and isinstance(item.get("owner"), dict)
-            and item.get("name")
-        ),
-        None,
-    )
-    if public_doc is None:
-        raise RuntimeError("search_catalog returned no public doc repository")
-    doc_owner, doc_repo = _identity(public_doc)
+    next_tool_id = 10
 
-    repo_meta, repository = _call_tool(
-        url,
-        token,
-        protocol_version,
-        11,
-        "get_repository",
-        {"owner": doc_owner, "repo": doc_repo},
-    )
-    ref = repository.get("default_branch") or "main"
-    tree_meta, tree = _call_tool(
-        url,
-        token,
-        protocol_version,
-        12,
-        "get_tree",
-        {"owner": doc_owner, "repo": doc_repo, "ref": ref},
-    )
-    entries = tree.get("entries")
-    if not isinstance(entries, list):
-        raise RuntimeError("get_tree returned no root entries")
-    articles_entry = next(
-        (
-            entry for entry in entries
-            if isinstance(entry, dict)
-            and entry.get("type") == "dir"
-            and isinstance(entry.get("path"), str)
-            and Path(entry["path"]).name.casefold() == "articles"
-        ),
-        None,
-    )
-    if articles_entry is None:
-        raise RuntimeError(
-            f"{doc_owner}/{doc_repo} has no articles/ directory in its root tree"
+    def call_tool(
+        name: str,
+        arguments: dict[str, Any],
+        *,
+        allow_upstream_denial: bool = False,
+    ) -> tuple[dict[str, Any], dict[str, Any] | None]:
+        nonlocal next_tool_id
+        result = _call_tool(
+            url,
+            token,
+            protocol_version,
+            next_tool_id,
+            name,
+            arguments,
+            allow_upstream_denial=allow_upstream_denial,
         )
-    articles_path = str(articles_entry["path"]).strip("/")
-    articles_tree_meta, articles_tree = _call_tool(
-        url,
-        token,
-        protocol_version,
-        13,
-        "get_tree",
-        {
-            "owner": doc_owner,
-            "repo": doc_repo,
-            "ref": ref,
-            "path": articles_path,
-        },
-    )
-    article_entries = articles_tree.get("entries")
-    if not isinstance(article_entries, list):
-        raise RuntimeError("get_tree articles/ returned no entries")
-    file_entry = next(
-        (
-            entry for entry in article_entries
-            if isinstance(entry, dict)
-            and entry.get("type") == "file"
-            and isinstance(entry.get("path"), str)
-            and Path(entry["path"]).suffix.casefold() == ".md"
-            and entry["path"].strip()
-        ),
-        None,
-    )
-    if file_entry is None:
-        raise RuntimeError(
-            f"{doc_owner}/{doc_repo} has no Markdown article in {articles_path}/"
-        )
-    file_path = str(file_entry["path"]).strip("/")
-    if "/" not in file_path:
-        file_path = f"{articles_path}/{file_path}"
-    file_meta, file_payload = _call_tool(
-        url,
-        token,
-        protocol_version,
-        14,
-        "get_file",
-        {
-            "owner": doc_owner,
-            "repo": doc_repo,
-            "path": file_path,
-            "ref": ref,
-        },
-    )
+        next_tool_id += 1
+        return result
 
-    knowledge_meta = None
-    knowledge_slug = None
-    knowledge_errors = []
-    knowledge_candidates = _article_slugs(
-        repository,
-        tree,
-        file_payload,
-        doc_repo,
-        articles_tree,
-    )
-    for offset, candidate in enumerate(knowledge_candidates):
-        try:
-            knowledge_meta, _ = _call_tool(
-                url,
-                token,
-                protocol_version,
-                20 + offset,
-                "get_knowledge",
-                {"owner": doc_owner, "slug": candidate},
-            )
-            knowledge_slug = candidate
+    selected_catalog = None
+    catalog_pages: list[dict[str, Any]] = []
+    skipped_catalog_repositories: list[dict[str, str]] = []
+    catalog_page = 1
+    while selected_catalog is None and catalog_page <= MAX_CATALOG_PAGES:
+        catalog_meta, catalog = call_tool(
+            "search_catalog",
+            {"kind": "doc", "query": "", "page": catalog_page, "limit": 20},
+        )
+        catalog_pages.append(catalog_meta)
+        catalog_items = _require_items(catalog, "search_catalog")
+        for public_doc in catalog_items:
+            if (
+                public_doc.get("private") is True
+                or not isinstance(public_doc.get("owner"), dict)
+                or not public_doc.get("name")
+            ):
+                continue
+            candidate_identity = str(public_doc.get("full_name") or public_doc.get("name"))
+            try:
+                doc_owner, doc_repo = _identity(public_doc)
+                candidate_identity = f"{doc_owner}/{doc_repo}"
+                repo_meta, repository = call_tool(
+                    "get_repository",
+                    {"owner": doc_owner, "repo": doc_repo},
+                )
+                ref = repository.get("default_branch") or "main"
+                tree_meta, tree = call_tool(
+                    "get_tree",
+                    {"owner": doc_owner, "repo": doc_repo, "ref": ref},
+                )
+                entries = tree.get("entries")
+                if not isinstance(entries, list):
+                    raise RuntimeError("get_tree returned no root entries")
+                articles_entry = next(
+                    (
+                        entry for entry in entries
+                        if isinstance(entry, dict)
+                        and entry.get("type") == "dir"
+                        and isinstance(entry.get("path"), str)
+                        and Path(entry["path"]).name.casefold() == "articles"
+                    ),
+                    None,
+                )
+                if articles_entry is None:
+                    raise RuntimeError(
+                        f"{doc_owner}/{doc_repo} has no articles/ directory in its root tree"
+                    )
+                articles_path = str(articles_entry["path"]).strip("/")
+                articles_tree_meta, articles_tree = call_tool(
+                    "get_tree",
+                    {
+                        "owner": doc_owner,
+                        "repo": doc_repo,
+                        "ref": ref,
+                        "path": articles_path,
+                    },
+                )
+                article_entries = articles_tree.get("entries")
+                if not isinstance(article_entries, list):
+                    raise RuntimeError("get_tree articles/ returned no entries")
+                file_entry = next(
+                    (
+                        entry for entry in article_entries
+                        if isinstance(entry, dict)
+                        and entry.get("type") == "file"
+                        and isinstance(entry.get("path"), str)
+                        and Path(entry["path"]).suffix.casefold() == ".md"
+                        and entry["path"].strip()
+                    ),
+                    None,
+                )
+                if file_entry is None:
+                    raise RuntimeError(
+                        f"{doc_owner}/{doc_repo} has no Markdown article in {articles_path}/"
+                    )
+                file_path = str(file_entry["path"]).strip("/")
+                if "/" not in file_path:
+                    file_path = f"{articles_path}/{file_path}"
+                file_meta, file_payload = call_tool(
+                    "get_file",
+                    {
+                        "owner": doc_owner,
+                        "repo": doc_repo,
+                        "path": file_path,
+                        "ref": ref,
+                    },
+                )
+
+                knowledge_meta = None
+                knowledge_slug = None
+                knowledge_errors = []
+                knowledge_candidates = _article_slugs(
+                    repository,
+                    tree,
+                    file_payload,
+                    doc_repo,
+                    articles_tree,
+                )
+                for candidate in knowledge_candidates:
+                    try:
+                        knowledge_meta, _ = call_tool(
+                            "get_knowledge",
+                            {"owner": doc_owner, "slug": candidate},
+                        )
+                        knowledge_slug = candidate
+                        break
+                    except RuntimeError as exc:
+                        if "not_found_or_unauthorized" not in str(exc):
+                            raise
+                        knowledge_errors.append(str(exc))
+                if knowledge_meta is None or knowledge_slug is None:
+                    raise RuntimeError(
+                        "no published Knowledge article slug was found in repository content: "
+                        + "; ".join(knowledge_errors)
+                    )
+                selected_catalog = {
+                    "catalog_search": catalog_meta,
+                    "repository": repo_meta,
+                    "tree": tree_meta,
+                    "articles_tree": articles_tree_meta,
+                    "file": file_meta,
+                    "knowledge": knowledge_meta,
+                    "repository_identity": candidate_identity,
+                    "tree_ref": ref,
+                    "file_path": file_path,
+                    "knowledge_slug": knowledge_slug,
+                    "catalog_page": catalog_page,
+                }
+                break
+            except RuntimeError as exc:
+                message = str(exc)
+                if not _catalog_candidate_error_is_skippable(message):
+                    raise
+                skipped_catalog_repositories.append({
+                    "repository": candidate_identity,
+                    "reason": _catalog_candidate_skip_reason(message),
+                })
+        if selected_catalog is not None:
             break
-        except RuntimeError as exc:
-            if "not_found_or_unauthorized" not in str(exc):
-                raise
-            knowledge_errors.append(str(exc))
-    if knowledge_meta is None or knowledge_slug is None:
+        total_pages = catalog.get("totalPages", catalog_page)
+        try:
+            total_pages = max(catalog_page, int(total_pages))
+        except (TypeError, ValueError):
+            total_pages = catalog_page
+        if not catalog_items or catalog_page >= total_pages:
+            break
+        catalog_page += 1
+    if selected_catalog is None:
         raise RuntimeError(
-            "no published Knowledge article slug was found in repository content: "
-            + "; ".join(knowledge_errors)
+            "search_catalog did not yield a published Knowledge repository after "
+            f"checking {len(catalog_pages)} page(s)"
         )
-    summary["use_cases"]["catalog_to_knowledge"] = {
-        "catalog_search": catalog_meta,
-        "repository": repo_meta,
-        "tree": tree_meta,
-        "articles_tree": articles_tree_meta,
-        "file": file_meta,
-        "knowledge": knowledge_meta,
-        "repository_identity": f"{doc_owner}/{doc_repo}",
-        "tree_ref": ref,
-        "file_path": file_path,
-        "knowledge_slug": knowledge_slug,
-    }
+    selected_catalog["catalog_pages_checked"] = len(catalog_pages)
+    selected_catalog["skipped_catalog_repositories"] = skipped_catalog_repositories
+    summary["use_cases"]["catalog_to_knowledge"] = selected_catalog
 
-    repositories_meta, repositories = _call_tool(
-        url,
-        token,
-        protocol_version,
-        30,
+    repositories_meta, repositories = call_tool(
         "list_repositories",
         {"query": "", "page": 1, "limit": 100},
     )
@@ -422,11 +494,7 @@ def run(
     else:
         issue_target = _identity(repository_items[0])
     require_issue = require_issue_detail or issue_number is not None
-    issue_meta, issues = _call_tool(
-        url,
-        token,
-        protocol_version,
-        31,
+    issue_meta, issues = call_tool(
         "list_issues",
         {
             "owner": issue_target[0],
@@ -445,11 +513,7 @@ def run(
     if selected_issue_number is not None:
         if not isinstance(selected_issue_number, int) or selected_issue_number < 1:
             raise RuntimeError("issue number must be a positive integer")
-        issue_detail_meta, _ = _call_tool(
-            url,
-            token,
-            protocol_version,
-            32,
+        issue_detail_meta, _ = call_tool(
             "get_issue",
             {
                 "owner": issue_target[0],
@@ -487,11 +551,7 @@ def run(
     if push_repo is None:
         raise RuntimeError("list_repositories returned no push-authorized repository")
     push_owner, push_name = _identity(push_repo)
-    preview_meta, preview = _call_tool(
-        url,
-        token,
-        protocol_version,
-        33,
+    preview_meta, preview = call_tool(
         "create_issue",
         {
             "owner": push_owner,

@@ -17,6 +17,7 @@ class _OperationalFixture(BaseHTTPRequestHandler):
     preview_requests = []
     mutations = []
     deny_issue_reads = False
+    invalid_first_catalog_candidate = False
 
     def log_message(self, _format, *_args):
         return
@@ -99,14 +100,31 @@ class _OperationalFixture(BaseHTTPRequestHandler):
         arguments = params.get("arguments", {})
         type(self).calls.append((name, arguments))
         if name == "search_catalog":
-            value = {
-                "kind": "doc",
-                "items": [{
+            if (
+                type(self).invalid_first_catalog_candidate
+                and arguments.get("page") == 1
+            ):
+                items = [{
+                    "owner": {"login": "bob"},
+                    "name": "empty",
+                    "full_name": "bob/empty",
+                    "private": False,
+                }]
+                total_pages = 2
+            else:
+                items = [{
                     "owner": {"login": "alice"},
                     "name": "knowledge",
                     "full_name": "alice/knowledge",
                     "private": False,
-                }],
+                }]
+                total_pages = 1
+            value = {
+                "kind": "doc",
+                "page": arguments.get("page", 1),
+                "limit": arguments.get("limit", 20),
+                "totalPages": total_pages,
+                "items": items,
             }
         elif name == "list_repositories":
             value = {
@@ -141,15 +159,20 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                     "entries": [{"type": "file", "path": "articles/fixture-article.md"}],
                 }
             else:
+                entries = (
+                    [{"type": "file", "path": "README.md"}]
+                    if arguments.get("repo") == "empty"
+                    else [
+                        {"type": "dir", "path": "articles"},
+                        {"type": "file", "path": "README.md"},
+                    ]
+                )
                 value = {
                     "owner": arguments["owner"],
                     "repo": arguments["repo"],
                     "ref": arguments["ref"],
                     "path": None,
-                    "entries": [
-                        {"type": "dir", "path": "articles"},
-                        {"type": "file", "path": "README.md"},
-                    ],
+                    "entries": entries,
                 }
         elif name == "get_file":
             value = {
@@ -214,6 +237,7 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     _OperationalFixture.preview_requests = []
     _OperationalFixture.mutations = []
     _OperationalFixture.deny_issue_reads = False
+    _OperationalFixture.invalid_first_catalog_candidate = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -249,11 +273,46 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     assert token not in json.dumps(summary)
 
 
+def test_operational_use_case_runner_skips_invalid_catalog_candidate_and_pages(tmp_path):
+    _OperationalFixture.calls = []
+    _OperationalFixture.preview_requests = []
+    _OperationalFixture.mutations = []
+    _OperationalFixture.deny_issue_reads = False
+    _OperationalFixture.invalid_first_catalog_candidate = True
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    token_file = tmp_path / "forgejo.token"
+    token_file.write_text("paged-fixture-secret", encoding="utf-8")
+    try:
+        summary = run(
+            f"http://127.0.0.1:{server.server_port}/mcp",
+            token_file,
+            "fixture-agent",
+            "1.0",
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        _OperationalFixture.invalid_first_catalog_candidate = False
+
+    catalog_use_case = summary["use_cases"]["catalog_to_knowledge"]
+    assert catalog_use_case["catalog_page"] == 2
+    assert catalog_use_case["catalog_pages_checked"] == 2
+    assert catalog_use_case["repository_identity"] == "alice/knowledge"
+    assert catalog_use_case["skipped_catalog_repositories"] == [{
+        "repository": "bob/empty",
+        "reason": "missing_articles_directory",
+    }]
+
+
 def test_operational_use_case_runner_records_missing_issue_scope_without_false_success(tmp_path):
     _OperationalFixture.calls = []
     _OperationalFixture.preview_requests = []
     _OperationalFixture.mutations = []
     _OperationalFixture.deny_issue_reads = True
+    _OperationalFixture.invalid_first_catalog_candidate = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

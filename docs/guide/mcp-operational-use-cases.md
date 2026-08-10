@@ -27,14 +27,15 @@ the command line and do not save the JSON output with credentials.
 
     python nyankoface-mcp/scripts/run_operational_use_cases.py --url https://nyankoface.example/mcp --token-file C:\restricted\forgejo.token --client codex --client-version 1.0
 
-The runner discovers a public doc repository and a push-authorized repository
-from the caller-visible catalog. If the live dataset has no open issue, UC-03
-records get_issue as skipped_no_open_issue. If the Forgejo token lacks
-read:issue, it records skipped_upstream_permission with the upstream error
-without treating the call as successful. The fixture test still exercises the
-complete list-to-detail flow. Use issue-owner, issue-repo, and issue-number
-when a controlled issue fixture is available, together with
-require-issue-detail.
+The runner pages through a bounded set of public doc catalog results and skips
+empty, malformed, or unpublished candidates until it finds a repository with a
+real `articles/*.md` entry and a readable Knowledge article. If the live dataset
+has no open issue, UC-03 records get_issue as skipped_no_open_issue. If the
+Forgejo token lacks read:issue, it records skipped_upstream_permission with the
+upstream error without treating the call as successful. The fixture tests also
+exercise the complete list-to-detail flow and invalid-first-candidate paging.
+Use issue-owner, issue-repo, and issue-number when a controlled issue fixture is
+available, together with require-issue-detail.
 
 ## Evidence requirements
 

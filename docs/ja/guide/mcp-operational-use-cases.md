@@ -26,13 +26,14 @@ runnerではmutationを実行せず、write動作は分離fixtureで検証しま
 
     python nyankoface-mcp/scripts/run_operational_use_cases.py --url https://nyankoface.example/mcp --token-file C:\restricted\forgejo.token --client codex --client-version 1.0
 
-runnerはcaller-visibleなcatalogから公開doc repositoryとpush権限のある
+runnerは公開doc catalogをboundedにページングし、empty／malformed／未公開の
+候補をskipしながら、実在する`articles/*.md`と読めるKnowledge記事を持つ
 repositoryを動的に選択します。live datasetにopen Issueがない場合、UC-03の
 get_issueはskipped_no_open_issueとして記録します。Forgejo tokenにread:issue
 がない場合は上流エラーを隠さずskipped_upstream_permissionとして記録し、
-成功扱いにしません。fixture testではlistからdetailまでの完全なflowを実行
-します。管理されたIssue fixtureがある場合はissue-owner、issue-repo、
-issue-numberとrequire-issue-detailを指定します。
+成功扱いにしません。fixture testではlistからdetailまでの完全なflowと、
+先頭候補が不正な場合のpagingを実行します。管理されたIssue fixtureがある
+場合はissue-owner、issue-repo、issue-numberとrequire-issue-detailを指定します。
 
 ## 証跡の条件
 
