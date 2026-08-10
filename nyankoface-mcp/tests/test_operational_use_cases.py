@@ -4,6 +4,8 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import pytest
+
 
 SCRIPTS = Path(__file__).parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
@@ -18,6 +20,7 @@ class _OperationalFixture(BaseHTTPRequestHandler):
     mutations = []
     deny_issue_reads = False
     invalid_first_catalog_candidate = False
+    fatal_invalid_catalog_candidate = False
 
     def log_message(self, _format, *_args):
         return
@@ -142,6 +145,25 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                 "totalCount": 1,
             }
         elif name == "get_repository":
+            if (
+                type(self).fatal_invalid_catalog_candidate
+                and arguments.get("repo") == "empty"
+            ):
+                self._send_json(200, {
+                    "jsonrpc": "2.0",
+                    "id": request["id"],
+                    "result": {
+                        "isError": True,
+                        "content": [{
+                            "type": "text",
+                            "text": (
+                                "Error executing tool get_repository: "
+                                '{"error":{"code":"invalid_upstream_response"}}'
+                            ),
+                        }],
+                    },
+                })
+                return
             value = {
                 "owner": arguments["owner"],
                 "name": arguments["repo"],
@@ -238,6 +260,7 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     _OperationalFixture.mutations = []
     _OperationalFixture.deny_issue_reads = False
     _OperationalFixture.invalid_first_catalog_candidate = False
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -262,7 +285,10 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     assert use_cases["catalog_to_knowledge"]["knowledge"]["status"] == 200
     assert use_cases["catalog_to_knowledge"]["file_path"] == "articles/fixture-article.md"
     assert use_cases["catalog_to_knowledge"]["knowledge_slug"] == "fixture-article"
-    assert ("get_tree", {"owner": "alice", "repo": "knowledge", "ref": "main", "path": "articles"}) in _OperationalFixture.calls
+    assert (
+        "get_tree",
+        {"owner": "alice", "repo": "knowledge", "ref": "main", "path": "articles"},
+    ) in _OperationalFixture.calls
     assert use_cases["issue_triage"]["detail_status"] == "passed"
     assert use_cases["safe_write_preview"]["preview_status"] == "preview"
     assert use_cases["safe_write_preview"]["mutation_executed"] is False
@@ -270,6 +296,7 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     assert _OperationalFixture.mutations == []
     assert all(name != "update_issue" for name, _arguments in _OperationalFixture.calls)
     assert "instance" not in json.dumps(summary)
+    assert "endpoint" not in summary
     assert token not in json.dumps(summary)
 
 
@@ -279,6 +306,7 @@ def test_operational_use_case_runner_skips_invalid_catalog_candidate_and_pages(t
     _OperationalFixture.mutations = []
     _OperationalFixture.deny_issue_reads = False
     _OperationalFixture.invalid_first_catalog_candidate = True
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -307,12 +335,41 @@ def test_operational_use_case_runner_skips_invalid_catalog_candidate_and_pages(t
     }]
 
 
+def test_operational_use_case_runner_does_not_skip_fatal_upstream_response(tmp_path):
+    _OperationalFixture.calls = []
+    _OperationalFixture.preview_requests = []
+    _OperationalFixture.mutations = []
+    _OperationalFixture.deny_issue_reads = False
+    _OperationalFixture.invalid_first_catalog_candidate = True
+    _OperationalFixture.fatal_invalid_catalog_candidate = True
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    token_file = tmp_path / "forgejo.token"
+    token_file.write_text("fatal-fixture-secret", encoding="utf-8")
+    try:
+        with pytest.raises(RuntimeError, match="invalid_upstream_response"):
+            run(
+                f"http://127.0.0.1:{server.server_port}/mcp",
+                token_file,
+                "fixture-agent",
+                "1.0",
+            )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        _OperationalFixture.invalid_first_catalog_candidate = False
+        _OperationalFixture.fatal_invalid_catalog_candidate = False
+
+
 def test_operational_use_case_runner_records_missing_issue_scope_without_false_success(tmp_path):
     _OperationalFixture.calls = []
     _OperationalFixture.preview_requests = []
     _OperationalFixture.mutations = []
     _OperationalFixture.deny_issue_reads = True
     _OperationalFixture.invalid_first_catalog_candidate = False
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

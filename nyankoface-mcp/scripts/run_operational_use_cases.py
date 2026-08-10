@@ -46,6 +46,8 @@ MAX_CATALOG_PAGES = 20
 
 def _catalog_candidate_error_is_skippable(message: str) -> bool:
     lowered = message.casefold()
+    if "invalid_upstream_response" in lowered:
+        return False
     if any(
         marker in lowered
         for marker in (
@@ -63,7 +65,8 @@ def _catalog_candidate_error_is_skippable(message: str) -> bool:
             "not_found_or_unauthorized",
             "catalog item is missing",
             "returned no structured object payload",
-            "returned an invalid",
+            "returned an invalid items list",
+            "returned an invalid repository tree",
             "returned no root entries",
             "has no articles/ directory",
             "articles/ returned no entries",
@@ -249,7 +252,6 @@ def run(
         "clientInfo": {"name": f"{client}-operational-use-cases", "version": version},
     }
     summary: dict[str, Any] = {
-        "endpoint": url,
         "client": client,
         "client_version": version,
         "secret_exposed": False,
