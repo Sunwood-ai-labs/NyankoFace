@@ -14,6 +14,7 @@ from run_operational_use_cases import (  # noqa: E402
     _article_file_error_is_skippable,
     _catalog_candidate_error_is_skippable,
     _require_knowledge_identity,
+    _require_repository_identity,
     run,
 )
 
@@ -27,6 +28,8 @@ class _OperationalFixture(BaseHTTPRequestHandler):
     invalid_first_catalog_candidate = False
     fatal_invalid_catalog_candidate = False
     unpublished_first_article = False
+    file_read_failure_first_article = False
+    misrouted_repository_response = False
 
     def log_message(self, _format, *_args):
         return
@@ -170,13 +173,25 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                     },
                 })
                 return
-            value = {
-                "owner": arguments["owner"],
-                "name": arguments["repo"],
-                "full_name": f'{arguments["owner"]}/{arguments["repo"]}',
-                "default_branch": "main",
-                "permissions": {"pull": True, "push": True},
-            }
+            if (
+                type(self).misrouted_repository_response
+                and arguments.get("repo") == "knowledge"
+            ):
+                value = {
+                    "owner": "alice",
+                    "name": "different-repository",
+                    "full_name": "alice/different-repository",
+                    "default_branch": "main",
+                    "permissions": {"pull": True, "push": True},
+                }
+            else:
+                value = {
+                    "owner": arguments["owner"],
+                    "name": arguments["repo"],
+                    "full_name": f'{arguments["owner"]}/{arguments["repo"]}',
+                    "default_branch": "main",
+                    "permissions": {"pull": True, "push": True},
+                }
         elif name == "get_tree":
             if arguments.get("path") == "articles":
                 article_entries = (
@@ -211,6 +226,25 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                     "entries": entries,
                 }
         elif name == "get_file":
+            if (
+                type(self).file_read_failure_first_article
+                and arguments.get("path") == "articles/unpublished.md"
+            ):
+                self._send_json(200, {
+                    "jsonrpc": "2.0",
+                    "id": request["id"],
+                    "result": {
+                        "isError": True,
+                        "content": [{
+                            "type": "text",
+                            "text": (
+                                "Error executing tool get_file: "
+                                '{"error":{"code":"max_file_bytes"}}'
+                            ),
+                        }],
+                    },
+                })
+                return
             value = {
                 "path": arguments["path"],
                 "ref": arguments["ref"],
@@ -439,12 +473,81 @@ def test_operational_use_case_runner_pairs_each_article_with_its_knowledge_path(
     assert file_reads == ["articles/unpublished.md", "articles/fixture-article.md"]
 
 
+def test_operational_use_case_runner_continues_after_local_article_read_failure(tmp_path):
+    _OperationalFixture.calls = []
+    _OperationalFixture.preview_requests = []
+    _OperationalFixture.mutations = []
+    _OperationalFixture.deny_issue_reads = False
+    _OperationalFixture.invalid_first_catalog_candidate = False
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = True
+    _OperationalFixture.file_read_failure_first_article = True
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    token_file = tmp_path / "forgejo.token"
+    token_file.write_text("file-failure-fixture-secret", encoding="utf-8")
+    try:
+        summary = run(
+            f"http://127.0.0.1:{server.server_port}/mcp",
+            token_file,
+            "fixture-agent",
+            "1.0",
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        _OperationalFixture.unpublished_first_article = False
+        _OperationalFixture.file_read_failure_first_article = False
+
+    catalog_use_case = summary["use_cases"]["catalog_to_knowledge"]
+    assert catalog_use_case["file_path"] == "articles/fixture-article.md"
+    assert [
+        arguments["path"]
+        for name, arguments in _OperationalFixture.calls
+        if name == "get_file"
+    ] == ["articles/unpublished.md", "articles/fixture-article.md"]
+
+
+def test_operational_use_case_runner_fails_on_misrouted_repository_detail(tmp_path):
+    _OperationalFixture.calls = []
+    _OperationalFixture.preview_requests = []
+    _OperationalFixture.mutations = []
+    _OperationalFixture.deny_issue_reads = False
+    _OperationalFixture.invalid_first_catalog_candidate = False
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = False
+    _OperationalFixture.misrouted_repository_response = True
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    token_file = tmp_path / "forgejo.token"
+    token_file.write_text("misrouted-repository-fixture-secret", encoding="utf-8")
+    try:
+        with pytest.raises(RuntimeError, match="repository identity mismatch"):
+            run(
+                f"http://127.0.0.1:{server.server_port}/mcp",
+                token_file,
+                "fixture-agent",
+                "1.0",
+            )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        _OperationalFixture.misrouted_repository_response = False
+
+
 def test_catalog_candidate_skip_filter_keeps_upstream_shape_errors_fatal():
     assert not _catalog_candidate_error_is_skippable(
         "get_repository returned an invalid response: invalid_upstream_response"
     )
     assert not _catalog_candidate_error_is_skippable(
         "get_tree returned an MCP tool error: invalid repository tree"
+    )
+    assert _catalog_candidate_error_is_skippable(
+        "get_tree articles/ returned no entries"
     )
     assert _catalog_candidate_error_is_skippable(
         "bob/empty has no articles/ directory in its root tree"
@@ -493,6 +596,30 @@ def test_knowledge_identity_must_match_the_candidate_repository_and_file():
         )
 
 
+def test_repository_identity_must_match_the_requested_target():
+    _require_repository_identity(
+        {
+            "owner": {"login": "Alice"},
+            "name": "Knowledge",
+            "full_name": "alice/knowledge",
+            "default_branch": "main",
+        },
+        "alice",
+        "knowledge",
+    )
+    with pytest.raises(RuntimeError, match="repository identity mismatch"):
+        _require_repository_identity(
+            {
+                "owner": {"login": "alice"},
+                "name": "other-repository",
+                "full_name": "alice/other-repository",
+                "default_branch": "main",
+            },
+            "alice",
+            "knowledge",
+        )
+
+
 def test_article_file_filter_skips_local_file_limits_but_not_upstream_failures():
     assert _article_file_error_is_skippable("Only bounded regular files are available")
     assert _article_file_error_is_skippable("File is not UTF-8 text")
@@ -527,7 +654,7 @@ def test_operational_use_case_runner_records_missing_issue_scope_without_false_s
         _OperationalFixture.deny_issue_reads = False
 
     issue_triage = summary["use_cases"]["issue_triage"]
-    assert issue_triage["detail_status"] == "skipped_upstream_permission"
+    assert issue_triage["detail_status"] == "skipped_upstream_ambiguous"
     assert "not_found_or_unauthorized" in issue_triage["list_issues"]["error"]
     assert summary["use_cases"]["safe_write_preview"]["preview_status"] == "preview"
     assert _OperationalFixture.mutations == []

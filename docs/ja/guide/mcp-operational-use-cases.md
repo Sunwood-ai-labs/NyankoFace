@@ -15,7 +15,7 @@ runnerではmutationを実行せず、write動作は分離fixtureで検証しま
 |---|---|---|
 | UC-01 | 接続してcapabilityを確認 | 未認証initializeは401。認証済みinitialize、initialized notification、tools/list、resources/listが成功し、OpenAPI resourceを広告する |
 | UC-02 | 公開Knowledgeを探して内容を確認 | search_catalog(doc)で公開repositoryを取得し、get_repository、root get_tree、`articles` directoryのtree、実際の`articles/*.md` file、get_knowledgeがすべてエラーなしで成功する |
-| UC-03 | repositoryのIssueをtriage | list_repositoriesとlist_issuesがboundedなlistを返し、対象repositoryにopen Issueがあればget_issueまで実行する。Forgejoのread:issueがないtokenは上流権限境界として記録し、成功扱いにしない |
+| UC-03 | repositoryのIssueをtriage | list_repositoriesとlist_issuesがboundedなlistを返し、対象repositoryにopen Issueがあればget_issueまで実行する。Forgejoのnot-found/unauthorized統合応答は、read:issue不足と断定せずambiguousとして記録し、成功扱いにしない |
 | UC-04 | 変更を安全に計画 | create_issueのpreview=trueがconfirmationを返し、liveシナリオはmutationを実行しない。confirmationとidempotencyの実行経路は分離fixtureで検証する |
 | UC-05 | 権限境界を維持 | 不正credentialを拒否し、明示deny/read-only、未認可repository、lifecycle service-accountのdefault denyをcontract testで維持する |
 
@@ -29,9 +29,10 @@ runnerではmutationを実行せず、write動作は分離fixtureで検証しま
 runnerは公開doc catalogをboundedにページングし、empty／malformed／未公開の
 候補をskipしながら、実在する`articles/*.md`と読めるKnowledge記事を持つ
 repositoryを動的に選択します。live datasetにopen Issueがない場合、UC-03の
-get_issueはskipped_no_open_issueとして記録します。Forgejo tokenにread:issue
-がない場合は上流エラーを隠さずskipped_upstream_permissionとして記録し、
-成功扱いにしません。fixture testではlistからdetailまでの完全なflowと、
+get_issueはskipped_no_open_issueとして記録します。Forgejoの
+not-found/unauthorized統合応答が返った場合は、tokenのread:issue不足と断定せず
+skipped_upstream_ambiguousとして上流エラーとともに記録し、成功扱いにしません。
+fixture testではlistからdetailまでの完全なflowと、
 先頭候補が不正な場合のpagingを実行します。管理されたIssue fixtureがある
 場合はissue-owner、issue-repo、issue-numberとrequire-issue-detailを指定します。
 

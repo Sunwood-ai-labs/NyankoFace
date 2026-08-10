@@ -63,6 +63,7 @@ def _catalog_candidate_error_is_skippable(message: str) -> bool:
             "not_found_or_unauthorized",
             "catalog item is missing",
             "has no articles/ directory",
+            "articles/ returned no entries",
             "has no markdown article",
             "no published knowledge article slug",
             "knowledge repository collision",
@@ -110,6 +111,7 @@ def _article_file_error_is_skippable(message: str) -> bool:
         for marker in (
             "not_found_or_unauthorized",
             "resource was not found or is not authorized",
+            "max_file_bytes",
             "only bounded regular files are available",
             "file is not utf-8 text",
             "this file path is not available",
@@ -203,6 +205,49 @@ def _identity(item: dict[str, Any]) -> tuple[str, str]:
     if not isinstance(owner, str) or not isinstance(repo, str):
         raise RuntimeError("catalog item is missing a repository identity")
     return owner, repo
+
+
+def _require_repository_identity(
+    payload: dict[str, Any] | None,
+    owner: str,
+    repo: str,
+) -> None:
+    """Fail closed when repository detail does not describe its requested target."""
+    if not isinstance(payload, dict):
+        raise RuntimeError("get_repository returned invalid repository identity")
+
+    payload_owner = payload.get("owner")
+    if isinstance(payload_owner, dict):
+        payload_owner = payload_owner.get("login") or payload_owner.get("username")
+    payload_repo = payload.get("name") or payload.get("repo")
+    full_name = payload.get("full_name")
+    full_owner = None
+    full_repo = None
+    if isinstance(full_name, str) and "/" in full_name:
+        full_owner, full_repo = full_name.split("/", 1)
+
+    if not isinstance(payload_owner, str) or not payload_owner.strip():
+        payload_owner = full_owner
+    if not isinstance(payload_repo, str) or not payload_repo.strip():
+        payload_repo = full_repo
+
+    expected_owner = owner.strip().casefold()
+    expected_repo = repo.strip().casefold()
+    if not (
+        isinstance(payload_owner, str)
+        and isinstance(payload_repo, str)
+        and payload_owner.strip().casefold() == expected_owner
+        and payload_repo.strip().casefold() == expected_repo
+    ):
+        raise RuntimeError("get_repository returned repository identity mismatch")
+    if isinstance(full_name, str) and "/" in full_name:
+        if (
+            not isinstance(full_owner, str)
+            or not isinstance(full_repo, str)
+            or full_owner.strip().casefold() != expected_owner
+            or full_repo.strip().casefold() != expected_repo
+        ):
+            raise RuntimeError("get_repository returned repository identity mismatch")
 
 
 def _require_items(payload: dict[str, Any], operation: str) -> list[dict[str, Any]]:
@@ -393,6 +438,7 @@ def run(
                     "get_repository",
                     {"owner": doc_owner, "repo": doc_repo},
                 )
+                _require_repository_identity(repository, doc_owner, doc_repo)
                 ref = repository.get("default_branch") or "main"
                 tree_meta, tree = call_tool(
                     "get_tree",
@@ -585,7 +631,7 @@ def run(
             "issue list was empty; pass an issue target or use a fixture with an issue"
         )
     if issue_meta.get("is_error"):
-        detail_status = "skipped_upstream_permission"
+        detail_status = "skipped_upstream_ambiguous"
     elif issue_detail_meta:
         detail_status = "passed"
     else:
