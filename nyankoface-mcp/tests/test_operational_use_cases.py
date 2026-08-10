@@ -11,6 +11,7 @@ SCRIPTS = Path(__file__).parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from run_operational_use_cases import (  # noqa: E402
+    _article_file_error_is_skippable,
     _catalog_candidate_error_is_skippable,
     _require_knowledge_identity,
     run,
@@ -451,7 +452,7 @@ def test_catalog_candidate_skip_filter_keeps_upstream_shape_errors_fatal():
 
 
 def test_knowledge_identity_must_match_the_candidate_repository_and_file():
-    with pytest.raises(RuntimeError, match="identity mismatch"):
+    with pytest.raises(RuntimeError, match="repository collision"):
         _require_knowledge_identity(
             {
                 "owner": "alice",
@@ -464,6 +465,26 @@ def test_knowledge_identity_must_match_the_candidate_repository_and_file():
             "fixture-article",
             "articles/fixture-article.md",
         )
+    with pytest.raises(RuntimeError, match="contract identity mismatch"):
+        _require_knowledge_identity(
+            {
+                "owner": "other-owner",
+                "repository": "knowledge",
+                "slug": "fixture-article",
+                "path": "articles/fixture-article.md",
+            },
+            "alice",
+            "knowledge",
+            "fixture-article",
+            "articles/fixture-article.md",
+        )
+
+
+def test_article_file_filter_skips_local_file_limits_but_not_upstream_failures():
+    assert _article_file_error_is_skippable("Only bounded regular files are available")
+    assert _article_file_error_is_skippable("File is not UTF-8 text")
+    assert not _article_file_error_is_skippable("invalid_upstream_response")
+    assert not _article_file_error_is_skippable("invalid repository tree")
 
 
 def test_operational_use_case_runner_records_missing_issue_scope_without_false_success(tmp_path):
