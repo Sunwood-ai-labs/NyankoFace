@@ -40,6 +40,7 @@ REQUIRED_OPERATIONAL_TOOLS = (
 )
 ARTICLE_SLUG_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 MAX_CATALOG_PAGES = 20
+MAX_REPOSITORY_PAGES = 20
 
 
 def _catalog_candidate_error_is_skippable(message: str) -> bool:
@@ -331,6 +332,13 @@ def _require_issue_identity(
         raise RuntimeError("get_issue returned issue identity mismatch")
 
 
+def _has_write_permission(item: dict[str, Any]) -> bool:
+    permissions = item.get("permissions")
+    return isinstance(permissions, dict) and (
+        permissions.get("push") is True or permissions.get("admin") is True
+    )
+
+
 def run(
     url: str,
     token_file: Path,
@@ -599,11 +607,34 @@ def run(
     selected_catalog["skipped_catalog_repositories"] = skipped_catalog_repositories
     summary["use_cases"]["catalog_to_knowledge"] = selected_catalog
 
-    repositories_meta, repositories = call_tool(
-        "list_repositories",
-        {"query": "", "page": 1, "limit": 100},
-    )
-    repository_items = _require_items(repositories, "list_repositories")
+    repository_pages: list[dict[str, Any]] = []
+    repository_items: list[dict[str, Any]] = []
+    write_repo = None
+    repository_page = 1
+    while repository_page <= MAX_REPOSITORY_PAGES and write_repo is None:
+        repositories_meta, repositories = call_tool(
+            "list_repositories",
+            {"query": "", "page": repository_page, "limit": 100},
+        )
+        repository_pages.append(repositories_meta)
+        page_items = _require_items(repositories, "list_repositories")
+        repository_items.extend(page_items)
+        write_repo = next(
+            (item for item in page_items if _has_write_permission(item)),
+            None,
+        )
+        if write_repo is not None:
+            break
+        total_pages = repositories.get("totalPages", repository_page)
+        try:
+            total_pages = max(repository_page, int(total_pages))
+        except (TypeError, ValueError):
+            total_pages = repository_page
+        if not page_items or repository_page >= total_pages:
+            break
+        repository_page += 1
+
+    repositories_meta = repository_pages[0]
     if not repository_items:
         raise RuntimeError("list_repositories returned no repositories")
 
@@ -653,6 +684,7 @@ def run(
         detail_status = "skipped_no_open_issue"
     summary["use_cases"]["issue_triage"] = {
         "repository_list": repositories_meta,
+        "repository_pages_checked": len(repository_pages),
         "list_issues": issue_meta,
         "open_issue_count": len(issue_items),
         "get_issue": issue_detail_meta,
@@ -660,17 +692,12 @@ def run(
         "repository_identity": f"{issue_target[0]}/{issue_target[1]}",
     }
 
-    push_repo = next(
-        (
-            item for item in repository_items
-            if isinstance(item.get("permissions"), dict)
-            and item["permissions"].get("push") is True
-        ),
-        None,
-    )
-    if push_repo is None:
-        raise RuntimeError("list_repositories returned no push-authorized repository")
-    push_owner, push_name = _identity(push_repo)
+    if write_repo is None:
+        raise RuntimeError(
+            "list_repositories returned no write-authorized repository after "
+            f"checking {len(repository_pages)} page(s)"
+        )
+    push_owner, push_name = _identity(write_repo)
     preview_meta, preview = call_tool(
         "create_issue",
         {
