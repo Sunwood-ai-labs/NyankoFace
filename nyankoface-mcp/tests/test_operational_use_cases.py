@@ -478,6 +478,19 @@ def test_knowledge_identity_must_match_the_candidate_repository_and_file():
             "fixture-article",
             "articles/fixture-article.md",
         )
+    with pytest.raises(RuntimeError, match="contract identity mismatch"):
+        _require_knowledge_identity(
+            {
+                "owner": "other-owner",
+                "repository": "other-repository",
+                "slug": "wrong-slug",
+                "path": "articles/wrong-slug.md",
+            },
+            "alice",
+            "knowledge",
+            "fixture-article",
+            "articles/fixture-article.md",
+        )
 
 
 def test_article_file_filter_skips_local_file_limits_but_not_upstream_failures():

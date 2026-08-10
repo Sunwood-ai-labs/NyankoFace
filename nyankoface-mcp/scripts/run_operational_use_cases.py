@@ -262,14 +262,14 @@ def _require_knowledge_identity(
         for value in (payload_owner, payload_repo, payload_slug, payload_path)
     ):
         raise RuntimeError("get_knowledge returned invalid repository identity")
-    if payload_repo != repo:
-        raise RuntimeError("knowledge repository collision")
     if (
         payload_owner != owner
         or payload_slug != slug
         or payload_path.strip("/") != path.strip("/")
     ):
         raise RuntimeError("knowledge article contract identity mismatch")
+    if payload_repo != repo:
+        raise RuntimeError("knowledge repository collision")
 
 
 def run(
