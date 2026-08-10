@@ -10,7 +10,10 @@ import pytest
 SCRIPTS = Path(__file__).parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from run_operational_use_cases import run  # noqa: E402
+from run_operational_use_cases import (  # noqa: E402
+    _catalog_candidate_error_is_skippable,
+    run,
+)
 
 
 class _OperationalFixture(BaseHTTPRequestHandler):
@@ -361,6 +364,18 @@ def test_operational_use_case_runner_does_not_skip_fatal_upstream_response(tmp_p
         thread.join(timeout=5)
         _OperationalFixture.invalid_first_catalog_candidate = False
         _OperationalFixture.fatal_invalid_catalog_candidate = False
+
+
+def test_catalog_candidate_skip_filter_keeps_upstream_shape_errors_fatal():
+    assert not _catalog_candidate_error_is_skippable(
+        "get_repository returned an invalid response: invalid_upstream_response"
+    )
+    assert not _catalog_candidate_error_is_skippable(
+        "get_tree returned an MCP tool error: invalid repository tree"
+    )
+    assert _catalog_candidate_error_is_skippable(
+        "bob/empty has no articles/ directory in its root tree"
+    )
 
 
 def test_operational_use_case_runner_records_missing_issue_scope_without_false_success(tmp_path):

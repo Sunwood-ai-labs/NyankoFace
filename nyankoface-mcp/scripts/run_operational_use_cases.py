@@ -64,12 +64,7 @@ def _catalog_candidate_error_is_skippable(message: str) -> bool:
         for marker in (
             "not_found_or_unauthorized",
             "catalog item is missing",
-            "returned no structured object payload",
-            "returned an invalid items list",
-            "returned an invalid repository tree",
-            "returned no root entries",
             "has no articles/ directory",
-            "articles/ returned no entries",
             "has no markdown article",
             "no published knowledge article slug",
         )
