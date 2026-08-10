@@ -132,12 +132,25 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                 "permissions": {"pull": True, "push": True},
             }
         elif name == "get_tree":
-            value = {
-                "owner": arguments["owner"],
-                "repo": arguments["repo"],
-                "ref": arguments["ref"],
-                "entries": [{"type": "file", "path": "README.md"}],
-            }
+            if arguments.get("path") == "articles":
+                value = {
+                    "owner": arguments["owner"],
+                    "repo": arguments["repo"],
+                    "ref": arguments["ref"],
+                    "path": "articles",
+                    "entries": [{"type": "file", "path": "articles/fixture-article.md"}],
+                }
+            else:
+                value = {
+                    "owner": arguments["owner"],
+                    "repo": arguments["repo"],
+                    "ref": arguments["ref"],
+                    "path": None,
+                    "entries": [
+                        {"type": "dir", "path": "articles"},
+                        {"type": "file", "path": "README.md"},
+                    ],
+                }
         elif name == "get_file":
             value = {
                 "path": arguments["path"],
@@ -223,8 +236,9 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     assert use_cases["authentication_boundary"]["unauthenticated_initialize_status"] == 401
     assert use_cases["agent_bootstrap"]["tools_list_count"] == 9
     assert use_cases["catalog_to_knowledge"]["knowledge"]["status"] == 200
-    assert use_cases["catalog_to_knowledge"]["file_path"] == "README.md"
+    assert use_cases["catalog_to_knowledge"]["file_path"] == "articles/fixture-article.md"
     assert use_cases["catalog_to_knowledge"]["knowledge_slug"] == "fixture-article"
+    assert ("get_tree", {"owner": "alice", "repo": "knowledge", "ref": "main", "path": "articles"}) in _OperationalFixture.calls
     assert use_cases["issue_triage"]["detail_status"] == "passed"
     assert use_cases["safe_write_preview"]["preview_status"] == "preview"
     assert use_cases["safe_write_preview"]["mutation_executed"] is False

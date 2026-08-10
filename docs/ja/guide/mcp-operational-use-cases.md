@@ -14,7 +14,7 @@ runnerではmutationを実行せず、write動作は分離fixtureで検証しま
 | Case | Agentの流れ | 受入条件 |
 |---|---|---|
 | UC-01 | 接続してcapabilityを確認 | 未認証initializeは401。認証済みinitialize、initialized notification、tools/list、resources/listが成功し、OpenAPI resourceを広告する |
-| UC-02 | 公開Knowledgeを探して内容を確認 | search_catalog(doc)で公開repositoryを取得し、get_repository、get_tree、取得可能なfile、get_knowledgeがすべてエラーなしで成功する |
+| UC-02 | 公開Knowledgeを探して内容を確認 | search_catalog(doc)で公開repositoryを取得し、get_repository、root get_tree、`articles` directoryのtree、実際の`articles/*.md` file、get_knowledgeがすべてエラーなしで成功する |
 | UC-03 | repositoryのIssueをtriage | list_repositoriesとlist_issuesがboundedなlistを返し、対象repositoryにopen Issueがあればget_issueまで実行する。Forgejoのread:issueがないtokenは上流権限境界として記録し、成功扱いにしない |
 | UC-04 | 変更を安全に計画 | create_issueのpreview=trueがconfirmationを返し、liveシナリオはmutationを実行しない。confirmationとidempotencyの実行経路は分離fixtureで検証する |
 | UC-05 | 権限境界を維持 | 不正credentialを拒否し、明示deny/read-only、未認可repository、lifecycle service-accountのdefault denyをcontract testで維持する |

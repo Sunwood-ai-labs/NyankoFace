@@ -376,9 +376,20 @@ def create_server(
         return await adapter.get_file(owner, repo, path, ref, token_for("repos:read", owner, repo))
 
     @mcp.tool(title="Get repository tree")
-    async def get_tree(owner: str, repo: str, ref: str) -> dict[str, Any]:
-        """Read a repository root tree fixed to one validated ref."""
-        return await adapter.get_tree(owner, repo, ref, token_for("repos:read", owner, repo))
+    async def get_tree(
+        owner: str,
+        repo: str,
+        ref: str,
+        path: str | None = None,
+    ) -> dict[str, Any]:
+        """Read a repository tree or one safe directory fixed to one ref."""
+        return await adapter.get_tree(
+            owner,
+            repo,
+            ref,
+            token_for("repos:read", owner, repo),
+            path,
+        )
 
     @mcp.tool(title="Get knowledge article")
     async def get_knowledge(owner: str, slug: str) -> dict[str, Any]:

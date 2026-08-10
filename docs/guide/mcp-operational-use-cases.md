@@ -15,7 +15,7 @@ mutation; write behavior is verified with isolated fixtures.
 | Case | Agent workflow | Acceptance checks |
 |---|---|---|
 | UC-01 | Connect and discover capabilities | unauthenticated initialize is 401; authenticated initialize, initialized notification, tools/list, and resources/list succeed; the OpenAPI resource is advertised |
-| UC-02 | Find a published Knowledge repository and inspect it | search_catalog(doc) returns a public repository; get_repository, get_tree, an available file read, and get_knowledge all return non-error results |
+| UC-02 | Find a published Knowledge repository and inspect it | search_catalog(doc) returns a public repository; get_repository, root get_tree, the `articles` directory tree, an actual `articles/*.md` file read, and get_knowledge all return non-error results |
 | UC-03 | Triage repository issues | list_repositories and list_issues return valid bounded lists; get_issue is exercised when the selected repository has an open issue; a token without Forgejo read:issue is recorded as an upstream permission boundary, not as a false success |
 | UC-04 | Plan a change safely | create_issue with preview=true returns a confirmation; the live scenario does not execute a mutation; isolated tests cover confirmation and idempotency execution |
 | UC-05 | Enforce authorization boundaries | invalid credentials are rejected; explicit deny/read-only policy, unauthorized repositories, and lifecycle service-account default deny remain covered by contract tests |

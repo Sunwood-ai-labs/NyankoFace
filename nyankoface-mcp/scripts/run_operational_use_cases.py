@@ -143,11 +143,16 @@ def _article_slugs(
     tree: dict[str, Any],
     file_payload: dict[str, Any] | None,
     repo_name: str,
+    article_tree: dict[str, Any] | None = None,
 ) -> list[str]:
     sources = [json.dumps(repository, ensure_ascii=False)]
     entries = tree.get("entries")
     if isinstance(entries, list):
         sources.append(json.dumps(entries, ensure_ascii=False))
+    if article_tree is not None:
+        article_entries = article_tree.get("entries")
+        if isinstance(article_entries, list):
+            sources.append(json.dumps(article_entries, ensure_ascii=False))
     if file_payload is not None:
         sources.append(json.dumps(file_payload, ensure_ascii=False))
     candidates: list[str] = []
@@ -290,39 +295,70 @@ def run(
         {"owner": doc_owner, "repo": doc_repo, "ref": ref},
     )
     entries = tree.get("entries")
-    file_meta = None
-    file_payload = None
-    file_path = None
-    if isinstance(entries, list):
-        file_entries = [
+    if not isinstance(entries, list):
+        raise RuntimeError("get_tree returned no root entries")
+    articles_entry = next(
+        (
             entry for entry in entries
+            if isinstance(entry, dict)
+            and entry.get("type") == "dir"
+            and isinstance(entry.get("path"), str)
+            and Path(entry["path"]).name.casefold() == "articles"
+        ),
+        None,
+    )
+    if articles_entry is None:
+        raise RuntimeError(
+            f"{doc_owner}/{doc_repo} has no articles/ directory in its root tree"
+        )
+    articles_path = str(articles_entry["path"]).strip("/")
+    articles_tree_meta, articles_tree = _call_tool(
+        url,
+        token,
+        protocol_version,
+        13,
+        "get_tree",
+        {
+            "owner": doc_owner,
+            "repo": doc_repo,
+            "ref": ref,
+            "path": articles_path,
+        },
+    )
+    article_entries = articles_tree.get("entries")
+    if not isinstance(article_entries, list):
+        raise RuntimeError("get_tree articles/ returned no entries")
+    file_entry = next(
+        (
+            entry for entry in article_entries
             if isinstance(entry, dict)
             and entry.get("type") == "file"
             and isinstance(entry.get("path"), str)
+            and Path(entry["path"]).suffix.casefold() == ".md"
             and entry["path"].strip()
-        ]
-        file_entry = next(
-            (
-                entry for entry in file_entries
-                if Path(entry["path"]).name.casefold() == "readme.md"
-            ),
-            file_entries[0] if file_entries else None,
+        ),
+        None,
+    )
+    if file_entry is None:
+        raise RuntimeError(
+            f"{doc_owner}/{doc_repo} has no Markdown article in {articles_path}/"
         )
-        if file_entry is not None:
-            file_path = file_entry["path"]
-            file_meta, file_payload = _call_tool(
-                url,
-                token,
-                protocol_version,
-                13,
-                "get_file",
-                {
-                    "owner": doc_owner,
-                    "repo": doc_repo,
-                    "path": file_path,
-                    "ref": ref,
-                },
-            )
+    file_path = str(file_entry["path"]).strip("/")
+    if "/" not in file_path:
+        file_path = f"{articles_path}/{file_path}"
+    file_meta, file_payload = _call_tool(
+        url,
+        token,
+        protocol_version,
+        14,
+        "get_file",
+        {
+            "owner": doc_owner,
+            "repo": doc_repo,
+            "path": file_path,
+            "ref": ref,
+        },
+    )
 
     knowledge_meta = None
     knowledge_slug = None
@@ -332,6 +368,7 @@ def run(
         tree,
         file_payload,
         doc_repo,
+        articles_tree,
     )
     for offset, candidate in enumerate(knowledge_candidates):
         try:
@@ -339,7 +376,7 @@ def run(
                 url,
                 token,
                 protocol_version,
-                14 + offset,
+                20 + offset,
                 "get_knowledge",
                 {"owner": doc_owner, "slug": candidate},
             )
@@ -358,6 +395,7 @@ def run(
         "catalog_search": catalog_meta,
         "repository": repo_meta,
         "tree": tree_meta,
+        "articles_tree": articles_tree_meta,
         "file": file_meta,
         "knowledge": knowledge_meta,
         "repository_identity": f"{doc_owner}/{doc_repo}",
