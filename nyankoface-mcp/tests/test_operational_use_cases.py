@@ -32,6 +32,7 @@ class _OperationalFixture(BaseHTTPRequestHandler):
     file_read_failure_first_article = False
     misrouted_repository_response = False
     misrouted_issue_response = False
+    repository_page_two_write = False
 
     def log_message(self, _format, *_args):
         return
@@ -141,8 +142,21 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                 "items": items,
             }
         elif name == "list_repositories":
-            value = {
-                "items": [{
+            repository_page = arguments.get("page", 1)
+            if type(self).repository_page_two_write and repository_page == 1:
+                items = [{
+                    "owner": {"login": "alice"},
+                    "name": "read-only",
+                    "full_name": "alice/read-only",
+                    "private": False,
+                    "default_branch": "main",
+                    "open_issues_count": 1,
+                    "permissions": {"pull": True, "push": False},
+                }]
+                total_pages = 2
+                total_count = 2
+            elif type(self).repository_page_two_write and repository_page == 2:
+                items = [{
                     "owner": {"login": "alice"},
                     "name": "knowledge",
                     "full_name": "alice/knowledge",
@@ -150,10 +164,27 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                     "default_branch": "main",
                     "open_issues_count": 1,
                     "permissions": {"pull": True, "push": True},
-                }],
-                "page": 1,
+                }]
+                total_pages = 2
+                total_count = 2
+            else:
+                items = [{
+                    "owner": {"login": "alice"},
+                    "name": "knowledge",
+                    "full_name": "alice/knowledge",
+                    "private": False,
+                    "default_branch": "main",
+                    "open_issues_count": 1,
+                    "permissions": {"pull": True, "push": True},
+                }]
+                total_pages = 1
+                total_count = 1
+            value = {
+                "items": items,
+                "page": repository_page,
                 "limit": 100,
-                "totalCount": 1,
+                "totalCount": total_count,
+                "totalPages": total_pages,
             }
         elif name == "get_repository":
             if (
@@ -338,6 +369,7 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     _OperationalFixture.invalid_first_catalog_candidate = False
     _OperationalFixture.fatal_invalid_catalog_candidate = False
     _OperationalFixture.unpublished_first_article = False
+    _OperationalFixture.repository_page_two_write = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -377,6 +409,46 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     assert token not in json.dumps(summary)
 
 
+def test_operational_use_case_runner_pages_repositories_until_write_target(tmp_path):
+    _OperationalFixture.calls = []
+    _OperationalFixture.preview_requests = []
+    _OperationalFixture.mutations = []
+    _OperationalFixture.deny_issue_reads = False
+    _OperationalFixture.invalid_first_catalog_candidate = False
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = False
+    _OperationalFixture.repository_page_two_write = True
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    token_file = tmp_path / "forgejo.token"
+    token_file.write_text("paged-repository-fixture-secret", encoding="utf-8")
+    try:
+        summary = run(
+            f"http://127.0.0.1:{server.server_port}/mcp",
+            token_file,
+            "fixture-agent",
+            "1.0",
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        _OperationalFixture.repository_page_two_write = False
+
+    repository_calls = [
+        arguments for name, arguments in _OperationalFixture.calls
+        if name == "list_repositories"
+    ]
+    assert [arguments["page"] for arguments in repository_calls] == [1, 2]
+    assert summary["use_cases"]["issue_triage"]["repository_pages_checked"] == 2
+    assert (
+        summary["use_cases"]["safe_write_preview"]["repository_identity"]
+        == "alice/knowledge"
+    )
+    assert _OperationalFixture.mutations == []
+
+
 def test_operational_use_case_runner_skips_invalid_catalog_candidate_and_pages(tmp_path):
     _OperationalFixture.calls = []
     _OperationalFixture.preview_requests = []
@@ -385,6 +457,7 @@ def test_operational_use_case_runner_skips_invalid_catalog_candidate_and_pages(t
     _OperationalFixture.invalid_first_catalog_candidate = True
     _OperationalFixture.fatal_invalid_catalog_candidate = False
     _OperationalFixture.unpublished_first_article = False
+    _OperationalFixture.repository_page_two_write = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
