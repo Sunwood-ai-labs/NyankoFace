@@ -658,3 +658,32 @@ def test_operational_use_case_runner_records_missing_issue_scope_without_false_s
     assert "not_found_or_unauthorized" in issue_triage["list_issues"]["error"]
     assert summary["use_cases"]["safe_write_preview"]["preview_status"] == "preview"
     assert _OperationalFixture.mutations == []
+
+
+def test_operational_use_case_runner_strict_issue_detail_fails_on_ambiguous_upstream(tmp_path):
+    _OperationalFixture.calls = []
+    _OperationalFixture.preview_requests = []
+    _OperationalFixture.mutations = []
+    _OperationalFixture.deny_issue_reads = True
+    _OperationalFixture.invalid_first_catalog_candidate = False
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = False
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    token_file = tmp_path / "forgejo.token"
+    token_file.write_text("strict-issue-fixture-secret", encoding="utf-8")
+    try:
+        with pytest.raises(RuntimeError, match="not_found_or_unauthorized"):
+            run(
+                f"http://127.0.0.1:{server.server_port}/mcp",
+                token_file,
+                "fixture-agent",
+                "1.0",
+                require_issue_detail=True,
+            )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        _OperationalFixture.deny_issue_reads = False
