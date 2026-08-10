@@ -112,13 +112,14 @@ Forgejo／Runner停止時は`upstream_unavailable`と再試行手順を返し、
 区別しません。
 catalog／repository一覧、tree、Knowledgeの各結果は、MIME type、実効
 `updated_at`、ETag、cache policyを`_meta`に含めます。treeは検証済みrefを必須とし、
-literal／encoded traversalを上流request前に拒否します。ResourceもToolと同じAdapter・
+必要なら`articles`のような安全なrepository相対directory `path`で直下entryを取得できます。
+literal／encoded traversalは上流request前に拒否します。ResourceもToolと同じAdapter・
 scope checkを通るため、要求者のrepository認可やredactionを迂回できません。
 
 `ref_b64`はrefをUTF-8のunpadded base64urlにした値です。スラッシュを含むrefも
 Resource URIの1 segmentに収まります。`main`は`bWFpbg`、
 `refs/heads/release`は`cmVmcy9oZWFkcy9yZWxlYXNl`です。`get_tree` Toolには
-通常のrefをそのまま渡します。
+通常のrefを渡し、必要ならrepository相対directory pathも指定します。
 
 ## 公式Prompt
 

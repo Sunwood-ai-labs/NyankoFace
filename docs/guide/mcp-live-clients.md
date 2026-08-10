@@ -68,6 +68,8 @@ and [Claude remote connector guide](https://support.claude.com/en/articles/11175
 
 ## Manual checklist
 
+For the full agent workflow matrix, see [Operational MCP use-case matrix](mcp-operational-use-cases.md).
+
 1. For agent-mode QA, use the Forgejo token already assigned to that agent; do not provision a second MCP token. Use a different short-lived lifecycle credential only when testing the optional lifecycle mode.
 2. Record client, OS, server revision, and execution time without recording the
    token value or token-file contents.

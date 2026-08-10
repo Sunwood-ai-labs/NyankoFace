@@ -965,13 +965,24 @@ class NyankoFaceAdapter:
             },
         }
 
-    async def get_tree(self, owner: str, repo: str, ref: str, token: str | None) -> dict:
+    async def get_tree(
+        self,
+        owner: str,
+        repo: str,
+        ref: str,
+        token: str | None,
+        path: str | None = None,
+    ) -> dict:
         validate_repo_identity(owner, repo)
         effective_ref = validate_ref(ref)
+        clean_path = validate_content_path(path) if path is not None else None
         repository = await self.get_repository(owner, repo, token)
+        contents_path = f"/repos/{quote(owner, safe='')}/{quote(repo, safe='')}/contents"
+        if clean_path:
+            contents_path += f"/{quote(clean_path, safe='/')}"
         payload, headers = await self._get_with_metadata(
             self.settings.forgejo_api,
-            f"/repos/{quote(owner, safe='')}/{quote(repo, safe='')}/contents",
+            contents_path,
             token,
             {"ref": effective_ref},
         )
@@ -982,6 +993,7 @@ class NyankoFaceAdapter:
             "owner": owner,
             "repo": repo,
             "ref": effective_ref,
+            "path": clean_path,
             "updated_at": repository.get("updated_at"),
             "entries": entries,
         }
