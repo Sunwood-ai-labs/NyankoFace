@@ -38,9 +38,7 @@ REQUIRED_OPERATIONAL_TOOLS = (
     "get_issue",
     "create_issue",
 )
-ARTICLE_PATH_PATTERN = re.compile(
-    r"""(?:^|[/\\("' ])articles/([A-Za-z0-9][A-Za-z0-9._-]*)(?:\.md)?"""
-)
+ARTICLE_SLUG_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 MAX_CATALOG_PAGES = 20
 
 
@@ -186,38 +184,26 @@ def _require_items(payload: dict[str, Any], operation: str) -> list[dict[str, An
     return items
 
 
-def _article_slugs(
-    repository: dict[str, Any],
-    tree: dict[str, Any],
-    file_payload: dict[str, Any] | None,
-    repo_name: str,
-    article_tree: dict[str, Any] | None = None,
-) -> list[str]:
-    sources = [json.dumps(repository, ensure_ascii=False)]
-    entries = tree.get("entries")
-    if isinstance(entries, list):
-        sources.append(json.dumps(entries, ensure_ascii=False))
-    if article_tree is not None:
-        article_entries = article_tree.get("entries")
-        if isinstance(article_entries, list):
-            sources.append(json.dumps(article_entries, ensure_ascii=False))
-    if file_payload is not None:
-        sources.append(json.dumps(file_payload, ensure_ascii=False))
-    candidates: list[str] = []
-    for source in sources:
-        for match in ARTICLE_PATH_PATTERN.finditer(source):
-            slug = match.group(1).strip()
-            if slug.casefold().endswith(".md"):
-                slug = slug[:-3]
-            if slug and slug not in candidates:
-                candidates.append(slug)
-    published_slug = repository.get("slug")
-    if isinstance(published_slug, str) and published_slug.strip():
-        if published_slug not in candidates:
-            candidates.append(published_slug.strip())
-    if repo_name not in candidates:
-        candidates.append(repo_name)
-    return candidates
+def _article_file_candidate(
+    entry: dict[str, Any],
+    articles_path: str,
+) -> tuple[str, str] | None:
+    if entry.get("type") != "file" or not isinstance(entry.get("path"), str):
+        return None
+    file_path = entry["path"].strip("/")
+    if not file_path:
+        return None
+    if "/" not in file_path:
+        file_path = f"{articles_path}/{file_path}"
+    if Path(file_path).parent.as_posix().strip("/") != articles_path:
+        return None
+    filename = Path(file_path).name
+    if not filename.casefold().endswith(".md"):
+        return None
+    slug = filename[:-3]
+    if not ARTICLE_SLUG_PATTERN.fullmatch(slug):
+        return None
+    return file_path, slug
 
 
 def _preview_is_safe(preview: dict[str, Any]) -> None:
@@ -413,48 +399,35 @@ def run(
                 article_entries = articles_tree.get("entries")
                 if not isinstance(article_entries, list):
                     raise RuntimeError("get_tree articles/ returned no entries")
-                file_entry = next(
-                    (
-                        entry for entry in article_entries
-                        if isinstance(entry, dict)
-                        and entry.get("type") == "file"
-                        and isinstance(entry.get("path"), str)
-                        and Path(entry["path"]).suffix.casefold() == ".md"
-                        and entry["path"].strip()
-                    ),
-                    None,
-                )
-                if file_entry is None:
+                article_files = [
+                    candidate
+                    for entry in article_entries
+                    if isinstance(entry, dict)
+                    for candidate in [_article_file_candidate(entry, articles_path)]
+                    if candidate is not None
+                ]
+                if not article_files:
                     raise RuntimeError(
                         f"{doc_owner}/{doc_repo} has no Markdown article in {articles_path}/"
                     )
-                file_path = str(file_entry["path"]).strip("/")
-                if "/" not in file_path:
-                    file_path = f"{articles_path}/{file_path}"
-                file_meta, file_payload = call_tool(
-                    "get_file",
-                    {
-                        "owner": doc_owner,
-                        "repo": doc_repo,
-                        "path": file_path,
-                        "ref": ref,
-                    },
-                )
-
                 knowledge_meta = None
                 knowledge_slug = None
+                file_meta = None
+                file_path = None
                 knowledge_errors = []
                 knowledge_identity_mismatch = False
-                knowledge_candidates = _article_slugs(
-                    repository,
-                    tree,
-                    file_payload,
-                    doc_repo,
-                    articles_tree,
-                )
-                for candidate in knowledge_candidates:
+                for candidate_path, candidate in article_files:
                     try:
-                        knowledge_meta, knowledge_payload = call_tool(
+                        candidate_file_meta, _ = call_tool(
+                            "get_file",
+                            {
+                                "owner": doc_owner,
+                                "repo": doc_repo,
+                                "path": candidate_path,
+                                "ref": ref,
+                            },
+                        )
+                        candidate_knowledge_meta, knowledge_payload = call_tool(
                             "get_knowledge",
                             {"owner": doc_owner, "slug": candidate},
                         )
@@ -463,9 +436,12 @@ def run(
                             doc_owner,
                             doc_repo,
                             candidate,
-                            file_path,
+                            candidate_path,
                         )
+                        knowledge_meta = candidate_knowledge_meta
                         knowledge_slug = candidate
+                        file_meta = candidate_file_meta
+                        file_path = candidate_path
                         break
                     except RuntimeError as exc:
                         message = str(exc)

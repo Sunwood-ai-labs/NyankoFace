@@ -25,6 +25,7 @@ class _OperationalFixture(BaseHTTPRequestHandler):
     deny_issue_reads = False
     invalid_first_catalog_candidate = False
     fatal_invalid_catalog_candidate = False
+    unpublished_first_article = False
 
     def log_message(self, _format, *_args):
         return
@@ -177,12 +178,20 @@ class _OperationalFixture(BaseHTTPRequestHandler):
             }
         elif name == "get_tree":
             if arguments.get("path") == "articles":
+                article_entries = (
+                    [
+                        {"type": "file", "path": "articles/unpublished.md"},
+                        {"type": "file", "path": "articles/fixture-article.md"},
+                    ]
+                    if type(self).unpublished_first_article
+                    else [{"type": "file", "path": "articles/fixture-article.md"}]
+                )
                 value = {
                     "owner": arguments["owner"],
                     "repo": arguments["repo"],
                     "ref": arguments["ref"],
                     "path": "articles",
-                    "entries": [{"type": "file", "path": "articles/fixture-article.md"}],
+                    "entries": article_entries,
                 }
             else:
                 entries = (
@@ -207,6 +216,25 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                 "text": "Published article: articles/fixture-article.md",
             }
         elif name == "get_knowledge":
+            if (
+                type(self).unpublished_first_article
+                and arguments.get("slug") == "unpublished"
+            ):
+                self._send_json(200, {
+                    "jsonrpc": "2.0",
+                    "id": request["id"],
+                    "result": {
+                        "isError": True,
+                        "content": [{
+                            "type": "text",
+                            "text": (
+                                "Error executing tool get_knowledge: "
+                                '{"error":{"code":"not_found_or_unauthorized"}}'
+                            ),
+                        }],
+                    },
+                })
+                return
             value = {
                 "owner": arguments["owner"],
                 "repository": "knowledge",
@@ -267,6 +295,7 @@ def test_operational_use_case_runner_covers_agent_workflows_without_mutation(tmp
     _OperationalFixture.deny_issue_reads = False
     _OperationalFixture.invalid_first_catalog_candidate = False
     _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -313,6 +342,7 @@ def test_operational_use_case_runner_skips_invalid_catalog_candidate_and_pages(t
     _OperationalFixture.deny_issue_reads = False
     _OperationalFixture.invalid_first_catalog_candidate = True
     _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -330,6 +360,7 @@ def test_operational_use_case_runner_skips_invalid_catalog_candidate_and_pages(t
         server.server_close()
         thread.join(timeout=5)
         _OperationalFixture.invalid_first_catalog_candidate = False
+        _OperationalFixture.unpublished_first_article = False
 
     catalog_use_case = summary["use_cases"]["catalog_to_knowledge"]
     assert catalog_use_case["catalog_page"] == 2
@@ -348,6 +379,7 @@ def test_operational_use_case_runner_does_not_skip_fatal_upstream_response(tmp_p
     _OperationalFixture.deny_issue_reads = False
     _OperationalFixture.invalid_first_catalog_candidate = True
     _OperationalFixture.fatal_invalid_catalog_candidate = True
+    _OperationalFixture.unpublished_first_article = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -367,6 +399,43 @@ def test_operational_use_case_runner_does_not_skip_fatal_upstream_response(tmp_p
         thread.join(timeout=5)
         _OperationalFixture.invalid_first_catalog_candidate = False
         _OperationalFixture.fatal_invalid_catalog_candidate = False
+
+
+def test_operational_use_case_runner_pairs_each_article_with_its_knowledge_path(tmp_path):
+    _OperationalFixture.calls = []
+    _OperationalFixture.preview_requests = []
+    _OperationalFixture.mutations = []
+    _OperationalFixture.deny_issue_reads = False
+    _OperationalFixture.invalid_first_catalog_candidate = False
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = True
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    token_file = tmp_path / "forgejo.token"
+    token_file.write_text("multiple-articles-fixture-secret", encoding="utf-8")
+    try:
+        summary = run(
+            f"http://127.0.0.1:{server.server_port}/mcp",
+            token_file,
+            "fixture-agent",
+            "1.0",
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        _OperationalFixture.unpublished_first_article = False
+
+    catalog_use_case = summary["use_cases"]["catalog_to_knowledge"]
+    assert catalog_use_case["file_path"] == "articles/fixture-article.md"
+    assert catalog_use_case["knowledge_slug"] == "fixture-article"
+    file_reads = [
+        arguments["path"]
+        for name, arguments in _OperationalFixture.calls
+        if name == "get_file"
+    ]
+    assert file_reads == ["articles/unpublished.md", "articles/fixture-article.md"]
 
 
 def test_catalog_candidate_skip_filter_keeps_upstream_shape_errors_fatal():
@@ -404,6 +473,7 @@ def test_operational_use_case_runner_records_missing_issue_scope_without_false_s
     _OperationalFixture.deny_issue_reads = True
     _OperationalFixture.invalid_first_catalog_candidate = False
     _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
