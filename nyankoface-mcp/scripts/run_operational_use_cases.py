@@ -63,7 +63,6 @@ def _catalog_candidate_error_is_skippable(message: str) -> bool:
             "not_found_or_unauthorized",
             "catalog item is missing",
             "has no articles/ directory",
-            "articles/ returned no entries",
             "has no markdown article",
             "no published knowledge article slug",
             "knowledge repository collision",
@@ -321,7 +320,14 @@ def _require_issue_identity(
     payload: dict[str, Any] | None,
     number: int,
 ) -> None:
-    if not isinstance(payload, dict) or payload.get("number") != number:
+    payload_number = payload.get("number") if isinstance(payload, dict) else None
+    if (
+        isinstance(number, bool)
+        or not isinstance(number, int)
+        or isinstance(payload_number, bool)
+        or not isinstance(payload_number, int)
+        or payload_number != number
+    ):
         raise RuntimeError("get_issue returned issue identity mismatch")
 
 

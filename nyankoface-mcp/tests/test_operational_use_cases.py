@@ -582,8 +582,11 @@ def test_catalog_candidate_skip_filter_keeps_upstream_shape_errors_fatal():
     assert not _catalog_candidate_error_is_skippable(
         "get_tree returned an MCP tool error: invalid repository tree"
     )
-    assert _catalog_candidate_error_is_skippable(
+    assert not _catalog_candidate_error_is_skippable(
         "get_tree articles/ returned no entries"
+    )
+    assert _catalog_candidate_error_is_skippable(
+        "alice/empty has no Markdown article in articles/"
     )
     assert _catalog_candidate_error_is_skippable(
         "bob/empty has no articles/ directory in its root tree"
@@ -660,6 +663,10 @@ def test_issue_identity_must_match_the_requested_number():
     _require_issue_identity({"number": 7, "title": "triage me"}, 7)
     with pytest.raises(RuntimeError, match="issue identity mismatch"):
         _require_issue_identity({"number": 8, "title": "wrong issue"}, 7)
+    with pytest.raises(RuntimeError, match="issue identity mismatch"):
+        _require_issue_identity({"number": True, "title": "malformed issue"}, 1)
+    with pytest.raises(RuntimeError, match="issue identity mismatch"):
+        _require_issue_identity({"number": 7.0, "title": "malformed issue"}, 7)
 
 
 def test_article_file_filter_skips_local_file_limits_but_not_upstream_failures():
