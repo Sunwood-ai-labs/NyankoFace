@@ -67,6 +67,7 @@ def _catalog_candidate_error_is_skippable(message: str) -> bool:
             "has no articles/ directory",
             "has no markdown article",
             "no published knowledge article slug",
+            "knowledge article identity mismatch",
         )
     )
 
@@ -83,6 +84,8 @@ def _catalog_candidate_skip_reason(message: str) -> str:
         return "no_markdown_article"
     if "no published knowledge article slug" in lowered:
         return "knowledge_not_published"
+    if "knowledge article identity mismatch" in lowered:
+        return "knowledge_repository_mismatch"
     if "catalog item is missing" in lowered:
         return "invalid_catalog_identity"
     return "invalid_catalog_candidate"
@@ -223,6 +226,35 @@ def _preview_is_safe(preview: dict[str, Any]) -> None:
     confirmation = preview.get("confirmation")
     if not isinstance(confirmation, str) or not confirmation.strip():
         raise RuntimeError("create_issue preview did not return a confirmation")
+
+
+def _require_knowledge_identity(
+    payload: dict[str, Any] | None,
+    owner: str,
+    repo: str,
+    slug: str,
+    path: str,
+) -> None:
+    if not isinstance(payload, dict):
+        raise RuntimeError("get_knowledge returned invalid repository identity")
+    payload_owner = payload.get("owner")
+    if isinstance(payload_owner, dict):
+        payload_owner = payload_owner.get("login") or payload_owner.get("username")
+    payload_repo = payload.get("repository")
+    payload_slug = payload.get("slug")
+    payload_path = payload.get("path")
+    if not all(
+        isinstance(value, str) and value.strip()
+        for value in (payload_owner, payload_repo, payload_slug, payload_path)
+    ):
+        raise RuntimeError("get_knowledge returned invalid repository identity")
+    if (
+        payload_owner != owner
+        or payload_repo != repo
+        or payload_slug != slug
+        or payload_path.strip("/") != path.strip("/")
+    ):
+        raise RuntimeError("knowledge article identity mismatch")
 
 
 def run(
@@ -412,6 +444,7 @@ def run(
                 knowledge_meta = None
                 knowledge_slug = None
                 knowledge_errors = []
+                knowledge_identity_mismatch = False
                 knowledge_candidates = _article_slugs(
                     repository,
                     tree,
@@ -421,19 +454,37 @@ def run(
                 )
                 for candidate in knowledge_candidates:
                     try:
-                        knowledge_meta, _ = call_tool(
+                        knowledge_meta, knowledge_payload = call_tool(
                             "get_knowledge",
                             {"owner": doc_owner, "slug": candidate},
+                        )
+                        _require_knowledge_identity(
+                            knowledge_payload,
+                            doc_owner,
+                            doc_repo,
+                            candidate,
+                            file_path,
                         )
                         knowledge_slug = candidate
                         break
                     except RuntimeError as exc:
-                        if "not_found_or_unauthorized" not in str(exc):
-                            raise
-                        knowledge_errors.append(str(exc))
+                        message = str(exc)
+                        if "not_found_or_unauthorized" in message:
+                            knowledge_errors.append(message)
+                            continue
+                        if "knowledge article identity mismatch" in message:
+                            knowledge_identity_mismatch = True
+                            knowledge_errors.append(message)
+                            continue
+                        raise
                 if knowledge_meta is None or knowledge_slug is None:
+                    error_prefix = (
+                        "knowledge article identity mismatch"
+                        if knowledge_identity_mismatch
+                        else "no published Knowledge article slug was found in repository content"
+                    )
                     raise RuntimeError(
-                        "no published Knowledge article slug was found in repository content: "
+                        error_prefix + ": "
                         + "; ".join(knowledge_errors)
                     )
                 selected_catalog = {

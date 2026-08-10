@@ -12,6 +12,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 from run_operational_use_cases import (  # noqa: E402
     _catalog_candidate_error_is_skippable,
+    _require_knowledge_identity,
     run,
 )
 
@@ -208,7 +209,9 @@ class _OperationalFixture(BaseHTTPRequestHandler):
         elif name == "get_knowledge":
             value = {
                 "owner": arguments["owner"],
+                "repository": "knowledge",
                 "slug": arguments["slug"],
+                "path": "articles/fixture-article.md",
                 "title": "Operational fixture knowledge",
             }
         elif name == "list_issues":
@@ -376,6 +379,22 @@ def test_catalog_candidate_skip_filter_keeps_upstream_shape_errors_fatal():
     assert _catalog_candidate_error_is_skippable(
         "bob/empty has no articles/ directory in its root tree"
     )
+
+
+def test_knowledge_identity_must_match_the_candidate_repository_and_file():
+    with pytest.raises(RuntimeError, match="identity mismatch"):
+        _require_knowledge_identity(
+            {
+                "owner": "alice",
+                "repository": "other-repository",
+                "slug": "fixture-article",
+                "path": "articles/fixture-article.md",
+            },
+            "alice",
+            "knowledge",
+            "fixture-article",
+            "articles/fixture-article.md",
+        )
 
 
 def test_operational_use_case_runner_records_missing_issue_scope_without_false_success(tmp_path):
