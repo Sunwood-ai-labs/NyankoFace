@@ -317,6 +317,14 @@ def _require_knowledge_identity(
         raise RuntimeError("knowledge repository collision")
 
 
+def _require_issue_identity(
+    payload: dict[str, Any] | None,
+    number: int,
+) -> None:
+    if not isinstance(payload, dict) or payload.get("number") != number:
+        raise RuntimeError("get_issue returned issue identity mismatch")
+
+
 def run(
     url: str,
     token_file: Path,
@@ -618,7 +626,7 @@ def run(
     if selected_issue_number is not None:
         if not isinstance(selected_issue_number, int) or selected_issue_number < 1:
             raise RuntimeError("issue number must be a positive integer")
-        issue_detail_meta, _ = call_tool(
+        issue_detail_meta, issue_detail = call_tool(
             "get_issue",
             {
                 "owner": issue_target[0],
@@ -626,6 +634,7 @@ def run(
                 "number": selected_issue_number,
             },
         )
+        _require_issue_identity(issue_detail, selected_issue_number)
     elif require_issue:
         raise RuntimeError(
             "issue list was empty; pass an issue target or use a fixture with an issue"

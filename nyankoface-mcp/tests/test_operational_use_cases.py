@@ -14,6 +14,7 @@ from run_operational_use_cases import (  # noqa: E402
     _article_file_error_is_skippable,
     _catalog_candidate_error_is_skippable,
     _require_knowledge_identity,
+    _require_issue_identity,
     _require_repository_identity,
     run,
 )
@@ -30,6 +31,7 @@ class _OperationalFixture(BaseHTTPRequestHandler):
     unpublished_first_article = False
     file_read_failure_first_article = False
     misrouted_repository_response = False
+    misrouted_issue_response = False
 
     def log_message(self, _format, *_args):
         return
@@ -299,7 +301,12 @@ class _OperationalFixture(BaseHTTPRequestHandler):
                 "items": [{"number": 7, "title": "triage me", "state": "open"}],
             }
         elif name == "get_issue":
-            value = {"number": arguments["number"], "title": "triage me", "state": "open"}
+            issue_number = (
+                arguments["number"] + 1
+                if type(self).misrouted_issue_response
+                else arguments["number"]
+            )
+            value = {"number": issue_number, "title": "triage me", "state": "open"}
         elif name == "create_issue":
             assert arguments["preview"] is True
             type(self).preview_requests.append(arguments)
@@ -539,6 +546,35 @@ def test_operational_use_case_runner_fails_on_misrouted_repository_detail(tmp_pa
         _OperationalFixture.misrouted_repository_response = False
 
 
+def test_operational_use_case_runner_fails_on_misrouted_issue_detail(tmp_path):
+    _OperationalFixture.calls = []
+    _OperationalFixture.preview_requests = []
+    _OperationalFixture.mutations = []
+    _OperationalFixture.deny_issue_reads = False
+    _OperationalFixture.invalid_first_catalog_candidate = False
+    _OperationalFixture.fatal_invalid_catalog_candidate = False
+    _OperationalFixture.unpublished_first_article = False
+    _OperationalFixture.misrouted_issue_response = True
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _OperationalFixture)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    token_file = tmp_path / "forgejo.token"
+    token_file.write_text("misrouted-issue-fixture-secret", encoding="utf-8")
+    try:
+        with pytest.raises(RuntimeError, match="issue identity mismatch"):
+            run(
+                f"http://127.0.0.1:{server.server_port}/mcp",
+                token_file,
+                "fixture-agent",
+                "1.0",
+            )
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        _OperationalFixture.misrouted_issue_response = False
+
+
 def test_catalog_candidate_skip_filter_keeps_upstream_shape_errors_fatal():
     assert not _catalog_candidate_error_is_skippable(
         "get_repository returned an invalid response: invalid_upstream_response"
@@ -618,6 +654,12 @@ def test_repository_identity_must_match_the_requested_target():
             "alice",
             "knowledge",
         )
+
+
+def test_issue_identity_must_match_the_requested_number():
+    _require_issue_identity({"number": 7, "title": "triage me"}, 7)
+    with pytest.raises(RuntimeError, match="issue identity mismatch"):
+        _require_issue_identity({"number": 8, "title": "wrong issue"}, 7)
 
 
 def test_article_file_filter_skips_local_file_limits_but_not_upstream_failures():
