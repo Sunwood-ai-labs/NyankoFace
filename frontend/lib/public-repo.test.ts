@@ -104,15 +104,28 @@ test('rejects hex IPv4-mapped IPv6 and backslash-normalized internal URLs', () =
   assert.equal(safePublicUrl('/\\\\forgejo:3000/private'), undefined);
 });
 
-test('rejects unlisted internal hostnames and terminal-dot aliases', () => {
+test('rejects internal hostnames and preserves public service labels', () => {
   assert.equal(safePublicUrl('https://git/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://forgejo.:3000/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://nas.home.arpa/avatar.png'), undefined);
-  assert.equal(safePublicUrl('https://forgejo.ops.example.com/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://198.18.0.1/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://0.1.2.3/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://192.0.1.1/avatar.png'), 'https://192.0.1.1/avatar.png');
   assert.equal(safePublicUrl('https://git.example.com/avatar.png'), 'https://git.example.com/avatar.png');
   assert.equal(safePublicUrl('https://gateway.example.org/avatar.png'), 'https://gateway.example.org/avatar.png');
   assert.equal(safePublicUrl('https://frontend.example.net/avatar.png'), 'https://frontend.example.net/avatar.png');
+  assert.equal(safePublicUrl('https://forgejo.example.com/avatar.png'), 'https://forgejo.example.com/avatar.png');
+  assert.equal(safePublicUrl('https://backend.example.com/avatar.png'), 'https://backend.example.com/avatar.png');
+  assert.equal(safePublicUrl('https://mcp.example.com/avatar.png'), 'https://mcp.example.com/avatar.png');
+});
+
+test('rejects the configured Forgejo origin even when its hostname is public-looking', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    assert.equal(safePublicUrl('https://forgejo.ops.example.com/avatar.png'), undefined);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
 });

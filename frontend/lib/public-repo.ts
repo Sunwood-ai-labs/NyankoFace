@@ -9,15 +9,6 @@ const UPSTREAM_URL_FIELDS = [
   'website',
 ] as const;
 
-const PRIVATE_HOST_LABELS = new Set([
-  'backend',
-  'forgejo',
-  'gitea',
-  'mcp',
-  'mcp-admin',
-  'spaces-runner',
-]);
-
 function configuredForgejoHostname(): string | undefined {
   const configured = process.env.FORGEJO_API;
   if (!configured) return undefined;
@@ -48,8 +39,7 @@ function isPrivateHostname(hostname: string): boolean {
     host.endsWith('.svc') ||
     host.endsWith('.cluster.local') ||
     host.endsWith('.test') ||
-    (!host.includes('.') && !host.includes(':')) ||
-    host.split('.').some((label) => PRIVATE_HOST_LABELS.has(label))
+    (!host.includes('.') && !host.includes(':'))
   ) return true;
   const octets = host.split('.').map((part) => Number(part));
   if (octets.length === 4 && octets.every((part) => Number.isInteger(part) && part >= 0 && part <= 255)) {
