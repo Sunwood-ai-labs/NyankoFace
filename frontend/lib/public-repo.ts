@@ -205,7 +205,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
     try {
       const parsed = new URL(url);
-      return isEstablishedPrivateEndpointHost(parsed.hostname, parsed.port || undefined)
+      return parsed.username || parsed.password || isEstablishedPrivateEndpointHost(parsed.hostname, parsed.port || undefined)
         ? `[internal URL omitted]${trailing}`
         : candidate;
     } catch {
@@ -280,7 +280,12 @@ function sanitizePublicRepoText(value: string): string {
     current = decoded;
   }
   const sanitized = sanitizePublicRepoTextOnce(current);
-  if (sanitized !== current) return sanitized;
+  if (sanitized !== current) {
+    // Keep safe text exactly as supplied after the final bounded decode pass.
+    // sanitizePublicTextOnce may otherwise normalize a public URL by adding a
+    // trailing slash, making an eight-times-encoded safe value look changed.
+    return sanitized.includes('[internal URL omitted]') ? sanitized : original;
+  }
   try {
     return decodeURIComponent(current) !== current ? '[internal URL omitted]' : original;
   } catch {
