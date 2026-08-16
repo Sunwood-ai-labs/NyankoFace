@@ -78,9 +78,34 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
   assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
   assert.equal(safePublicUrl('https://[ff05::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:db8::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:11::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:21::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[3fff::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[64:ff9b:1::1]/avatar.png'), undefined);
+});
+
+test('scrubs private origins embedded in retained repository text', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    const repo = {
+      id: 12,
+      name: 'demo',
+      full_name: 'alice/demo',
+      description: 'Docs: http://forgejo.ops.example.com/alice/demo; public: https://8.8.8.8/docs.',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo;
+
+    const sanitized = sanitizePublicRepo(repo);
+    assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com/);
+    assert.match(sanitized.description || '', /\[internal URL omitted\]/);
+    assert.match(sanitized.description || '', /https:\/\/8\.8\.8\.8\/docs/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
 });
 
 test('rejects link-local and IPv6 ULA origins', () => {

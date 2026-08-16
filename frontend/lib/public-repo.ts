@@ -65,6 +65,27 @@ function stripNestedUrlFields(value: unknown): unknown {
   return result;
 }
 
+function sanitizePublicRepoText(value: string): string {
+  return value.replace(/(?:https?:[\\/]+|[\\/]{2})[^\s<>"'`]+/gi, (candidate) => {
+    const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
+    const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
+    const safe = safePublicUrl(url);
+    return `${safe || '[internal URL omitted]'}${trailing}`;
+  });
+}
+
+function sanitizePublicRepoValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    const direct = safePublicUrl(value);
+    return direct ?? sanitizePublicRepoText(value);
+  }
+  if (Array.isArray(value)) return value.map(sanitizePublicRepoValue);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, entry]) => [key, sanitizePublicRepoValue(entry)]),
+  );
+}
+
 /**
  * Remove Forgejo's server-side URL fields before repository metadata crosses
  * the public NyankoFace boundary. The portal owns the public /git route, so
@@ -80,7 +101,7 @@ export function sanitizePublicRepo(repo: Repo): Repo {
       ? { avatar_url: safePublicUrl(repo.owner?.avatar_url) }
       : { avatar_url: undefined }),
   };
-  const safe = stripNestedUrlFields(raw) as Repo & Record<string, unknown>;
+  const safe = sanitizePublicRepoValue(stripNestedUrlFields(raw)) as Repo & Record<string, unknown>;
   safe.owner = safeOwner;
 
   for (const field of UPSTREAM_URL_FIELDS) delete safe[field];
