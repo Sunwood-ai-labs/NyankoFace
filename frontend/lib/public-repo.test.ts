@@ -99,7 +99,7 @@ test('scrubs private origins embedded in retained repository text', () => {
       id: 12,
       name: 'demo',
       full_name: 'alice/demo',
-      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; SCP without user: forgejo:alice/demo.git; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
+      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; SCP without user: forgejo:alice/demo.git; Bare: forgejo:3000; Private IP: 192.168.1.4:8080; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
       owner: { login: 'alice' },
       updated_at: '2026-08-16T00:00:00Z',
     } as Repo;
@@ -110,6 +110,8 @@ test('scrubs private origins embedded in retained repository text', () => {
     assert.doesNotMatch(sanitized.description || '', /ssh:\/\/|git:\/\//);
     assert.doesNotMatch(sanitized.description || '', /git@forgejo:/);
     assert.doesNotMatch(sanitized.description || '', /forgejo:alice\//);
+    assert.doesNotMatch(sanitized.description || '', /forgejo:3000/);
+    assert.doesNotMatch(sanitized.description || '', /192\.168\.1\.4:8080/);
     assert.match(sanitized.description || '', /\[internal URL omitted\]/);
     assert.match(sanitized.description || '', /https:\/\/8\.8\.8\.8\/docs/);
   } finally {
@@ -194,6 +196,7 @@ test('rejects internal hostnames and preserves public service labels', () => {
   assert.equal(safePublicUrl('https://192.0.1.1/avatar.png'), 'https://192.0.1.1/avatar.png');
   assert.equal(safePublicUrl('https://192.0.0.9/avatar.png'), 'https://192.0.0.9/avatar.png');
   assert.equal(safePublicUrl('https://192.0.0.10/avatar.png'), 'https://192.0.0.10/avatar.png');
+  assert.equal(safePublicUrl('https://192.88.99.2/avatar.png'), 'https://192.88.99.2/avatar.png');
   assert.equal(safePublicUrl('https://alice:secret@public.example/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://git.example.com/avatar.png'), 'https://git.example.com/avatar.png');
   assert.equal(safePublicUrl('https://gateway.example.org/avatar.png'), 'https://gateway.example.org/avatar.png');
