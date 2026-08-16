@@ -37,6 +37,32 @@ _PRIVATE_DNS_SUFFIXES = (
     ".svc",
     ".test",
 )
+_PRIVATE_DNS_LABELS = {
+    "backend",
+    "cache",
+    "cluster",
+    "database",
+    "db",
+    "forgejo",
+    "frontend",
+    "gateway",
+    "git",
+    "gitea",
+    "internal",
+    "mcp",
+    "mcp-admin",
+    "namespace",
+    "nas",
+    "ops",
+    "private",
+    "production",
+    "redis",
+    "runner",
+    "service",
+    "spaces-runner",
+    "staging",
+    "worker",
+}
 
 
 def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = False) -> str:
@@ -65,6 +91,7 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
             hostname in _PRIVATE_SERVICE_HOSTS
             or "." not in hostname
             or hostname.endswith(_PRIVATE_DNS_SUFFIXES)
+            or any(label in _PRIVATE_DNS_LABELS for label in hostname.split("."))
             or _is_non_global_ip(hostname)
         )
     )
