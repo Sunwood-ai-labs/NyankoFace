@@ -130,7 +130,7 @@ def _is_non_global_ip(hostname: str) -> bool:
         address = ipaddress.ip_address(hostname)
     except ValueError:
         return False
-    return address.is_multicast or not address.is_global
+    return address.is_site_local or address.is_multicast or not address.is_global
 
 
 def _legacy_ipv4_address(hostname: str) -> ipaddress.IPv4Address | None:

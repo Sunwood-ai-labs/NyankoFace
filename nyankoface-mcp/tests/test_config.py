@@ -29,6 +29,7 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://service.ｉｎｔｅｒｎａｌ:8443",
         "https://224.0.0.1:8443",
         "https://[ff02::1]:8443",
+        "https://[fec0::1]:8443",
         "https://[v1.google.com]:8443",
         "https://foo.bar。internal:8443",
         "https://example.com/base",
