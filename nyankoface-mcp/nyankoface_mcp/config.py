@@ -34,25 +34,12 @@ _PRIVATE_DNS_SUFFIXES = (
     ".local",
     ".localhost",
     ".private",
+    ".production",
     ".svc",
     ".test",
+    ".namespace",
 )
-_PUBLIC_DNS_SUFFIXES = {
-    "academy", "agency", "ai", "app", "art", "at", "au", "be", "biz", "blog", "br", "ca",
-    "center", "ch", "cloud", "co", "company", "community", "cn", "com", "design", "dev", "digital",
-    "dk", "edu", "email", "es", "eu", "fi", "fm", "fr", "games", "gg", "gov", "guru", "host",
-    "il", "in", "info", "io", "it", "jp", "kr", "link", "live", "me", "mil", "mobi", "mx", "name",
-    "net", "network", "nl", "no", "nz", "one", "online", "org", "pl", "pro", "ru", "se", "sg", "sh",
-    "site", "social", "software", "solutions", "space", "store", "systems", "tech", "today", "to", "travel",
-    "tv", "ua", "uk", "us", "website", "wiki", "world", "xyz", "za", "zone",
-}
 _PRIVATE_SERVICE_HOST_LABELS = {"forgejo", "mcp-admin", "nyankoface-mcp", "spaces-runner"}
-
-
-def _has_public_dns_suffix(hostname: str) -> bool:
-    suffix = hostname.rsplit(".", 1)[-1]
-    return suffix in _PUBLIC_DNS_SUFFIXES or (len(suffix) == 2 and suffix.isalpha())
-
 
 def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = False) -> str:
     """Normalize the public origin and fail closed on private network hosts.
@@ -65,6 +52,8 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
     if not isinstance(value, str):
         raise ValueError("PUBLIC_BASE_URL must be an HTTP(S) URL")
     candidate = value.strip().rstrip("/")
+    if "\\" in candidate:
+        raise ValueError("PUBLIC_BASE_URL must use a public origin without backslashes")
     if "?" in candidate or "#" in candidate:
         raise ValueError("PUBLIC_BASE_URL must be a public origin without credentials, a query, or a fragment")
     parsed = urlsplit(candidate)
@@ -78,9 +67,8 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
         hostname != "localhost"
         and (
             hostname in _PRIVATE_SERVICE_HOSTS
-            or "." not in hostname
+            or ("." not in hostname and ":" not in hostname)
             or hostname.endswith(_PRIVATE_DNS_SUFFIXES)
-            or not _has_public_dns_suffix(hostname)
             or any(label in _PRIVATE_SERVICE_HOST_LABELS for label in hostname.split("."))
             or _is_non_global_ip(hostname)
         )

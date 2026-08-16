@@ -24,6 +24,7 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://redis.production:8443",
         "https://service.namespace:8443",
         "https://forgejo.ops.example.com:8443",
+        "https://127.0.0.1\\\\.example.com:8443",
         "https://public.example?",
         "https://public.example#",
     ],
@@ -40,6 +41,10 @@ def test_public_base_url_accepts_public_origin_and_strips_trailing_slash():
     assert normalize_public_base_url("https://git.example.com/") == "https://git.example.com"
     assert normalize_public_base_url("https://production.example.com/") == "https://production.example.com"
     assert normalize_public_base_url("https://redis.com/") == "https://redis.com"
+    assert normalize_public_base_url("https://example.museum/") == "https://example.museum"
+    assert normalize_public_base_url("https://example.photography/") == "https://example.photography"
+    assert normalize_public_base_url("https://8.8.8.8/") == "https://8.8.8.8"
+    assert normalize_public_base_url("https://[2606:4700:4700::1111]/") == "https://[2606:4700:4700::1111]"
 
 
 def test_localhost_remains_available_for_local_development():
