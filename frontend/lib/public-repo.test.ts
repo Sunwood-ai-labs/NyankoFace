@@ -80,6 +80,7 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
   assert.equal(safePublicUrl('https://[2001:db8::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[3fff::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[64:ff9b:1::1]/avatar.png'), undefined);
 });
 
 test('rejects link-local and IPv6 ULA origins', () => {
