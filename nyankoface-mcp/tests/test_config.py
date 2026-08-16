@@ -37,6 +37,9 @@ def test_public_base_url_accepts_public_origin_and_strips_trailing_slash():
     assert normalize_public_base_url("https://madesk.tail8be30.ts.net/") == (
         "https://madesk.tail8be30.ts.net"
     )
+    assert normalize_public_base_url("https://git.example.com/") == "https://git.example.com"
+    assert normalize_public_base_url("https://production.example.com/") == "https://production.example.com"
+    assert normalize_public_base_url("https://redis.com/") == "https://redis.com"
 
 
 def test_localhost_remains_available_for_local_development():
