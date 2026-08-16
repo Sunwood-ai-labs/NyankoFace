@@ -25,6 +25,8 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://service.namespace:8443",
         "https://127.0.0.1\\\\.example.com:8443",
         "https://%31%32%37.0.0.1:8443",
+        "https://①②⑦.⓪.⓪.①:8443",
+        "https://service.ｉｎｔｅｒｎａｌ:8443",
         "https://224.0.0.1:8443",
         "https://[ff02::1]:8443",
         "https://foo.bar。internal:8443",
@@ -49,6 +51,7 @@ def test_public_base_url_accepts_public_origin_and_strips_trailing_slash():
     assert normalize_public_base_url("https://example.photography/") == "https://example.photography"
     assert normalize_public_base_url("https://8.8.8.8/") == "https://8.8.8.8"
     assert normalize_public_base_url("https://[2606:4700:4700::1111]/") == "https://[2606:4700:4700::1111]"
+    assert normalize_public_base_url("https://例え.コム/") == "https://xn--r8jz45g.xn--tckwe"
 
 
 def test_localhost_remains_available_for_local_development():

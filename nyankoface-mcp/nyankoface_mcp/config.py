@@ -40,6 +40,22 @@ _PRIVATE_DNS_SUFFIXES = (
     ".namespace",
 )
 
+def _canonical_hostname(hostname: str) -> str:
+    dotted = (
+        hostname
+        .replace("\u3002", ".")
+        .replace("\uff0e", ".")
+        .replace("\uff61", ".")
+        .rstrip(".")
+    )
+    try:
+        return str(ipaddress.ip_address(dotted)).casefold()
+    except ValueError:
+        try:
+            return dotted.encode("idna").decode("ascii").casefold()
+        except UnicodeError as exc:
+            raise ValueError("PUBLIC_BASE_URL must use a valid public hostname") from exc
+
 def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = False) -> str:
     """Normalize the public origin and fail closed on private network hosts.
 
@@ -58,14 +74,7 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
     if "?" in candidate or "#" in candidate:
         raise ValueError("PUBLIC_BASE_URL must be a public origin without credentials, a query, or a fragment")
     parsed = urlsplit(candidate)
-    hostname = (
-        (parsed.hostname or "")
-        .replace("\u3002", ".")
-        .replace("\uff0e", ".")
-        .replace("\uff61", ".")
-        .rstrip(".")
-        .casefold()
-    )
+    hostname = _canonical_hostname(parsed.hostname or "")
     if parsed.scheme not in {"http", "https"} or not hostname:
         raise ValueError("PUBLIC_BASE_URL must be an HTTP(S) URL")
     if parsed.path not in {"", "/"}:
@@ -88,7 +97,10 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
         raise ValueError(
             "PUBLIC_BASE_URL must use a public origin; private or internal hosts are not allowed"
         )
-    return candidate
+    authority_host = f"[{hostname}]" if ":" in hostname else hostname
+    if parsed.port is not None:
+        authority_host = f"{authority_host}:{parsed.port}"
+    return f"{parsed.scheme.lower()}://{authority_host}"
 
 
 def _is_non_global_ip(hostname: str) -> bool:
