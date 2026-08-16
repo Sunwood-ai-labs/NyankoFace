@@ -118,6 +118,7 @@ class SharedNavigationContractTests(unittest.TestCase):
         self.assertIn('if (query === "model") return "model";', HEADER)
         self.assertIn('return null;', HEADER[HEADER.index('const currentExploreKind'):HEADER.index('const enhanceExploreRepos')])
         self.assertIn('document.querySelector(".nyankoface-nav-models")?.classList.add("active")', HEADER)
+        self.assertIn('href="/models">Models</a>', HEADER)
         self.assertIn('<a class="active" href="/models">Main</a>', HEADER)
         self.assertIn('kind === "model" ? "/models"', HEADER)
         self.assertIn('<li><a href="/models">Models</a></li>', HEADER)

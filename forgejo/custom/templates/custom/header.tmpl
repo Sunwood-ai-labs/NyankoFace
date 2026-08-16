@@ -1502,8 +1502,10 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
 
     for (const item of document.querySelectorAll("#navbar a.item")) item.classList.remove("active");
     const activeSelector = kind === "model"
-      ? '#navbar a.item[href="/git/explore/repos"]'
-      : `#navbar a.item[href="/git/explore/repos?q=${kind}"]`;
+      ? '.nyankoface-nav-models, #navbar a.item[href="/models"], #navbar a.item[href="/git/explore/repos"]'
+      : kind === "dataset"
+        ? '.nyankoface-nav-datasets, #navbar a.item[href="/datasets"], #navbar a.item[href="/git/explore/repos?q=dataset"]'
+        : '.nyankoface-nav-spaces, #navbar a.item[href="/spaces"], #navbar a.item[href="/git/explore/repos?q=space"]';
     document.querySelector(activeSelector)?.classList.add("active");
 
     const page = document.querySelector(".page-content.explore, .page-content.organization, .page-content");
@@ -1606,7 +1608,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
       `;
     } else {
       aside.innerHTML = `
-        <a class="${kind === "model" ? "active" : ""}" href="/git/explore/repos">Models</a>
+        <a class="${kind === "model" ? "active" : ""}" href="/models">Models</a>
         <a class="${kind === "dataset" ? "active" : ""}" href="/git/explore/repos?q=dataset">Datasets</a>
         <a class="${kind === "space" ? "active" : ""}" href="/git/explore/repos?q=space">Spaces</a>
         <div class="nyankoface-explore-filter-title">Tasks</div>
