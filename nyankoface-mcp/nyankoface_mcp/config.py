@@ -26,6 +26,7 @@ _PRIVATE_DNS_SUFFIXES = (
     ".cluster.local",
     ".corp",
     ".home",
+    ".home.arpa",
     ".internal",
     ".intranet",
     ".lan",
@@ -64,7 +65,7 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
             or _is_non_global_ip(hostname)
         )
     )
-    if allow_test_public_base_url and hostname.endswith(".test"):
+    if allow_test_public_base_url and hostname == "ha.test":
         is_private_host = False
     if is_private_host:
         raise ValueError(
