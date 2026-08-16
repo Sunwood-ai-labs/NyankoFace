@@ -93,6 +93,7 @@ export function isPrivateHostname(hostname: string): boolean {
     host.endsWith('.internal') ||
     host.endsWith('.lan') ||
     host.endsWith('.home') ||
+    host === 'home.arpa' ||
     host.endsWith('.home.arpa') ||
     host.endsWith('.corp') ||
     host.endsWith('.intranet') ||

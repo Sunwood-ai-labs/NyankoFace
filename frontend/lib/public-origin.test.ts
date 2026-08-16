@@ -48,6 +48,7 @@ test('prefers a safe request origin when configuration points at a LAN host', ()
     'https://madesk.tail8be30.ts.net',
   );
   assert.equal(resolvePublicOrigin('https://localhost:8443', undefined), undefined);
+  assert.equal(resolvePublicOrigin('https://home.arpa', undefined), undefined);
 });
 
 test('sanitizes Pages JSON responses before they reach browser HTML or scripts', () => {

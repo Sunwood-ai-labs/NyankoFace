@@ -99,7 +99,7 @@ test('scrubs private origins embedded in retained repository text', () => {
       id: 12,
       name: 'demo',
       full_name: 'alice/demo',
-      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; SCP without user: forgejo:alice/demo.git, forgejo:demo.git; Short SCP: 10:repo.git, 0:repo.git; Mapped IPv6 SCP: [::ffff:127.0.0.1]:repo.git; Labels: frontend:React, backend:FastAPI, git:main; Bare: forgejo:3000; Private IP: 192.168.1.4:8080; Numeric IPv4: 2130706433:8080, 127.1:8080, 0xc0a80104:8080, 0x7f.1:8080, 0xc0.0250.1.4:8080, 127:8080, 10:8080, 0:8080, 0:80; Invalid clock endpoint: 99:30; Numeric suffixes: 12:30/path, 12:30?next=x, 23:59#fragment, 12:30/, 12:30?, 23:59#; Internal runners: spaces-runner:8000, nyankoface-mcp:8000, mcp-admin:8001, maintenance-agent:8010, gpu-worker:8787; IPv6 bare: [fc00::1]:8080; IPv6 SCP: [fc00::1]:alice/demo.git; Clock: 12:30 UTC; Image: node:20; Public port: example.com:443; Notation: docs:guide/setup; Config: config:foo/bar; Windows: C:/Users/alice/model.bin; Windows escaped: C:\\Users\\alice\\model.bin; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
+      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; SCP without user: forgejo:alice/demo.git, forgejo:demo.git; Short SCP: 10:repo.git, 0:repo.git; Mapped IPv6 SCP: [::ffff:127.0.0.1]:repo.git; Scoped IPv6 SCP: [fe80::1%lo]:repo.git; Labels: frontend:React, backend:FastAPI, git:main; Bare: forgejo:3000; Private IP: 192.168.1.4:8080; Numeric IPv4: 2130706433:8080, 127.1:8080, 0xc0a80104:8080, 0x7f.1:8080, 0xc0.0250.1.4:8080, 127:8080, 10:8080, 0:8080, 0:80; Invalid clock endpoint: 99:30; Numeric suffixes: 12:30/path, 12:30?next=x, 23:59#fragment, 12:30/, 12:30?, 23:59#; Internal runners: spaces-runner:8000, nyankoface-mcp:8000, mcp-admin:8001, maintenance-agent:8010, gpu-worker:8787; IPv6 bare: [fc00::1]:8080; IPv6 SCP: [fc00::1]:alice/demo.git; Clock: 12:30 UTC; Image: node:20; Public port: example.com:443; Notation: docs:guide/setup; Config: config:foo/bar; Windows: C:/Users/alice/model.bin; Windows escaped: C:\\Users\\alice\\model.bin; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
       owner: { login: 'alice' },
       updated_at: '2026-08-16T00:00:00Z',
       created_at: '2026-08-16T12:34:56Z',
@@ -112,7 +112,7 @@ test('scrubs private origins embedded in retained repository text', () => {
     assert.doesNotMatch(sanitized.description || '', /git@forgejo:/);
     assert.doesNotMatch(sanitized.description || '', /forgejo:alice\//);
     assert.doesNotMatch(sanitized.description || '', /forgejo:demo\.git/);
-    assert.doesNotMatch(sanitized.description || '', /10:repo\.git|0:repo\.git|\[::ffff:127\.0\.0\.1\]:repo\.git/);
+    assert.doesNotMatch(sanitized.description || '', /10:repo\.git|0:repo\.git|\[::ffff:127\.0\.0\.1\]:repo\.git|\[fe80::1%lo\]:repo\.git/);
     assert.doesNotMatch(sanitized.description || '', /forgejo:3000/);
     assert.doesNotMatch(sanitized.description || '', /192\.168\.1\.4:8080/);
     assert.doesNotMatch(sanitized.description || '', /2130706433:8080|127\.1:8080|0xc0a80104:8080|0x7f\.1:8080|0xc0\.0250\.1\.4:8080|127:8080|10:8080|0:8080|0:80|99:30|12:30\/path|12:30\?next=x|23:59#fragment|12:30\/|12:30\?|23:59#/);

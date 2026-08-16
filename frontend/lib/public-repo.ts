@@ -62,6 +62,8 @@ function normalizedHostnameForClassification(hostname: string): string {
     .toLowerCase()
     .replace(/^\[|\]$/g, '')
     .replace(/\.+$/, '');
+  const scopeSeparator = host.indexOf('%');
+  if (scopeSeparator >= 0) return normalizedHostnameForClassification(host.slice(0, scopeSeparator));
   if (!host.includes(':') || !host.includes('.')) return host;
   try {
     return new URL(`http://[${host}]/`).hostname
@@ -75,7 +77,7 @@ function normalizedHostnameForClassification(hostname: string): string {
 
 function isPrivateHostname(hostname: string): boolean {
   const host = normalizedHostnameForClassification(hostname);
-  return host === 'home.arpa' || configuredForgejoHostname() === host || isNonPublicHostname(host);
+  return configuredForgejoHostname() === host || isNonPublicHostname(host);
 }
 
 function canonicalNumericIpv4Host(hostname: string, port?: string, allowShortDecimal = false): string | undefined {
@@ -221,9 +223,19 @@ function sanitizePublicRepoTextOnce(value: string): string {
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
-    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
-    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
+    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
+    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint);
+}
+
+function decodeSafePercentSequences(value: string): string {
+  return value.replace(/(?:%[0-9a-f]{2})+/gi, (encoded) => {
+    try {
+      return decodeURIComponent(encoded);
+    } catch {
+      return encoded;
+    }
+  });
 }
 
 function sanitizePublicRepoText(value: string): string {
@@ -234,10 +246,13 @@ function sanitizePublicRepoText(value: string): string {
     try {
       decoded = decodeURIComponent(current);
     } catch {
-      const sanitized = sanitizePublicRepoTextOnce(current);
-      return sanitized !== current
+      const safelyDecoded = decodeSafePercentSequences(current);
+      const sanitized = sanitizePublicRepoTextOnce(safelyDecoded);
+      return sanitized !== safelyDecoded
         ? sanitized
-        : (/%(?:25|3a|2f|40|5c)/i.test(current) ? '[internal URL omitted]' : original);
+        : (safelyDecoded !== current
+          ? safelyDecoded
+          : (/%(?:25|3a|2f|40|5c)/i.test(current) ? '[internal URL omitted]' : original));
     }
     if (decoded === current) {
       const sanitized = sanitizePublicRepoTextOnce(current);
