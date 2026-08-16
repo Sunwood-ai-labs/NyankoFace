@@ -16,6 +16,7 @@ const NESTED_URL_PATTERNS = [
   /(?=(\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
 ];
 const MAX_URL_DECODE_PASSES = 8;
+const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
 
 function configuredForgejoHostname(): string | undefined {
   const configured = process.env.FORGEJO_API;
@@ -157,15 +158,16 @@ function sanitizePublicRepoText(value: string): string {
   }
 }
 
-function sanitizePublicRepoValue(value: unknown): unknown {
+function sanitizePublicRepoValue(value: unknown, fieldName?: string): unknown {
   if (typeof value === 'string') {
+    if (fieldName?.endsWith('_at') && ISO_TIMESTAMP_PATTERN.test(value)) return value;
     const direct = safePublicUrl(value);
     return direct ?? sanitizePublicRepoText(value);
   }
-  if (Array.isArray(value)) return value.map(sanitizePublicRepoValue);
+  if (Array.isArray(value)) return value.map((entry) => sanitizePublicRepoValue(entry, fieldName));
   if (!value || typeof value !== 'object') return value;
   return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).map(([key, entry]) => [key, sanitizePublicRepoValue(entry)]),
+    Object.entries(value as Record<string, unknown>).map(([key, entry]) => [key, sanitizePublicRepoValue(entry, key)]),
   );
 }
 
