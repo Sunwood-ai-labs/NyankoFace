@@ -212,7 +212,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
-    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
+    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint);
 }
 
