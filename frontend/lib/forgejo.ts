@@ -1,6 +1,7 @@
 import fs from 'fs';
 import matter from 'gray-matter';
 import { resolvePublicOrigin, sanitizePublicUrlRecord } from './public-origin';
+import { sanitizePublicRepo } from './public-repo';
 
 // ---------------------------------------------------------------------------
 // Configuration (固定契約: PLAN.md)
@@ -244,7 +245,9 @@ async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchRep
   // metadata. Never let that privileged token turn private Forgejo assets into
   // public NyankoFace catalog entries.
   const rawData = Array.isArray(res.json.data) ? res.json.data as Repo[] : [];
-  const data = rawData.filter((repo) => !repo.private);
+  const data = rawData
+    .filter((repo) => !repo.private)
+    .map(sanitizePublicRepo);
   const headerTotal = Number.parseInt(res.headers?.get('x-total-count') || '', 10);
   return {
     ok: true,
@@ -451,7 +454,7 @@ export async function searchReposByTopicAndQuery(
 export async function getRepo(owner: string, repo: string): Promise<Repo | null> {
   const res = await apiFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`);
   if (!res.ok || !res.json || res.json.private) return null;
-  const repoInfo = res.json as Repo;
+  const repoInfo = sanitizePublicRepo(res.json as Repo);
   const kind = repoKind(repoInfo.topics);
   if (kind === 'space') return (await enrichSpaceMetadata([repoInfo]))[0];
   if (kind === 'skill') {
@@ -500,7 +503,7 @@ export async function resolvePublicRepoRevision(
   const encodedRepo = encodeURIComponent(repo);
   const repoResponse = await publicApiFetch(`/repos/${encodedOwner}/${encodedRepo}`);
   if (!repoResponse.ok || !repoResponse.json || repoResponse.json.private) return null;
-  const repoInfo = repoResponse.json as Repo;
+  const repoInfo = sanitizePublicRepo(repoResponse.json as Repo);
   const ref = requestedRef?.trim() || repoInfo.default_branch || 'main';
   const commitResponse = await publicApiFetch(
     `/repos/${encodedOwner}/${encodedRepo}/git/commits/${encodeURIComponent(ref)}`,
