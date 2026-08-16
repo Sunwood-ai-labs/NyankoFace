@@ -200,6 +200,18 @@ function sanitizePublicRepoTextOnce(value: string): string {
     const safe = safePublicUrl(url);
     return `${safe || '[internal URL omitted]'}${trailing}`;
   };
+  const scrubSlashlessHttpTarget = (candidate: string): string => {
+    const trailing = candidate.match(/[),.;!]+$/)?.[0] || '';
+    const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
+    try {
+      const parsed = new URL(url);
+      return isEstablishedPrivateEndpointHost(parsed.hostname, parsed.port || undefined)
+        ? `[internal URL omitted]${trailing}`
+        : candidate;
+    } catch {
+      return `[internal URL omitted]${trailing}`;
+    }
+  };
   const scrubBareEndpoint = (candidate: string): string => {
     const endpoint = candidate.match(/^((?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\])):(\d{1,5})(?:[/?#][^\s<>"'`]*)?$/i);
     if (!endpoint) return candidate;
@@ -222,6 +234,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
   };
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
+    .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
@@ -241,7 +254,7 @@ function decodeSafePercentSequences(value: string): string {
 function sanitizePublicRepoText(value: string): string {
   const original = value;
   let current = value;
-  let changed = false;
+  let unsafeChanged = false;
   for (let pass = 0; pass < MAX_URL_DECODE_PASSES; pass += 1) {
     let decoded: string;
     try {
@@ -251,15 +264,14 @@ function sanitizePublicRepoText(value: string): string {
       const sanitized = sanitizePublicRepoTextOnce(safelyDecoded);
       if (sanitized !== safelyDecoded) {
         current = sanitized;
-        changed = true;
+        unsafeChanged = unsafeChanged || sanitized.includes('[internal URL omitted]');
         continue;
       }
       if (safelyDecoded !== current) {
         current = safelyDecoded;
-        changed = true;
         continue;
       }
-      return changed ? current : (/%(?:25|3a|2f|40|5c)/i.test(current) ? '[internal URL omitted]' : original);
+      return unsafeChanged ? current : original;
     }
     if (decoded === current) {
       const sanitized = sanitizePublicRepoTextOnce(current);
