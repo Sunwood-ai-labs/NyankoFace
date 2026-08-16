@@ -99,7 +99,7 @@ test('scrubs private origins embedded in retained repository text', () => {
       id: 12,
       name: 'demo',
       full_name: 'alice/demo',
-      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
+      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; SCP without user: forgejo:alice/demo.git; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
       owner: { login: 'alice' },
       updated_at: '2026-08-16T00:00:00Z',
     } as Repo;
@@ -109,6 +109,7 @@ test('scrubs private origins embedded in retained repository text', () => {
     assert.doesNotMatch(sanitized.description || '', /http%3A%2F%2Fforgejo/i);
     assert.doesNotMatch(sanitized.description || '', /ssh:\/\/|git:\/\//);
     assert.doesNotMatch(sanitized.description || '', /git@forgejo:/);
+    assert.doesNotMatch(sanitized.description || '', /forgejo:alice\//);
     assert.match(sanitized.description || '', /\[internal URL omitted\]/);
     assert.match(sanitized.description || '', /https:\/\/8\.8\.8\.8\/docs/);
   } finally {
