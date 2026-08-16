@@ -79,6 +79,7 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
   assert.equal(safePublicUrl('https://[ff05::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:db8::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[3fff::1]/avatar.png'), undefined);
 });
 
 test('rejects link-local and IPv6 ULA origins', () => {
@@ -120,6 +121,7 @@ test('rejects internal hostnames and preserves public service labels', () => {
   assert.equal(safePublicUrl('https://192.0.1.1/avatar.png'), 'https://192.0.1.1/avatar.png');
   assert.equal(safePublicUrl('https://192.0.0.9/avatar.png'), 'https://192.0.0.9/avatar.png');
   assert.equal(safePublicUrl('https://192.0.0.10/avatar.png'), 'https://192.0.0.10/avatar.png');
+  assert.equal(safePublicUrl('https://alice:secret@public.example/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://git.example.com/avatar.png'), 'https://git.example.com/avatar.png');
   assert.equal(safePublicUrl('https://gateway.example.org/avatar.png'), 'https://gateway.example.org/avatar.png');
   assert.equal(safePublicUrl('https://frontend.example.net/avatar.png'), 'https://frontend.example.net/avatar.png');
