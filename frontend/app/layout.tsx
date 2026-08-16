@@ -7,6 +7,7 @@ import { getLocale } from '@/lib/i18n-server';
 import { ui } from '@/lib/i18n';
 import { getAppName } from '@/lib/app-config';
 import { headers } from 'next/headers';
+import { requestOriginFromHeaders, resolvePublicOrigin } from '@/lib/public-origin';
 import AuthSessionProvider from '@/components/AuthSessionProvider';
 import { forgejoBrowserSession } from '@/lib/forgejo-session';
 import NavigationFeedback from '@/components/NavigationFeedback';
@@ -17,7 +18,11 @@ const BRAND_VERSION = '20260807-paw-v1';
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const appName = getAppName();
-  const publicBaseUrl = process.env.PUBLIC_BASE_URL?.trim();
+  const requestHeaders = await headers();
+  const publicBaseUrl = resolvePublicOrigin(
+    process.env.PUBLIC_BASE_URL,
+    requestOriginFromHeaders(requestHeaders),
+  );
   return {
     ...(publicBaseUrl ? { metadataBase: new URL(publicBaseUrl) } : {}),
     title: ui(locale, `${appName} - ローカルAIコミュニティハブ`, `${appName} - Local AI Community Hub`),

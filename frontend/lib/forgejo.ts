@@ -1,5 +1,6 @@
 import fs from 'fs';
 import matter from 'gray-matter';
+import { resolvePublicOrigin, sanitizePublicUrlRecord } from './public-origin';
 
 // ---------------------------------------------------------------------------
 // Configuration (固定契約: PLAN.md)
@@ -425,7 +426,7 @@ export async function getPagesInspection(
       `${RUNNER_API}/pages/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/status`,
       { cache: 'no-store', headers: { Accept: 'application/json' }, signal },
     );
-    if (response.ok) return await response.json() as PagesInspection;
+    if (response.ok) return sanitizePublicUrlRecord(await response.json()) as PagesInspection;
     return {
       owner,
       repo,
@@ -688,7 +689,10 @@ export function lfsMediaUrl(owner: string, repo: string, path: string, branch = 
 // Misc helpers
 // ---------------------------------------------------------------------------
 export function cloneUrl(owner: string, repo: string): string {
-  return `${PUBLIC_BASE_URL}/git/${owner}/${repo}.git`;
+  const publicOrigin = resolvePublicOrigin(PUBLIC_BASE_URL, undefined);
+  return publicOrigin
+    ? `${publicOrigin}/git/${owner}/${repo}.git`
+    : `/git/${owner}/${repo}.git`;
 }
 
 export function forgejoRepoUrl(owner: string, repo: string): string {
