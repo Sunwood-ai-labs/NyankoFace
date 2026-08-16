@@ -66,7 +66,7 @@ function stripNestedUrlFields(value: unknown): unknown {
 }
 
 function sanitizePublicRepoText(value: string): string {
-  return value.replace(/(?:https?:[\\/]+|[\\/]{2})[^\s<>"'`]+/gi, (candidate) => {
+  return value.replace(/(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, (candidate) => {
     const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
     const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
     const safe = safePublicUrl(url);
