@@ -60,6 +60,8 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
     hostname = (parsed.hostname or "").rstrip(".").casefold()
     if parsed.scheme not in {"http", "https"} or not hostname:
         raise ValueError("PUBLIC_BASE_URL must be an HTTP(S) URL")
+    if parsed.path not in {"", "/"}:
+        raise ValueError("PUBLIC_BASE_URL must be a public origin without a path")
     if parsed.username or parsed.password or parsed.query or parsed.fragment:
         raise ValueError("PUBLIC_BASE_URL must not contain credentials, a query, or a fragment")
 

@@ -25,6 +25,7 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://service.namespace:8443",
         "https://forgejo.ops.example.com:8443",
         "https://127.0.0.1\\\\.example.com:8443",
+        "https://example.com/base",
         "https://public.example?",
         "https://public.example#",
     ],
