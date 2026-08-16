@@ -99,7 +99,7 @@ test('scrubs private origins embedded in retained repository text', () => {
       id: 12,
       name: 'demo',
       full_name: 'alice/demo',
-      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; SCP without user: forgejo:alice/demo.git; Bare: forgejo:3000; Private IP: 192.168.1.4:8080; Clock: 12:30 UTC; Image: node:20; Public port: example.com:443; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
+      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; SCP without user: forgejo:alice/demo.git; Bare: forgejo:3000; Private IP: 192.168.1.4:8080; Clock: 12:30 UTC; Image: node:20; Public port: example.com:443; Notation: docs:guide/setup; Config: config:foo/bar; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
       owner: { login: 'alice' },
       updated_at: '2026-08-16T00:00:00Z',
       created_at: '2026-08-16T12:34:56Z',
@@ -116,6 +116,8 @@ test('scrubs private origins embedded in retained repository text', () => {
     assert.match(sanitized.description || '', /12:30 UTC/);
     assert.match(sanitized.description || '', /node:20/);
     assert.match(sanitized.description || '', /example\.com:443/);
+    assert.match(sanitized.description || '', /docs:guide\/setup/);
+    assert.match(sanitized.description || '', /config:foo\/bar/);
     assert.equal(sanitized.updated_at, '2026-08-16T00:00:00Z');
     assert.equal(sanitized.created_at, '2026-08-16T12:34:56Z');
     assert.match(sanitized.description || '', /\[internal URL omitted\]/);

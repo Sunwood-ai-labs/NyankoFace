@@ -149,10 +149,14 @@ function sanitizePublicRepoTextOnce(value: string): string {
     const host = candidate.slice(0, candidate.lastIndexOf(':'));
     return isEstablishedPrivateEndpointHost(host) ? '[internal URL omitted]' : candidate;
   };
+  const scrubUsernameLessScpEndpoint = (candidate: string): string => {
+    const host = candidate.slice(0, candidate.indexOf(':'));
+    return isEstablishedPrivateEndpointHost(host) ? '[internal URL omitted]' : candidate;
+  };
   return value
     .replace(/(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
-    .replace(/\b(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrub)
+    .replace(/\b(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/\b(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}\b/gi, scrubBareEndpoint);
 }
 
