@@ -6,15 +6,29 @@ const UPSTREAM_URL_FIELDS = [
   'ssh_url',
   'mirror_url',
   'original_url',
+  'website',
 ] as const;
 
 function isPrivateHostname(hostname: string): boolean {
-  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  const host = hostname
+    .toLowerCase()
+    .replace(/^\[|\]$/g, '')
+    .replace(/\.+$/, '');
   if (
     host === 'localhost' ||
     host.endsWith('.localhost') ||
     host.endsWith('.local') ||
     host.endsWith('.internal') ||
+    host.endsWith('.lan') ||
+    host.endsWith('.home') ||
+    host.endsWith('.home.arpa') ||
+    host.endsWith('.corp') ||
+    host.endsWith('.intranet') ||
+    host.endsWith('.private') ||
+    host.endsWith('.svc') ||
+    host.endsWith('.cluster.local') ||
+    host.endsWith('.test') ||
+    (!host.includes('.') && !host.includes(':')) ||
     host === 'forgejo' ||
     host === 'frontend' ||
     host === 'gateway' ||

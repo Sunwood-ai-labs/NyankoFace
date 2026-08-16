@@ -16,6 +16,7 @@ test('sanitizes upstream repository URLs at the public boundary', () => {
     },
     updated_at: '2026-08-16T00:00:00Z',
     html_url: 'http://192.168.11.22:8443/git/alice/demo',
+    website: 'http://forgejo:3000/alice/demo',
     url: 'http://forgejo:3000/api/v1/repos/alice/demo',
     languages_url: 'http://forgejo:3000/api/v1/repos/alice/demo/languages',
     clone_url: 'http://localhost:3000/alice/demo.git',
@@ -38,6 +39,7 @@ test('sanitizes upstream repository URLs at the public boundary', () => {
   assert.equal((sanitized as Repo & Record<string, unknown>).ssh_url, undefined);
   assert.equal((sanitized as Repo & Record<string, unknown>).languages_url, undefined);
   assert.equal((sanitized as Repo & Record<string, unknown>).space_url, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).website, undefined);
   const parent = (sanitized as Repo & Record<string, unknown>).parent as Record<string, unknown>;
   assert.equal(parent.html_url, undefined);
   assert.equal(parent.clone_url, undefined);
@@ -99,4 +101,10 @@ test('rejects hex IPv4-mapped IPv6 and backslash-normalized internal URLs', () =
 
   assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
   assert.equal(safePublicUrl('/\\\\forgejo:3000/private'), undefined);
+});
+
+test('rejects unlisted internal hostnames and terminal-dot aliases', () => {
+  assert.equal(safePublicUrl('https://git/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://forgejo.:3000/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://nas.home.arpa/avatar.png'), undefined);
 });
