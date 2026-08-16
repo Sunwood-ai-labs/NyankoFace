@@ -39,7 +39,6 @@ _PRIVATE_DNS_SUFFIXES = (
     ".test",
     ".namespace",
 )
-_PRIVATE_SERVICE_HOST_LABELS = {"forgejo", "mcp-admin", "nyankoface-mcp", "spaces-runner"}
 
 def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = False) -> str:
     """Normalize the public origin and fail closed on private network hosts.
@@ -54,10 +53,19 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
     candidate = value.strip().rstrip("/")
     if "\\" in candidate:
         raise ValueError("PUBLIC_BASE_URL must use a public origin without backslashes")
+    if "%" in candidate:
+        raise ValueError("PUBLIC_BASE_URL must use a public origin without percent-encoded authority")
     if "?" in candidate or "#" in candidate:
         raise ValueError("PUBLIC_BASE_URL must be a public origin without credentials, a query, or a fragment")
     parsed = urlsplit(candidate)
-    hostname = (parsed.hostname or "").rstrip(".").casefold()
+    hostname = (
+        (parsed.hostname or "")
+        .replace("\u3002", ".")
+        .replace("\uff0e", ".")
+        .replace("\uff61", ".")
+        .rstrip(".")
+        .casefold()
+    )
     if parsed.scheme not in {"http", "https"} or not hostname:
         raise ValueError("PUBLIC_BASE_URL must be an HTTP(S) URL")
     if parsed.path not in {"", "/"}:
@@ -71,7 +79,6 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
             hostname in _PRIVATE_SERVICE_HOSTS
             or ("." not in hostname and ":" not in hostname)
             or hostname.endswith(_PRIVATE_DNS_SUFFIXES)
-            or any(label in _PRIVATE_SERVICE_HOST_LABELS for label in hostname.split("."))
             or _is_non_global_ip(hostname)
         )
     )
@@ -87,12 +94,12 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
 def _is_non_global_ip(hostname: str) -> bool:
     if _looks_like_legacy_ipv4(hostname):
         legacy_ipv4 = _legacy_ipv4_address(hostname)
-        return legacy_ipv4 is None or not legacy_ipv4.is_global
+        return legacy_ipv4 is None or legacy_ipv4.is_multicast or not legacy_ipv4.is_global
     try:
         address = ipaddress.ip_address(hostname)
     except ValueError:
         return False
-    return not address.is_global
+    return address.is_multicast or not address.is_global
 
 
 def _legacy_ipv4_address(hostname: str) -> ipaddress.IPv4Address | None:
