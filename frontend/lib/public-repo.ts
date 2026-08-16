@@ -111,11 +111,15 @@ function containsUnsafeNestedUrl(value: string): boolean {
         ) continue;
         try {
           const nested = new URL(candidate);
+          const slashlessHttpTarget = /^https?:[^\\/]/i.test(candidate);
+          const unsafeHost = slashlessHttpTarget
+            ? isEstablishedPrivateEndpointHost(nested.hostname)
+            : isPrivateHostname(nested.hostname);
           if (
             (nested.protocol !== 'http:' && nested.protocol !== 'https:') ||
             nested.username ||
             nested.password ||
-            isPrivateHostname(nested.hostname)
+            unsafeHost
           ) return true;
         } catch {
           return true;
