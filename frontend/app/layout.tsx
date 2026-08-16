@@ -23,33 +23,38 @@ export async function generateMetadata(): Promise<Metadata> {
     process.env.PUBLIC_BASE_URL,
     requestOriginFromHeaders(requestHeaders),
   );
+  const publicUrlMetadata: Metadata = publicBaseUrl
+    ? {
+        metadataBase: new URL(publicBaseUrl),
+        manifest: `/manifest.webmanifest?v=${BRAND_VERSION}`,
+        icons: {
+          icon: [
+            { url: `/brand/favicon.svg?v=${BRAND_VERSION}`, type: 'image/svg+xml', sizes: 'any' },
+            { url: `/brand/favicon-16x16.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '16x16' },
+            { url: `/brand/favicon-32x32.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '32x32' },
+            { url: `/brand/favicon-48x48.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '48x48' },
+          ],
+          shortcut: `/favicon.ico?v=${BRAND_VERSION}`,
+          apple: [{ url: `/apple-icon.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '180x180' }],
+          other: [{ rel: 'mask-icon', url: `/brand/mask-icon.svg?v=${BRAND_VERSION}`, color: '#f59e0b' }],
+        },
+        openGraph: {
+          images: [{ url: `/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`, width: 512, height: 512, alt: `${appName} paw mark` }],
+        },
+        twitter: {
+          card: 'summary',
+          images: [`/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`],
+        },
+      }
+    : {};
   return {
-    ...(publicBaseUrl ? { metadataBase: new URL(publicBaseUrl) } : {}),
+    ...publicUrlMetadata,
     title: ui(locale, `${appName} - ローカルAIコミュニティハブ`, `${appName} - Local AI Community Hub`),
     description: ui(
       locale,
       'Forgejoを基盤に、モデル、データセット、Space、ナレッジを共有できるローカルAIプラットフォーム。',
       'A local AI platform for sharing models, datasets, Spaces, and knowledge, backed by Forgejo.',
     ),
-    manifest: `/manifest.webmanifest?v=${BRAND_VERSION}`,
-    icons: {
-      icon: [
-        { url: `/brand/favicon.svg?v=${BRAND_VERSION}`, type: 'image/svg+xml', sizes: 'any' },
-        { url: `/brand/favicon-16x16.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '16x16' },
-        { url: `/brand/favicon-32x32.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '32x32' },
-        { url: `/brand/favicon-48x48.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '48x48' },
-      ],
-      shortcut: `/favicon.ico?v=${BRAND_VERSION}`,
-      apple: [{ url: `/apple-icon.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '180x180' }],
-      other: [{ rel: 'mask-icon', url: `/brand/mask-icon.svg?v=${BRAND_VERSION}`, color: '#f59e0b' }],
-    },
-      openGraph: {
-        images: [{ url: `/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`, width: 512, height: 512, alt: `${appName} paw mark` }],
-    },
-    twitter: {
-      card: 'summary',
-      images: [`/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`],
-    },
   };
 }
 

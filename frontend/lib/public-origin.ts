@@ -18,6 +18,13 @@ export function isPrivateHostname(hostname: string): boolean {
     host.endsWith('.internal') ||
     host.endsWith('.lan') ||
     host.endsWith('.home') ||
+    host.endsWith('.home.arpa') ||
+    host.endsWith('.corp') ||
+    host.endsWith('.intranet') ||
+    host.endsWith('.private') ||
+    host.endsWith('.svc') ||
+    host.endsWith('.cluster.local') ||
+    host.endsWith('.test') ||
     PRIVATE_SERVICE_HOSTS.has(host)
   ) return true;
   if (/^(?:10|127)\.(?:\d{1,3}\.){2}\d{1,3}$/.test(host)) return true;
@@ -70,6 +77,7 @@ function parseHttpUrl(value: unknown, allowQueryAndFragment = true): URL | undef
 export function sanitizePublicUrl(value: unknown): string | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
   const trimmed = value.trim();
+  if (trimmed.includes('\\')) return undefined;
   if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;
   const url = parseHttpUrl(trimmed);
   if (!url) return undefined;
@@ -105,7 +113,7 @@ export function resolvePublicOrigin(configured: unknown, requestOrigin: unknown)
 }
 
 function sanitizePublicText(value: string): string {
-  return value.replace(/(?:https?:\/\/|\/\/)[^\s<>"'`]+/gi, (candidate) => {
+  return value.replace(/(?:https?:[\\/]+|[\\/]{2})[^\s<>"'`]+/gi, (candidate) => {
     const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
     const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
     const safe = sanitizePublicUrl(url);
@@ -133,6 +141,6 @@ export function sanitizePublicUrlJson(body: string): string {
   try {
     return JSON.stringify(sanitizePublicUrlRecord(JSON.parse(body)));
   } catch {
-    return body;
+    return JSON.stringify({ error: 'Upstream response was not valid JSON.' });
   }
 }
