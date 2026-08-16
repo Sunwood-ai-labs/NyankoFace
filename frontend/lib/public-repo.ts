@@ -22,10 +22,15 @@ function isPrivateHostname(hostname: string): boolean {
     host === 'spaces-runner'
   ) return true;
   if (/^10\.(?:\d{1,3}\.){2}\d{1,3}$/.test(host)) return true;
+  if (/^127\.(?:\d{1,3}\.){2}\d{1,3}$/.test(host)) return true;
+  if (/^169\.254\.(?:\d{1,3}\.)\d{1,3}$/.test(host)) return true;
   if (/^192\.168\.(?:\d{1,3}\.)\d{1,3}$/.test(host)) return true;
+  if (/^100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.(?:\d{1,3}\.)\d{1,3}$/.test(host)) return true;
   const private172 = host.match(/^172\.(\d{1,3})\.(?:\d{1,3}\.)\d{1,3}$/);
   if (private172 && Number(private172[1]) >= 16 && Number(private172[1]) <= 31) return true;
-  return host === '127.0.0.1' || host === '::1' || host === '0.0.0.0';
+  if (host === '0.0.0.0' || host === '::1' || host === '::') return true;
+  if (/^f[cd][0-9a-f:]*$/i.test(host) || /^fe[89ab][0-9a-f:]*$/i.test(host)) return true;
+  return /^::ffff:(?:10\.|127\.|169\.254\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/i.test(host);
 }
 
 function safePublicUrl(value: unknown): string | undefined {
@@ -43,6 +48,17 @@ function safePublicUrl(value: unknown): string | undefined {
   }
 }
 
+function stripNestedUrlFields(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stripNestedUrlFields);
+  if (!value || typeof value !== 'object') return value;
+  const result: Record<string, unknown> = {};
+  for (const [key, nested] of Object.entries(value)) {
+    if (key === 'url' || key.endsWith('_url')) continue;
+    result[key] = stripNestedUrlFields(nested);
+  }
+  return result;
+}
+
 /**
  * Remove Forgejo's server-side URL fields before repository metadata crosses
  * the public NyankoFace boundary. The portal owns the public /git route, so
@@ -58,7 +74,8 @@ export function sanitizePublicRepo(repo: Repo): Repo {
       ? { avatar_url: safePublicUrl(repo.owner?.avatar_url) }
       : { avatar_url: undefined }),
   };
-  const safe = { ...raw, owner: safeOwner } as Repo & Record<string, unknown>;
+  const safe = stripNestedUrlFields(raw) as Repo & Record<string, unknown>;
+  safe.owner = safeOwner;
 
   for (const field of UPSTREAM_URL_FIELDS) delete safe[field];
   // Forgejo adds many endpoint-specific *_url fields over time. Keep the
