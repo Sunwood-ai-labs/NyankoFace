@@ -109,7 +109,7 @@ function stripNestedUrlFields(value: unknown): unknown {
   if (!value || typeof value !== 'object') return value;
   const result: Record<string, unknown> = {};
   for (const [key, nested] of Object.entries(value)) {
-    if (key === 'url' || key.endsWith('_url')) continue;
+    if (key === 'url' || key.endsWith('_url') || key === 'website') continue;
     result[key] = stripNestedUrlFields(nested);
   }
   return result;

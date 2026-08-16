@@ -26,6 +26,7 @@ test('sanitizes upstream repository URLs at the public boundary', () => {
       full_name: 'alice/parent',
       html_url: 'http://forgejo:3000/alice/parent',
       clone_url: 'http://forgejo:3000/alice/parent.git',
+      website: 'http://forgejo:3000/alice/parent/docs',
     },
   } as unknown as Repo & Record<string, unknown>;
 
