@@ -5,6 +5,7 @@ x-mcp: &mcp
     NYANKOFACE_CATALOG_API: http://fixture:8001
     RUNNER_API: http://fixture:8001/api
     PUBLIC_BASE_URL: https://ha.test
+    NYANKOFACE_MCP_ALLOW_TEST_PUBLIC_BASE_URL: "true"
     NYANKOFACE_MCP_TOKEN_FILE: /fixtures/registry.json
     NYANKOFACE_MCP_ALLOWED_HOSTS: mcp.test
     NYANKOFACE_MCP_ALLOWED_ORIGINS: https://ha.test

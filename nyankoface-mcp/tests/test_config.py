@@ -12,6 +12,7 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "http://mcp-admin:8001",
         "https://service.internal",
         "https://service.corp",
+        "https://mcp.localhost",
         "https://127.0.0.1:8443",
     ],
 )
@@ -30,3 +31,12 @@ def test_localhost_remains_available_for_local_development():
     assert Settings(public_base_url="https://localhost:8443").public_base_url == (
         "https://localhost:8443"
     )
+
+
+def test_test_domain_requires_an_explicit_fixture_override():
+    with pytest.raises(ValueError, match="public origin"):
+        Settings(public_base_url="https://ha.test")
+    assert Settings(
+        public_base_url="https://ha.test",
+        allow_test_public_base_url=True,
+    ).public_base_url == "https://ha.test"

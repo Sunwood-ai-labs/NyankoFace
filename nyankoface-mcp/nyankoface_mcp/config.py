@@ -30,13 +30,14 @@ _PRIVATE_DNS_SUFFIXES = (
     ".intranet",
     ".lan",
     ".local",
+    ".localhost",
     ".private",
     ".svc",
     ".test",
 )
 
 
-def normalize_public_base_url(value: str) -> str:
+def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = False) -> str:
     """Normalize the public origin and fail closed on private network hosts.
 
     ``PUBLIC_BASE_URL`` is used by MCP's OAuth protected-resource metadata and
@@ -63,6 +64,8 @@ def normalize_public_base_url(value: str) -> str:
             or _is_non_global_ip(hostname)
         )
     )
+    if allow_test_public_base_url and hostname.endswith(".test"):
+        is_private_host = False
     if is_private_host:
         raise ValueError(
             "PUBLIC_BASE_URL must use a public origin; private or internal hosts are not allowed"
@@ -84,6 +87,7 @@ class Settings:
     catalog_api: str = "http://frontend:3000"
     runner_api: str = "http://spaces-runner:8000/api"
     public_base_url: str = "https://localhost:8443"
+    allow_test_public_base_url: bool = False
     token_file: Path = Path("/run/nyankoface-mcp/registry.json")
     request_timeout_seconds: float = 15.0
     max_file_bytes: int = 262_144
@@ -103,7 +107,14 @@ class Settings:
     idempotency_ttl_seconds: int = 86_400
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "public_base_url", normalize_public_base_url(self.public_base_url))
+        object.__setattr__(
+            self,
+            "public_base_url",
+            normalize_public_base_url(
+                self.public_base_url,
+                allow_test_public_base_url=self.allow_test_public_base_url,
+            ),
+        )
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -112,6 +123,9 @@ class Settings:
             catalog_api=os.getenv("NYANKOFACE_CATALOG_API", cls.catalog_api).rstrip("/"),
             runner_api=os.getenv("RUNNER_API", cls.runner_api).rstrip("/"),
             public_base_url=os.getenv("PUBLIC_BASE_URL", cls.public_base_url).rstrip("/"),
+            allow_test_public_base_url=os.getenv(
+                "NYANKOFACE_MCP_ALLOW_TEST_PUBLIC_BASE_URL", "false",
+            ).lower() in {"1", "true", "yes"},
             token_file=Path(os.getenv("NYANKOFACE_MCP_TOKEN_FILE", str(cls.token_file))),
             request_timeout_seconds=float(os.getenv("NYANKOFACE_MCP_REQUEST_TIMEOUT_SECONDS", "15")),
             max_file_bytes=int(os.getenv("NYANKOFACE_MCP_MAX_FILE_BYTES", "262144")),
