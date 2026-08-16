@@ -112,7 +112,7 @@ function isEstablishedPrivateEndpointHost(hostname: string, port?: string, allow
 
 function containsUnsafeNestedUrl(value: string): boolean {
   let current = value;
-  for (let pass = 0; pass < MAX_URL_DECODE_PASSES; pass += 1) {
+  for (let pass = 0; pass <= MAX_URL_DECODE_PASSES; pass += 1) {
     for (const pattern of NESTED_URL_PATTERNS) {
       for (const match of current.matchAll(pattern)) {
         const candidate = (match[1] || '').replace(/[),.;!?]+$/, '');
@@ -279,6 +279,8 @@ function sanitizePublicRepoText(value: string): string {
     }
     current = decoded;
   }
+  const sanitized = sanitizePublicRepoTextOnce(current);
+  if (sanitized !== current) return sanitized;
   try {
     return decodeURIComponent(current) !== current ? '[internal URL omitted]' : original;
   } catch {

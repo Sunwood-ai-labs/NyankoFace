@@ -132,6 +132,12 @@ test('scrubs private origins embedded in retained repository text', () => {
     assert.equal(sanitized.created_at, '2026-08-16T12:34:56Z');
     assert.match(sanitized.description || '', /\[internal URL omitted\]/);
     assert.match(sanitized.description || '', /https:\/\/8\.8\.8\.8\/docs/);
+    let deeplyEncodedPrivateText = 'http://forgejo:3000/private';
+    for (let pass = 0; pass < 8; pass += 1) deeplyEncodedPrivateText = encodeURIComponent(deeplyEncodedPrivateText);
+    assert.equal(
+      sanitizePublicRepo({ ...repo, description: deeplyEncodedPrivateText }).description,
+      '[internal URL omitted]',
+    );
   } finally {
     if (original === undefined) delete process.env.FORGEJO_API;
     else process.env.FORGEJO_API = original;
@@ -221,6 +227,12 @@ test('rejects private URLs nested in public query and fragment parameters', () =
   assert.equal(
     safePublicUrl('https://public.example/redirect?next=https://cdn.example/app'),
     'https://public.example/redirect?next=https://cdn.example/app',
+  );
+  let deeplyEncodedPrivateTarget = 'http://forgejo:3000/private';
+  for (let pass = 0; pass < 8; pass += 1) deeplyEncodedPrivateTarget = encodeURIComponent(deeplyEncodedPrivateTarget);
+  assert.equal(
+    safePublicUrl(`https://public.example/redirect?next=${deeplyEncodedPrivateTarget}`),
+    undefined,
   );
   assert.equal(
     safePublicUrl(
