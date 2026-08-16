@@ -52,6 +52,7 @@ def test_public_base_url_accepts_public_origin_and_strips_trailing_slash():
     assert normalize_public_base_url("https://8.8.8.8/") == "https://8.8.8.8"
     assert normalize_public_base_url("https://[2606:4700:4700::1111]/") == "https://[2606:4700:4700::1111]"
     assert normalize_public_base_url("https://例え.コム/") == "https://xn--r8jz45g.xn--tckwe"
+    assert normalize_public_base_url("https://faß.de/") == "https://xn--fa-hia.de"
 
 
 def test_localhost_remains_available_for_local_development():

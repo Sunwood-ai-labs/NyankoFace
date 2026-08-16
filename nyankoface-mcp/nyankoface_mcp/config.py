@@ -9,6 +9,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import idna
+
 
 DEFAULT_RUNTIME_STATE_DIR = Path(tempfile.mkdtemp(prefix="nyankoface-mcp-"))
 DEFAULT_WRITE_STATE_PATH = DEFAULT_RUNTIME_STATE_DIR / "write-safety.sqlite3"
@@ -52,8 +54,13 @@ def _canonical_hostname(hostname: str) -> str:
         return str(ipaddress.ip_address(dotted)).casefold()
     except ValueError:
         try:
-            return dotted.encode("idna").decode("ascii").casefold()
-        except UnicodeError as exc:
+            return idna.encode(
+                dotted,
+                uts46=True,
+                transitional=False,
+                std3_rules=True,
+            ).decode("ascii").casefold()
+        except idna.IDNAError as exc:
             raise ValueError("PUBLIC_BASE_URL must use a valid public hostname") from exc
 
 def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = False) -> str:
