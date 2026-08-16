@@ -64,12 +64,34 @@ function isPrivateHostname(hostname: string): boolean {
   return configuredForgejoHostname() === host || isNonPublicHostname(host);
 }
 
+function canonicalNumericIpv4Host(hostname: string): string | undefined {
+  const host = hostname
+    .toLowerCase()
+    .replace(/^\[|\]$/g, '')
+    .replace(/\.+$/, '');
+  const isDottedNumeric = /^\d+(?:\.\d+){1,3}$/.test(host);
+  const isHexNumeric = /^0x[0-9a-f]+$/i.test(host);
+  // A short decimal token such as the `12` in `12:30` is ordinary text,
+  // while long decimal and dotted/hex forms are accepted numeric IPv4
+  // spellings by WHATWG URL parsing.
+  const isLongDecimal = /^\d{4,}$/.test(host);
+  if (!isDottedNumeric && !isHexNumeric && !isLongDecimal) return undefined;
+  try {
+    const parsed = new URL(`http://${host}/`).hostname.replace(/^\[|\]$/g, '');
+    return /^\d+\.\d+\.\d+\.\d+$/.test(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function isEstablishedPrivateEndpointHost(hostname: string): boolean {
   const host = hostname
     .toLowerCase()
     .replace(/^\[|\]$/g, '')
     .replace(/\.+$/, '');
   if (configuredForgejoHostname() === host || PRIVATE_BARE_HOSTS.has(host)) return true;
+  const canonicalNumericHost = canonicalNumericIpv4Host(host);
+  if (canonicalNumericHost && isPrivateHostname(canonicalNumericHost)) return true;
   return (host.includes('.') || host.includes(':')) && isPrivateHostname(host);
 }
 
