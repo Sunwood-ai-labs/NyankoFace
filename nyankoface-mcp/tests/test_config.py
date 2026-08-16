@@ -21,7 +21,6 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://0300.0250.1.1:8443",
         "https://0x7f.0.0.1:8443",
         "https://0x7f000001:8443",
-        "https://redis.production:8443",
         "https://service.namespace:8443",
         "https://127.0.0.1\\\\.example.com:8443",
         "https://%31%32%37.0.0.1:8443",
@@ -48,6 +47,7 @@ def test_public_base_url_accepts_public_origin_and_strips_trailing_slash():
     assert normalize_public_base_url("https://git.example.com/") == "https://git.example.com"
     assert normalize_public_base_url("https://production.example.com/") == "https://production.example.com"
     assert normalize_public_base_url("https://redis.com/") == "https://redis.com"
+    assert normalize_public_base_url("https://example.production/") == "https://example.production"
     assert normalize_public_base_url("https://example.museum/") == "https://example.museum"
     assert normalize_public_base_url("https://example.photography/") == "https://example.photography"
     assert normalize_public_base_url("https://8.8.8.8/") == "https://8.8.8.8"
