@@ -39,6 +39,7 @@ _PRIVATE_DNS_SUFFIXES = (
     ".svc",
     ".test",
     ".namespace",
+    ".alt",
 )
 
 def _canonical_hostname(hostname: str) -> str:

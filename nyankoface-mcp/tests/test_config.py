@@ -23,6 +23,7 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://0x7f.0.0.1:8443",
         "https://0x7f000001:8443",
         "https://service.namespace:8443",
+        "https://service.alt:8443",
         "https://127.0.0.1\\\\.example.com:8443",
         "https://%31%32%37.0.0.1:8443",
         "https://①②⑦.⓪.⓪.①:8443",
