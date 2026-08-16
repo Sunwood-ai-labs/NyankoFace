@@ -10,6 +10,11 @@ const UPSTREAM_URL_FIELDS = [
   'website',
 ] as const;
 
+const NESTED_URL_PATTERNS = [
+  /(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`&]+/gi,
+  /\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+/gi,
+];
+
 function configuredForgejoHostname(): string | undefined {
   const configured = process.env.FORGEJO_API;
   if (!configured) return undefined;
@@ -31,17 +36,53 @@ function isPrivateHostname(hostname: string): boolean {
   return configuredForgejoHostname() === host || isNonPublicHostname(host);
 }
 
+function containsUnsafeNestedUrl(value: string, depth = 0): boolean {
+  if (depth > 2) return false;
+  let current = value;
+  for (let pass = 0; pass < 3; pass += 1) {
+    for (const pattern of NESTED_URL_PATTERNS) {
+      for (const match of current.matchAll(pattern)) {
+        const candidate = match[0].replace(/[),.;!?]+$/, '');
+        try {
+          const nested = new URL(candidate);
+          if (
+            (nested.protocol !== 'http:' && nested.protocol !== 'https:') ||
+            nested.username ||
+            nested.password ||
+            isPrivateHostname(nested.hostname) ||
+            containsUnsafeNestedUrl(`${nested.search}${nested.hash}`, depth + 1)
+          ) return true;
+        } catch {
+          return true;
+        }
+      }
+    }
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(current);
+    } catch {
+      break;
+    }
+    if (decoded === current) break;
+    current = decoded;
+  }
+  return false;
+}
+
 export function safePublicUrl(value: unknown): string | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
   const trimmed = value.trim();
   if (trimmed.includes('\\') || /[\u0000-\u001f\u007f]/.test(trimmed)) return undefined;
   // A protocol-relative URL such as //forgejo:3000/... is not a safe
   // root-relative path; browsers resolve it against the current scheme.
-  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+    return containsUnsafeNestedUrl(trimmed) ? undefined : trimmed;
+  }
   try {
     const url = new URL(trimmed);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
     if (url.username || url.password) return undefined;
+    if (containsUnsafeNestedUrl(`${url.search}${url.hash}`)) return undefined;
     return isPrivateHostname(url.hostname) ? undefined : url.href;
   } catch {
     return undefined;

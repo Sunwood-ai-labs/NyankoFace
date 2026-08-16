@@ -79,7 +79,10 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
   assert.equal(safePublicUrl('https://[ff05::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:db8::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:11::1]/avatar.png'), undefined);
-  assert.equal(safePublicUrl('https://[2001:21::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:100::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:21::1]/avatar.png'), 'https://[2001:21::1]/avatar.png');
+  assert.equal(safePublicUrl('https://[2001:3::1]/avatar.png'), 'https://[2001:3::1]/avatar.png');
+  assert.equal(safePublicUrl('https://[2001:4:112::1]/avatar.png'), 'https://[2001:4:112::1]/avatar.png');
   assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[3fff::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[64:ff9b:1::1]/avatar.png'), undefined);
@@ -138,6 +141,25 @@ test('rejects hex IPv4-mapped IPv6 and backslash-normalized internal URLs', () =
 
   assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
   assert.equal(safePublicUrl('/\\\\forgejo:3000/private'), undefined);
+});
+
+test('rejects private URLs nested in public query and fragment parameters', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http://forgejo:3000/app'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fforgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect#next=https%3A%2F%2F127.0.0.1%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=https://cdn.example/app'),
+    'https://public.example/redirect?next=https://cdn.example/app',
+  );
 });
 
 test('rejects internal hostnames and preserves public service labels', () => {

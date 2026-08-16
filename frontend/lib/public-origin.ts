@@ -30,6 +30,15 @@ function isNonGlobalIpv6(host: string): boolean {
   const groups = parseIpv6Groups(host);
   if (!groups) return false;
   const [first, second] = groups;
+  // IANA's 2001::/23 aggregate is non-global except for its explicit
+  // globally reachable allocations below.
+  const isGlobal2001Exception = (
+    (second === 1 && groups.slice(2, 7).every((group) => group === 0) && [1, 2, 3].includes(groups[7])) ||
+    second === 3 ||
+    (second === 4 && groups[2] === 0x112) ||
+    (second >= 0x20 && second <= 0x2f) ||
+    (second >= 0x30 && second <= 0x3f)
+  );
   return (
     first === 0 ||
     (first >= 0xfc00 && first <= 0xfdff) ||
@@ -37,13 +46,8 @@ function isNonGlobalIpv6(host: string): boolean {
     (first >= 0xfec0 && first <= 0xfeff) ||
     (first >= 0xff00 && first <= 0xffff) ||
     (first === 0x100 && groups[1] === 0 && groups[2] === 0 && groups[3] === 0) ||
-    (first === 0x2001 && (
-      second === 0 ||
-      second === 2 ||
-      (second >= 0x10 && second <= 0x1f) ||
-      (second >= 0x20 && second <= 0x2f) ||
-      second === 0xdb8
-    )) ||
+    (first === 0x2001 && second <= 0x1ff && !isGlobal2001Exception) ||
+    (first === 0x2001 && second === 0xdb8) ||
     (first === 0x3fff && (second & 0xf000) === 0) ||
     (first === 0x64 && second === 0xff9b && groups[2] === 1)
   );
