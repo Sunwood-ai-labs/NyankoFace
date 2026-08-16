@@ -166,7 +166,7 @@ def make_settings(tmp_path, *, json_response, scopes=None, configure_policy=True
         "revoked_at": None,
     }]}), encoding="utf-8")
     settings = Settings(
-        public_base_url="http://testserver",
+        public_base_url="https://madesk.tail8be30.ts.net",
         token_file=token_file,
         json_response=json_response,
         allowed_hosts=("testserver",),
@@ -369,7 +369,7 @@ async def test_invalid_token_is_rejected(tmp_path):
             )
     assert response.status_code == 401
     challenge = response.headers["www-authenticate"]
-    assert 'resource_metadata="http://testserver/.well-known/oauth-protected-resource/mcp"' in challenge
+    assert 'resource_metadata="https://madesk.tail8be30.ts.net/.well-known/oauth-protected-resource/mcp"' in challenge
     assert "192.168." not in challenge
 
 

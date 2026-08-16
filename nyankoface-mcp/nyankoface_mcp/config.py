@@ -22,6 +22,18 @@ _PRIVATE_SERVICE_HOSTS = {
     "nyankoface-mcp",
     "spaces-runner",
 }
+_PRIVATE_DNS_SUFFIXES = (
+    ".cluster.local",
+    ".corp",
+    ".home",
+    ".internal",
+    ".intranet",
+    ".lan",
+    ".local",
+    ".private",
+    ".svc",
+    ".test",
+)
 
 
 def normalize_public_base_url(value: str) -> str:
@@ -46,7 +58,8 @@ def normalize_public_base_url(value: str) -> str:
         hostname != "localhost"
         and (
             hostname in _PRIVATE_SERVICE_HOSTS
-            or hostname.endswith((".localhost", ".local", ".internal", ".lan", ".home"))
+            or "." not in hostname
+            or hostname.endswith(_PRIVATE_DNS_SUFFIXES)
             or _is_non_global_ip(hostname)
         )
     )

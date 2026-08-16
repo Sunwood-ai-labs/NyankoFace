@@ -9,7 +9,9 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://192.168.11.22:8443",
         "http://10.0.0.5:8443",
         "http://forgejo:3000",
+        "http://mcp-admin:8001",
         "https://service.internal",
+        "https://service.corp",
         "https://127.0.0.1:8443",
     ],
 )
