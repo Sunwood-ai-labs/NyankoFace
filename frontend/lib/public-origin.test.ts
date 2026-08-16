@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   requestOriginFromHeaders,
   resolvePublicOrigin,
+  shareablePublicUrl,
   sanitizePublicUrl,
   sanitizePublicUrlJson,
 } from './public-origin';
@@ -76,8 +77,10 @@ test('fails closed when an upstream Pages response is not JSON', () => {
 
 test('request origin parsing rejects forwarded host path injection', () => {
   const headers = new Headers({
+    host: 'madesk.tail8be30.ts.net',
     'x-forwarded-host': 'madesk.tail8be30.ts.net/path',
     'x-forwarded-proto': 'https',
   });
-  assert.equal(requestOriginFromHeaders(headers), undefined);
+  assert.equal(requestOriginFromHeaders(headers), 'https://madesk.tail8be30.ts.net');
+  assert.equal(shareablePublicUrl('/pages/owner/site/', 'https://madesk.tail8be30.ts.net'), 'https://madesk.tail8be30.ts.net/pages/owner/site/');
 });

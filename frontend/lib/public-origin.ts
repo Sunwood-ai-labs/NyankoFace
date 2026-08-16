@@ -25,6 +25,7 @@ export function isPrivateHostname(hostname: string): boolean {
     host.endsWith('.svc') ||
     host.endsWith('.cluster.local') ||
     host.endsWith('.test') ||
+    (!host.includes('.') && !host.includes(':')) ||
     PRIVATE_SERVICE_HOSTS.has(host)
   ) return true;
   if (/^(?:10|127)\.(?:\d{1,3}\.){2}\d{1,3}$/.test(host)) return true;
@@ -97,7 +98,7 @@ function safePublicOrigin(value: unknown): string | undefined {
 }
 
 export function requestOriginFromHeaders(headers: { get(name: string): string | null }): string | undefined {
-  const host = headers.get('x-forwarded-host')?.split(',')[0]?.trim() || headers.get('host')?.trim();
+  const host = headers.get('host')?.trim();
   const protocol = headers.get('x-forwarded-proto')?.split(',')[0]?.trim() || 'https';
   if (!host || (protocol !== 'http' && protocol !== 'https') || host.includes('/') || host.includes('\\')) return undefined;
   return `${protocol}://${host}`;
@@ -110,6 +111,18 @@ export function resolvePublicOrigin(configured: unknown, requestOrigin: unknown)
   const requestPublic = safePublicOrigin(requestOrigin);
   if (requestPublic) return requestPublic;
   return undefined;
+}
+
+export function shareablePublicUrl(value: unknown, origin?: string): string | undefined {
+  const safe = sanitizePublicUrl(value);
+  if (!safe || !safe.startsWith('/')) return safe;
+  const browserOrigin = origin || (typeof window !== 'undefined' ? window.location.origin : undefined);
+  if (!browserOrigin) return safe;
+  try {
+    return new URL(safe, browserOrigin).href;
+  } catch {
+    return safe;
+  }
 }
 
 function sanitizePublicText(value: string): string {

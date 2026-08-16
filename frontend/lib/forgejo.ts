@@ -688,11 +688,18 @@ export function lfsMediaUrl(owner: string, repo: string, path: string, branch = 
 // ---------------------------------------------------------------------------
 // Misc helpers
 // ---------------------------------------------------------------------------
-export function cloneUrl(owner: string, repo: string): string {
-  const publicOrigin = resolvePublicOrigin(PUBLIC_BASE_URL, undefined);
-  return publicOrigin
-    ? `${publicOrigin}/git/${owner}/${repo}.git`
-    : `/git/${owner}/${repo}.git`;
+export function cloneUrl(owner: string, repo: string, requestOrigin?: string): string {
+  const publicOrigin = resolvePublicOrigin(PUBLIC_BASE_URL, requestOrigin);
+  if (publicOrigin) return `${publicOrigin}/git/${owner}/${repo}.git`;
+  try {
+    const localOrigin = new URL(requestOrigin || '');
+    if ((localOrigin.protocol === 'http:' || localOrigin.protocol === 'https:') && !localOrigin.username && !localOrigin.password) {
+      return `${localOrigin.origin}/git/${owner}/${repo}.git`;
+    }
+  } catch {
+    // Fall back to the portal-relative path when no usable request origin exists.
+  }
+  return `/git/${owner}/${repo}.git`;
 }
 
 export function forgejoRepoUrl(owner: string, repo: string): string {
