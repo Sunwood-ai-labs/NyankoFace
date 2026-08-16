@@ -48,6 +48,8 @@ class DeployHomeContractTests(unittest.TestCase):
         self.assertIn('curl_options=(-q', SCRIPT)
         self.assertIn('apostrophe = sprintf("%c", 39)', SCRIPT)
         self.assertIn('JSON-RPC response id does not match the request', SCRIPT)
+        self.assertIn('text/event-stream', SCRIPT)
+        self.assertIn('MCP tool result is marked as an error', SCRIPT)
         self.assertIn('--config -', SCRIPT)
         self.assertNotIn('mcp_header_file', SCRIPT)
         self.assertIn('requires HTTPS before forwarding the bearer token', SCRIPT)
@@ -124,7 +126,7 @@ elif path == "/mcp" and not config:
     body = '{"error":"unauthorized"}'
 elif path == "/mcp":
     data = option("--data")
-    code, headers = 200, "content-type: application/json\\n"
+    code, headers = 200, "content-type: text/event-stream\\n"
     if '"method":"initialize"' in data:
         body = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","serverInfo":{"name":"fixture"}}}'
     elif '"method":"notifications/initialized"' in data:
@@ -142,11 +144,14 @@ elif path == "/mcp":
     elif '"method":"tools/call"' in data:
         if 'MCP-Protocol-Version: 2025-06-18' not in config:
             raise SystemExit(10)
-        body = '{"jsonrpc":"2.0","id":4,"result":{"content":[]}}'
+        body = '{"jsonrpc":"2.0","id":4,"result":{"content":[],"isError":false}}'
     else:
         body = '{"error":{"message":"unexpected method"}}'
 else:
     code, headers, body = 404, "content-type: text/plain\\n", "not found"
+
+if code == 200 and "text/event-stream" in headers and body:
+    body = "event: message\\ndata: " + body + "\\n\\n"
 
 Path(option("--dump-header")).write_text(headers, encoding="utf-8")
 Path(option("--output")).write_text(body, encoding="utf-8")

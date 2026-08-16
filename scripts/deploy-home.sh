@@ -309,18 +309,65 @@ run_public_smoke_test() {
   local status headers body curl_error
   validate_mcp_result() {
     local response_path="$1"
-    local expected_id="$2"
-    local expected_field="$3"
-    python3 - "$response_path" "$expected_id" "$expected_field" <<'PY'
+    local headers_path="$2"
+    local expected_id="$3"
+    local expected_field="$4"
+    python3 - "$response_path" "$headers_path" "$expected_id" "$expected_field" <<'PY'
 import json
 import sys
 
-path, expected_id, expected_field = sys.argv[1:]
+path, headers_path, expected_id, expected_field = sys.argv[1:]
 try:
+    with open(headers_path, encoding="utf-8") as header_file:
+        content_type = ""
+        for line in header_file:
+            if line.lower().startswith("content-type:"):
+                content_type = line.split(":", 1)[1].split(";", 1)[0].strip().lower()
     with open(path, encoding="utf-8") as response_file:
-        payload = json.load(response_file)
+        raw = response_file.read()
 except (OSError, ValueError) as exc:
-    raise SystemExit(f"invalid JSON-RPC response: {exc}")
+    raise SystemExit(f"invalid MCP response: {exc}")
+
+if content_type == "application/json":
+    try:
+        payload = json.loads(raw)
+    except ValueError as exc:
+        raise SystemExit(f"invalid JSON-RPC response: {exc}")
+elif content_type == "text/event-stream":
+    data_lines = []
+    matches = []
+
+    def finish_event():
+        if not data_lines:
+            return
+        try:
+            event_payload = json.loads("\n".join(data_lines))
+        except ValueError as exc:
+            raise SystemExit(f"invalid JSON-RPC SSE event: {exc}")
+        if isinstance(event_payload, dict) and event_payload.get("id") == int(expected_id):
+            matches.append(event_payload)
+
+    for line in raw.splitlines():
+        if not line:
+            finish_event()
+            data_lines = []
+            continue
+        if line.startswith(":"):
+            continue
+        field, separator, value = line.partition(":")
+        if field != "data":
+            continue
+        if separator and value.startswith(" "):
+            value = value[1:]
+        data_lines.append(value)
+    finish_event()
+    if len(matches) != 1:
+        raise SystemExit(
+            f"SSE response did not contain exactly one JSON-RPC response for request id {expected_id}"
+        )
+    payload = matches[0]
+else:
+    raise SystemExit(f"unsupported MCP response Content-Type: {content_type or 'missing'}")
 
 if payload.get("jsonrpc") != "2.0":
     raise SystemExit("JSON-RPC response has no version 2.0 envelope")
@@ -338,6 +385,10 @@ if expected_field == "protocolVersion":
     print(value)
 elif expected_field in {"tools", "resources", "content"} and not isinstance(value, list):
     raise SystemExit(f"MCP result field {expected_field} is not a list")
+if expected_field == "content":
+    is_error = result.get("isError", False)
+    if not isinstance(is_error, bool) or is_error:
+        raise SystemExit("MCP tool result is marked as an error")
 PY
   }
   smoke_request() {
@@ -420,7 +471,7 @@ PY
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"nyankoface-deploy-smoke","version":"1.0"}}}' "$mcp_token"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP initialize returned HTTP $status"
     local mcp_protocol_version
-    mcp_protocol_version="$(validate_mcp_result "$body" 1 protocolVersion)" || die "public smoke check: MCP initialize response failed JSON-RPC validation"
+    mcp_protocol_version="$(validate_mcp_result "$body" "$headers" 1 protocolVersion)" || die "public smoke check: MCP initialize response failed JSON-RPC validation"
     [[ "$mcp_protocol_version" =~ ^[A-Za-z0-9._-]+$ ]] || die "public smoke check: MCP initialize did not return a valid protocol version"
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","method":"notifications/initialized"}' "$mcp_token" "$mcp_protocol_version"
@@ -428,15 +479,15 @@ PY
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' "$mcp_token" "$mcp_protocol_version"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP tools/list returned HTTP $status"
-    validate_mcp_result "$body" 2 tools || die "public smoke check: MCP tools/list response failed JSON-RPC validation"
+    validate_mcp_result "$body" "$headers" 2 tools || die "public smoke check: MCP tools/list response failed JSON-RPC validation"
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}' "$mcp_token" "$mcp_protocol_version"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP resources/list returned HTTP $status"
-    validate_mcp_result "$body" 3 resources || die "public smoke check: MCP resources/list response failed JSON-RPC validation"
+    validate_mcp_result "$body" "$headers" 3 resources || die "public smoke check: MCP resources/list response failed JSON-RPC validation"
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"list_repositories","arguments":{"query":"","page":1,"limit":1}}}' "$mcp_token" "$mcp_protocol_version"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP read operation returned HTTP $status"
-    validate_mcp_result "$body" 4 content || die "public smoke check: MCP read operation response failed JSON-RPC validation"
+    validate_mcp_result "$body" "$headers" 4 content || die "public smoke check: MCP read operation response failed JSON-RPC validation"
   fi
 
   log "public deployment smoke test passed"
