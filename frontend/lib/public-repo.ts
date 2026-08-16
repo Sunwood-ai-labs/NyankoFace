@@ -184,7 +184,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     return `${safe || '[internal URL omitted]'}${trailing}`;
   };
   const scrubBareEndpoint = (candidate: string): string => {
-    const endpoint = candidate.match(/^((?:[a-z0-9.-]+|\[[0-9a-f:.]+\])):(\d{1,5})(?:[/?#][^\s<>"'`]+)?$/i);
+    const endpoint = candidate.match(/^((?:[a-z0-9.-]+|\[[0-9a-f:.]+\])):(\d{1,5})(?:[/?#][^\s<>"'`]*)?$/i);
     if (!endpoint) return candidate;
     const host = endpoint[1];
     const port = endpoint[2];
@@ -207,7 +207,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
-    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}(?:[/?#][^\s<>"'`]+)?/gi, scrubBareEndpoint);
+    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint);
 }
 
 function sanitizePublicRepoText(value: string): string {
