@@ -386,6 +386,13 @@ if expected_field == "protocolVersion":
 elif expected_field in {"tools", "resources", "content"} and not isinstance(value, list):
     raise SystemExit(f"MCP result field {expected_field} is not a list")
 if expected_field == "content":
+    if not value or any(
+        not isinstance(item, dict)
+        or not isinstance(item.get("type"), str)
+        or not item["type"].strip()
+        for item in value
+    ):
+        raise SystemExit("MCP tool result has no typed content")
     is_error = result.get("isError", False)
     if not isinstance(is_error, bool) or is_error:
         raise SystemExit("MCP tool result is marked as an error")

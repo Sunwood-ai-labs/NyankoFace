@@ -144,7 +144,7 @@ elif path == "/mcp":
     elif '"method":"tools/call"' in data:
         if 'MCP-Protocol-Version: 2025-06-18' not in config:
             raise SystemExit(10)
-        body = '{"jsonrpc":"2.0","id":4,"result":{"content":[],"isError":false}}'
+        body = '{"jsonrpc":"2.0","id":4,"result":{"content":[{"type":"text","text":"fixture repository"}],"isError":false}}'
     else:
         body = '{"error":{"message":"unexpected method"}}'
 else:
