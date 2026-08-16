@@ -12,17 +12,10 @@ const UPSTREAM_URL_FIELDS = [
 const PRIVATE_HOST_LABELS = new Set([
   'backend',
   'forgejo',
-  'frontend',
-  'gateway',
-  'git',
   'gitea',
   'mcp',
   'mcp-admin',
-  'nas',
-  'redis',
-  'runner',
   'spaces-runner',
-  'worker',
 ]);
 
 function configuredForgejoHostname(): string | undefined {
@@ -91,7 +84,7 @@ function isPrivateHostname(hostname: string): boolean {
 export function safePublicUrl(value: unknown): string | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
   const trimmed = value.trim();
-  if (trimmed.includes('\\')) return undefined;
+  if (trimmed.includes('\\') || /[\u0000-\u001f\u007f]/.test(trimmed)) return undefined;
   // A protocol-relative URL such as //forgejo:3000/... is not a safe
   // root-relative path; browsers resolve it against the current scheme.
   if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;

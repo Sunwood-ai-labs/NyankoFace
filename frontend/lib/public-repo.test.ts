@@ -112,4 +112,7 @@ test('rejects unlisted internal hostnames and terminal-dot aliases', () => {
   assert.equal(safePublicUrl('https://198.18.0.1/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://0.1.2.3/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://192.0.1.1/avatar.png'), 'https://192.0.1.1/avatar.png');
+  assert.equal(safePublicUrl('https://git.example.com/avatar.png'), 'https://git.example.com/avatar.png');
+  assert.equal(safePublicUrl('https://gateway.example.org/avatar.png'), 'https://gateway.example.org/avatar.png');
+  assert.equal(safePublicUrl('https://frontend.example.net/avatar.png'), 'https://frontend.example.net/avatar.png');
 });
