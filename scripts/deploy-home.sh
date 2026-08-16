@@ -293,12 +293,13 @@ run_public_smoke_test() {
   smoke_request_authenticated() {
     local route="$1"
     local payload="$2"
+    local bearer_token="$3"
     request_number=$((request_number + 1))
     headers="$smoke_tmp_dir/headers-$request_number"
     body="$smoke_tmp_dir/body-$request_number"
     curl_error="$smoke_tmp_dir/error-$request_number"
-    if ! status="$(curl "${curl_options[@]}" \
-      --header "@$mcp_header_file" \
+    if ! status="$(printf 'header = "Authorization: Bearer %s"\n' "$bearer_token" | curl "${curl_options[@]}" \
+      --config - \
       --header 'Accept: application/json, text/event-stream' \
       --header 'Content-Type: application/json' \
       --data "$payload" \
@@ -342,22 +343,18 @@ run_public_smoke_test() {
     [[ -n "$mcp_token_file" && -f "$mcp_token_file" ]] || die "MCP public smoke requires NYANKOFACE_DEPLOY_MCP_TOKEN_FILE or NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE"
     local mcp_token
     mcp_token="$(<"$mcp_token_file")"
-    [[ -n "$mcp_token" && "$mcp_token" != *$'\r'* && "$mcp_token" != *$'\n'* && "$mcp_token" != *'"'* ]] || die "MCP smoke token file is empty or contains unsupported characters"
-    mcp_header_file="$smoke_tmp_dir/mcp-header"
-    umask 077
-    printf 'Authorization: Bearer %s\n' "$mcp_token" > "$mcp_header_file"
-    chmod 600 "$mcp_header_file"
+    [[ -n "$mcp_token" && "$mcp_token" != *$'\r'* && "$mcp_token" != *$'\n'* && "$mcp_token" != *'"'* && "$mcp_token" != *$'\\'* ]] || die "MCP smoke token file is empty or contains unsupported characters"
 
-    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"nyankoface-deploy-smoke","version":"1.0"}}}'
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"nyankoface-deploy-smoke","version":"1.0"}}}' "$mcp_token"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP initialize returned HTTP $status"
     grep -Eqi '"result"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize result is missing"
     grep -Eqi '"serverInfo"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize server info is missing"
 
-    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' "$mcp_token"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP tools/list returned HTTP $status"
     grep -Eqi '"tools"[[:space:]]*:' "$body" || die "public smoke check: MCP tools/list result is missing"
 
-    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}'
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}' "$mcp_token"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP resources/list returned HTTP $status"
     grep -Eqi '"resources"[[:space:]]*:' "$body" || die "public smoke check: MCP resources/list result is missing"
   fi
