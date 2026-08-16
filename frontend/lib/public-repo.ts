@@ -44,6 +44,11 @@ function containsUnsafeNestedUrl(value: string): boolean {
     for (const pattern of NESTED_URL_PATTERNS) {
       for (const match of current.matchAll(pattern)) {
         const candidate = (match[1] || '').replace(/[),.;!?]+$/, '');
+        if (
+          candidate.startsWith('//') &&
+          match.index > 0 &&
+          !/[?&#=\s([{<]/.test(current[match.index - 1])
+        ) continue;
         try {
           const nested = new URL(candidate);
           if (
@@ -112,7 +117,7 @@ function stripNestedUrlFields(value: unknown): unknown {
   return result;
 }
 
-function sanitizePublicRepoText(value: string): string {
+function sanitizePublicRepoTextOnce(value: string): string {
   const scrub = (candidate: string): string => {
     const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
     const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
@@ -122,6 +127,32 @@ function sanitizePublicRepoText(value: string): string {
   return value
     .replace(/(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub);
+}
+
+function sanitizePublicRepoText(value: string): string {
+  const original = value;
+  let current = value;
+  for (let pass = 0; pass < MAX_URL_DECODE_PASSES; pass += 1) {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(current);
+    } catch {
+      const sanitized = sanitizePublicRepoTextOnce(current);
+      return sanitized !== current
+        ? sanitized
+        : (/%(?:25|3a|2f|40|5c)/i.test(current) ? '[internal URL omitted]' : original);
+    }
+    if (decoded === current) {
+      const sanitized = sanitizePublicRepoTextOnce(current);
+      return sanitized !== current ? sanitized : original;
+    }
+    current = decoded;
+  }
+  try {
+    return decodeURIComponent(current) !== current ? '[internal URL omitted]' : original;
+  } catch {
+    return '[internal URL omitted]';
+  }
 }
 
 function sanitizePublicRepoValue(value: unknown): unknown {
