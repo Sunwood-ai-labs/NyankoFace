@@ -30,12 +30,19 @@ function isPrivateHostname(hostname: string): boolean {
   if (private172 && Number(private172[1]) >= 16 && Number(private172[1]) <= 31) return true;
   if (host === '0.0.0.0' || host === '::1' || host === '::') return true;
   if (/^f[cd][0-9a-f:]*$/i.test(host) || /^fe[89ab][0-9a-f:]*$/i.test(host)) return true;
+  const mappedHex = host.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i);
+  if (mappedHex) {
+    const high = Number.parseInt(mappedHex[1], 16);
+    const low = Number.parseInt(mappedHex[2], 16);
+    return isPrivateHostname(`${high >> 8}.${high & 255}.${low >> 8}.${low & 255}`);
+  }
   return /^::ffff:(?:10\.|127\.|169\.254\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/i.test(host);
 }
 
-function safePublicUrl(value: unknown): string | undefined {
+export function safePublicUrl(value: unknown): string | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
   const trimmed = value.trim();
+  if (trimmed.includes('\\')) return undefined;
   // A protocol-relative URL such as //forgejo:3000/... is not a safe
   // root-relative path; browsers resolve it against the current scheme.
   if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;

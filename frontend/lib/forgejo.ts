@@ -1,7 +1,7 @@
 import fs from 'fs';
 import matter from 'gray-matter';
 import { resolvePublicOrigin, sanitizePublicUrlRecord } from './public-origin';
-import { sanitizePublicRepo } from './public-repo';
+import { safePublicUrl, sanitizePublicRepo } from './public-repo';
 
 // ---------------------------------------------------------------------------
 // Configuration (固定契約: PLAN.md)
@@ -754,13 +754,8 @@ function normalizeExternalSpaceUrl(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
   if (!trimmed || trimmed.length > 2048) return undefined;
-  try {
-    const url = new URL(trimmed);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
-    return url.href;
-  } catch {
-    return undefined;
-  }
+  const safe = safePublicUrl(trimmed);
+  return safe && !safe.startsWith('/') ? safe : undefined;
 }
 
 function inferredSpaceEmoji(repo: Repo): string {

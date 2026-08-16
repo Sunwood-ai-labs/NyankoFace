@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { sanitizePublicRepo } from './public-repo';
+import { safePublicUrl, sanitizePublicRepo } from './public-repo';
 import type { Repo } from './forgejo';
 
 test('sanitizes upstream repository URLs at the public boundary', () => {
@@ -82,4 +82,21 @@ test('rejects link-local and IPv6 ULA origins', () => {
   } as unknown as Repo;
 
   assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
+});
+
+test('rejects hex IPv4-mapped IPv6 and backslash-normalized internal URLs', () => {
+  const repo = {
+    id: 11,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: {
+      login: 'alice',
+      avatar_url: 'https://[::ffff:0a00:0001]/avatar.png',
+    },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as unknown as Repo;
+
+  assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
+  assert.equal(safePublicUrl('/\\\\forgejo:3000/private'), undefined);
 });
