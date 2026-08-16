@@ -1572,7 +1572,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
       aside.classList.add("nyankoface-model-filters");
       aside.innerHTML = `
         <div class="nyankoface-filter-tabs">
-          <a class="active" href="/git/explore/repos">Main</a>
+          <a class="active" href="/models">Main</a>
           <span>Tasks</span>
           <span>Libraries</span>
           <span>Languages</span>
@@ -1860,7 +1860,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
       empty.innerHTML = `
         <h2>No matching ${escapeHtml(title.toLowerCase())}</h2>
         <p>Try a broader query or browse all ${escapeHtml(title.toLowerCase())}.</p>
-        <a href="${kind === "model" ? "/git/explore/repos" : `/git/explore/repos?q=${kind}`}">Clear search</a>
+        <a href="${kind === "model" ? "/models" : `/git/explore/repos?q=${kind}`}">Clear search</a>
       `;
       main.appendChild(empty);
       repoList.classList.add("nyankoface-explore-list-empty");
@@ -2311,7 +2311,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
             <h4>Resources:</h4>
             <ul>
               <li><a href="/spaces">NyankoFace Spaces directory</a></li>
-              <li><a href="/git/explore/repos">Models</a></li>
+              <li><a href="/models">Models</a></li>
               <li><a href="/git/explore/repos?q=dataset">Datasets</a></li>
             </ul>
           </article>
@@ -3512,6 +3512,10 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
       setText(explore, "Repositories");
       explore.href = "/git/explore/repos";
       if (!explore.querySelector(".nyankoface-title-icon")) explore.insertAdjacentHTML("afterbegin", navIcon.folder);
+      if (currentExploreKind() === "model") {
+        for (const item of document.querySelectorAll("#navbar a.item.active")) item.classList.remove("active");
+        document.querySelector(".nyankoface-nav-models")?.classList.add("active");
+      }
       if (!document.querySelector(".nyankoface-nav-datasets")) {
         const datasets = document.createElement("a");
         datasets.className = "item nyankoface-nav-datasets";
