@@ -17,6 +17,17 @@ const NESTED_URL_PATTERNS = [
 ];
 const MAX_URL_DECODE_PASSES = 8;
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
+const PRIVATE_BARE_HOSTS = new Set([
+  'backend',
+  'forgejo',
+  'frontend',
+  'gateway',
+  'git',
+  'gitea',
+  'localhost',
+  'mcp',
+  'nyankoface',
+]);
 
 function configuredForgejoHostname(): string | undefined {
   const configured = process.env.FORGEJO_API;
@@ -37,6 +48,15 @@ function isPrivateHostname(hostname: string): boolean {
     .replace(/^\[|\]$/g, '')
     .replace(/\.+$/, '');
   return configuredForgejoHostname() === host || isNonPublicHostname(host);
+}
+
+function isEstablishedPrivateEndpointHost(hostname: string): boolean {
+  const host = hostname
+    .toLowerCase()
+    .replace(/^\[|\]$/g, '')
+    .replace(/\.+$/, '');
+  if (configuredForgejoHostname() === host || PRIVATE_BARE_HOSTS.has(host)) return true;
+  return (host.includes('.') || host.includes(':')) && isPrivateHostname(host);
 }
 
 function containsUnsafeNestedUrl(value: string): boolean {
@@ -125,11 +145,15 @@ function sanitizePublicRepoTextOnce(value: string): string {
     const safe = safePublicUrl(url);
     return `${safe || '[internal URL omitted]'}${trailing}`;
   };
+  const scrubBareEndpoint = (candidate: string): string => {
+    const host = candidate.slice(0, candidate.lastIndexOf(':'));
+    return isEstablishedPrivateEndpointHost(host) ? '[internal URL omitted]' : candidate;
+  };
   return value
     .replace(/(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/\b(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrub)
-    .replace(/\b(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}\b/gi, scrub);
+    .replace(/\b(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}\b/gi, scrubBareEndpoint);
 }
 
 function sanitizePublicRepoText(value: string): string {
