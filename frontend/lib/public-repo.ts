@@ -11,9 +11,11 @@ const UPSTREAM_URL_FIELDS = [
 ] as const;
 
 const NESTED_URL_PATTERNS = [
-  /(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`&]+/gi,
-  /\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+/gi,
+  /(?<![a-z0-9+.-])(?=([a-z][a-z0-9+.-]*:[\\/]{1,3}[^\s<>"'`&]+))/gi,
+  /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
+  /(?=(\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
 ];
+const MAX_URL_DECODE_PASSES = 8;
 
 function configuredForgejoHostname(): string | undefined {
   const configured = process.env.FORGEJO_API;
@@ -36,21 +38,19 @@ function isPrivateHostname(hostname: string): boolean {
   return configuredForgejoHostname() === host || isNonPublicHostname(host);
 }
 
-function containsUnsafeNestedUrl(value: string, depth = 0): boolean {
-  if (depth > 2) return false;
+function containsUnsafeNestedUrl(value: string): boolean {
   let current = value;
-  for (let pass = 0; pass < 3; pass += 1) {
+  for (let pass = 0; pass < MAX_URL_DECODE_PASSES; pass += 1) {
     for (const pattern of NESTED_URL_PATTERNS) {
       for (const match of current.matchAll(pattern)) {
-        const candidate = match[0].replace(/[),.;!?]+$/, '');
+        const candidate = (match[1] || '').replace(/[),.;!?]+$/, '');
         try {
           const nested = new URL(candidate);
           if (
             (nested.protocol !== 'http:' && nested.protocol !== 'https:') ||
             nested.username ||
             nested.password ||
-            isPrivateHostname(nested.hostname) ||
-            containsUnsafeNestedUrl(`${nested.search}${nested.hash}`, depth + 1)
+            isPrivateHostname(nested.hostname)
           ) return true;
         } catch {
           return true;
@@ -66,7 +66,13 @@ function containsUnsafeNestedUrl(value: string, depth = 0): boolean {
     if (decoded === current) break;
     current = decoded;
   }
-  return false;
+  // A value that still changes after the bounded decode budget is ambiguous;
+  // do not preserve it at a public metadata boundary.
+  try {
+    return decodeURIComponent(current) !== current;
+  } catch {
+    return false;
+  }
 }
 
 export function safePublicUrl(value: unknown): string | undefined {

@@ -48,6 +48,7 @@ function isNonGlobalIpv6(host: string): boolean {
     (first === 0x100 && groups[1] === 0 && groups[2] === 0 && groups[3] === 0) ||
     (first === 0x2001 && second <= 0x1ff && !isGlobal2001Exception) ||
     (first === 0x2001 && second === 0xdb8) ||
+    first === 0x2002 ||
     (first === 0x3fff && (second & 0xf000) === 0) ||
     (first === 0x64 && second === 0xff9b && groups[2] === 1)
   );

@@ -80,6 +80,7 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
   assert.equal(safePublicUrl('https://[2001:db8::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:11::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:100::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2002::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:21::1]/avatar.png'), 'https://[2001:21::1]/avatar.png');
   assert.equal(safePublicUrl('https://[2001:3::1]/avatar.png'), 'https://[2001:3::1]/avatar.png');
   assert.equal(safePublicUrl('https://[2001:4:112::1]/avatar.png'), 'https://[2001:4:112::1]/avatar.png');
@@ -159,6 +160,12 @@ test('rejects private URLs nested in public query and fragment parameters', () =
   assert.equal(
     safePublicUrl('https://public.example/redirect?next=https://cdn.example/app'),
     'https://public.example/redirect?next=https://cdn.example/app',
+  );
+  assert.equal(
+    safePublicUrl(
+      'https://public.example/redirect?next=https%3A%2F%2Fpublic1.example%2F%3Fnext%3Dhttps%253A%252F%252Fpublic2.example%252F%253Fnext%253Dhttps%25253A%25252F%25252Fpublic3.example%25252F%25253Fnext%25253Dhttp%25253A%25252F%25252Fforgejo%25253A3000%25252Fapp',
+    ),
+    undefined,
   );
 });
 
