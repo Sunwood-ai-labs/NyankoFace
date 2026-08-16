@@ -324,7 +324,7 @@ export async function searchRepos(params: SearchReposParams): Promise<SearchRepo
   }
   return {
     ...result,
-    data: enrichedData,
+    data: enrichedData.map(sanitizePublicRepo),
   };
 }
 
@@ -456,10 +456,11 @@ export async function getRepo(owner: string, repo: string): Promise<Repo | null>
   if (!res.ok || !res.json || res.json.private) return null;
   const repoInfo = sanitizePublicRepo(res.json as Repo);
   const kind = repoKind(repoInfo.topics);
-  if (kind === 'space') return (await enrichSpaceMetadata([repoInfo]))[0];
+  if (kind === 'space') return sanitizePublicRepo((await enrichSpaceMetadata([repoInfo]))[0]);
   if (kind === 'skill') {
     const skillResult = await enrichSkillMetadata([repoInfo]);
-    return skillResult.unavailable ? null : skillResult.repos[0] || null;
+    const enriched = skillResult.repos[0];
+    return skillResult.unavailable || !enriched ? null : sanitizePublicRepo(enriched);
   }
   return repoInfo;
 }

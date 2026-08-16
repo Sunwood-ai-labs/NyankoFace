@@ -110,4 +110,5 @@ test('rejects unlisted internal hostnames and terminal-dot aliases', () => {
   assert.equal(safePublicUrl('https://forgejo.ops.example.com/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://198.18.0.1/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://0.1.2.3/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://192.0.1.1/avatar.png'), 'https://192.0.1.1/avatar.png');
 });

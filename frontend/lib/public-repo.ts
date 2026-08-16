@@ -11,36 +11,36 @@ const UPSTREAM_URL_FIELDS = [
 
 const PRIVATE_HOST_LABELS = new Set([
   'backend',
-  'cache',
-  'cluster',
-  'database',
-  'db',
   'forgejo',
   'frontend',
   'gateway',
   'git',
   'gitea',
-  'internal',
   'mcp',
   'mcp-admin',
-  'namespace',
   'nas',
-  'ops',
-  'private',
-  'production',
   'redis',
   'runner',
-  'service',
   'spaces-runner',
-  'staging',
   'worker',
 ]);
+
+function configuredForgejoHostname(): string | undefined {
+  const configured = process.env.FORGEJO_API;
+  if (!configured) return undefined;
+  try {
+    return new URL(configured).hostname.toLowerCase().replace(/\.+$/, '');
+  } catch {
+    return undefined;
+  }
+}
 
 function isPrivateHostname(hostname: string): boolean {
   const host = hostname
     .toLowerCase()
     .replace(/^\[|\]$/g, '')
     .replace(/\.+$/, '');
+  if (configuredForgejoHostname() === host) return true;
   if (
     host === 'localhost' ||
     host.endsWith('.localhost') ||
@@ -69,8 +69,7 @@ function isPrivateHostname(hostname: string): boolean {
       (first === 169 && second === 254) ||
       (first === 172 && second >= 16 && second <= 31) ||
       (first === 192 && second === 168) ||
-      (first === 192 && second === 0 && third <= 255) ||
-      (first === 192 && second === 0 && third === 2) ||
+      (first === 192 && second === 0 && (third === 0 || third === 2)) ||
       (first === 192 && second === 88 && third === 99) ||
       (first === 198 && second >= 18 && second <= 19) ||
       (first === 198 && second === 51 && third === 100) ||
