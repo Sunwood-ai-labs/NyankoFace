@@ -27,6 +27,8 @@ const PRIVATE_BARE_HOSTS = new Set([
   'localhost',
   'mcp',
   'nyankoface',
+  'nyankoface-mcp',
+  'spaces-runner',
 ]);
 
 function configuredForgejoHostname(): string | undefined {
@@ -150,14 +152,16 @@ function sanitizePublicRepoTextOnce(value: string): string {
     return isEstablishedPrivateEndpointHost(host) ? '[internal URL omitted]' : candidate;
   };
   const scrubUsernameLessScpEndpoint = (candidate: string): string => {
-    const host = candidate.slice(0, candidate.indexOf(':'));
+    const host = candidate.startsWith('[')
+      ? candidate.slice(0, candidate.indexOf(']') + 1)
+      : candidate.slice(0, candidate.indexOf(':'));
     return isEstablishedPrivateEndpointHost(host) ? '[internal URL omitted]' : candidate;
   };
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
-    .replace(/\b(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
-    .replace(/\b(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}\b/gi, scrubBareEndpoint);
+    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
+    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}\b/gi, scrubBareEndpoint);
 }
 
 function sanitizePublicRepoText(value: string): string {
