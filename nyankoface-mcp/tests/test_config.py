@@ -17,6 +17,7 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://mcp.localhost",
         "https://localhost.localdomain:8443",
         "https://localhost4.localdomain4:8443",
+        "https://localhost6.localdomain6:8443",
         "https://127.0.0.1:8443",
         "https://127.1:8443",
         "https://192.168.001.001:8443",

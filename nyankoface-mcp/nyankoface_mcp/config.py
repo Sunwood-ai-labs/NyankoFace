@@ -37,6 +37,7 @@ _PRIVATE_DNS_SUFFIXES = (
     ".localhost",
     ".localdomain",
     ".localdomain4",
+    ".localdomain6",
     ".private",
     ".svc",
     ".test",
