@@ -34,6 +34,7 @@ function isNonGlobalIpv6(host: string): boolean {
     first === 0 ||
     (first >= 0xfc00 && first <= 0xfdff) ||
     (first >= 0xfe80 && first <= 0xfebf) ||
+    (first >= 0xfec0 && first <= 0xfeff) ||
     (first >= 0xff00 && first <= 0xffff) ||
     (first === 0x100 && groups[1] === 0 && groups[2] === 0 && groups[3] === 0) ||
     (first === 0x2001 && [0, 2, 0x10, 0x20, 0xdb8].includes(second))

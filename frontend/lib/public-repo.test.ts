@@ -78,6 +78,7 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
   assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
   assert.equal(safePublicUrl('https://[ff05::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:db8::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
 });
 
 test('rejects link-local and IPv6 ULA origins', () => {
