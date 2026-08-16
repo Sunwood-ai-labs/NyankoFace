@@ -1482,6 +1482,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
   const currentExploreKind = () => {
     if (!location.pathname.match(/^\/git\/explore\/repos\/?$/)) return null;
     const query = new URLSearchParams(location.search).get("q")?.toLowerCase() || "";
+    if (!query) return null;
     if (query.includes("space")) return "space";
     if (query.includes("dataset")) return "dataset";
     return "model";

@@ -113,6 +113,7 @@ class SharedNavigationContractTests(unittest.TestCase):
         self.assertIn('models.href = "/models"', HEADER)
         self.assertIn('setText(explore, "Repositories")', HEADER)
         self.assertIn('explore.href = "/git/explore/repos"', HEADER)
+        self.assertIn('if (!query) return null;', HEADER)
         self.assertNotIn('explore.href = "/models"', HEADER)
 
 
