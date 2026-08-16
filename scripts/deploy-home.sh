@@ -156,7 +156,7 @@ else
 fi
 
 show_status() {
-  "${compose[@]}" ps -a || true
+  timeout --signal=KILL 10s "${compose[@]}" ps -a || true
 }
 
 smoke_tmp_dir=""
@@ -264,7 +264,7 @@ run_public_smoke_test() {
   if [[ -z "$base_url" ]]; then
     base_url="$(dotenv_value PUBLIC_BASE_URL)"
   fi
-  base_url="${base_url:-https://localhost:8443}"
+  [[ -n "$base_url" ]] || die "PUBLIC_BASE_URL or NYANKOFACE_DEPLOY_SMOKE_BASE_URL is required for the public smoke test"
   base_url="${base_url%/}"
   [[ "$base_url" == https://* || "$base_url" == http://* ]] || die "public smoke base URL must be HTTP(S)"
 
@@ -272,7 +272,7 @@ run_public_smoke_test() {
   [[ "$smoke_timeout" =~ ^[0-9]+$ && "$smoke_timeout" -gt 0 ]] || die "NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS must be a positive integer"
 
   smoke_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/nyankoface-smoke.XXXXXX")"
-  local curl_options=(--silent --show-error --location --max-time "$smoke_timeout" --retry 0)
+  local curl_options=(--silent --show-error --max-time "$smoke_timeout" --retry 0)
   if [[ "${NYANKOFACE_DEPLOY_SMOKE_INSECURE:-0}" == "1" || "$base_url" == https://localhost* || "$base_url" == https://127.0.0.1* ]]; then
     curl_options+=(--insecure)
   fi
@@ -287,6 +287,24 @@ run_public_smoke_test() {
     curl_error="$smoke_tmp_dir/error-$request_number"
     if ! status="$(curl "${curl_options[@]}" --dump-header "$headers" --output "$body" --write-out '%{http_code}' "$base_url$route" 2>"$curl_error")"; then
       die "public smoke request failed for $route"
+    fi
+  }
+
+  smoke_request_authenticated() {
+    local route="$1"
+    local payload="$2"
+    request_number=$((request_number + 1))
+    headers="$smoke_tmp_dir/headers-$request_number"
+    body="$smoke_tmp_dir/body-$request_number"
+    curl_error="$smoke_tmp_dir/error-$request_number"
+    if ! status="$(curl "${curl_options[@]}" \
+      --header "@$mcp_header_file" \
+      --header 'Accept: application/json, text/event-stream' \
+      --header 'Content-Type: application/json' \
+      --data "$payload" \
+      --dump-header "$headers" --output "$body" --write-out '%{http_code}' \
+      "$base_url$route" 2>"$curl_error")"; then
+      die "authenticated public smoke request failed for $route"
     fi
   }
 
@@ -315,10 +333,33 @@ run_public_smoke_test() {
     fi
   done
   if (( mcp_enabled )); then
-    smoke_request "/mcp"
+  smoke_request "/mcp"
     [[ "$status" == "401" ]] || die "public smoke check: MCP endpoint returned HTTP $status without credentials"
     grep -Eqi '^www-authenticate:.*resource_metadata=' "$headers" || die "public smoke check: MCP challenge has no resource metadata"
     grep -Fqi "resource_metadata=\"${base_url}/.well-known/oauth-protected-resource/mcp\"" "$headers" || die "public smoke check: MCP metadata origin does not match the public URL"
+
+    local mcp_token_file="${NYANKOFACE_DEPLOY_MCP_TOKEN_FILE:-${NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE:-}}"
+    [[ -n "$mcp_token_file" && -f "$mcp_token_file" ]] || die "MCP public smoke requires NYANKOFACE_DEPLOY_MCP_TOKEN_FILE or NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE"
+    local mcp_token
+    mcp_token="$(<"$mcp_token_file")"
+    [[ -n "$mcp_token" && "$mcp_token" != *$'\r'* && "$mcp_token" != *$'\n'* && "$mcp_token" != *'"'* ]] || die "MCP smoke token file is empty or contains unsupported characters"
+    mcp_header_file="$smoke_tmp_dir/mcp-header"
+    umask 077
+    printf 'Authorization: Bearer %s\n' "$mcp_token" > "$mcp_header_file"
+    chmod 600 "$mcp_header_file"
+
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"nyankoface-deploy-smoke","version":"1.0"}}}'
+    [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP initialize returned HTTP $status"
+    grep -Eqi '"result"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize result is missing"
+    grep -Eqi '"serverInfo"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize server info is missing"
+
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+    [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP tools/list returned HTTP $status"
+    grep -Eqi '"tools"[[:space:]]*:' "$body" || die "public smoke check: MCP tools/list result is missing"
+
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}'
+    [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP resources/list returned HTTP $status"
+    grep -Eqi '"resources"[[:space:]]*:' "$body" || die "public smoke check: MCP resources/list result is missing"
   fi
 
   log "public deployment smoke test passed"
