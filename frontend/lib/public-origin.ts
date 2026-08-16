@@ -7,7 +7,10 @@ const PRIVATE_SERVICE_HOSTS = new Set([
 ]);
 
 export function isPrivateHostname(hostname: string): boolean {
-  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  const host = hostname
+    .toLowerCase()
+    .replace(/^\[|\]$/g, '')
+    .replace(/\.+$/, '');
   if (
     host === 'localhost' ||
     host.endsWith('.localhost') ||
@@ -25,11 +28,33 @@ export function isPrivateHostname(hostname: string): boolean {
   if (private172 && Number(private172[1]) >= 16 && Number(private172[1]) <= 31) return true;
   if (host === '::1' || host === '::' || host === '0.0.0.0') return true;
   if (/^f[cd][0-9a-f:]*$/i.test(host) || /^fe[89ab][0-9a-f:]*$/i.test(host)) return true;
-  return /^::ffff:(?:10\.|127\.|169\.254\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/i.test(host);
+  const mappedIpv4 = ipv4FromMappedIpv6(host);
+  return mappedIpv4 ? isPrivateHostname(mappedIpv4) : false;
+}
+
+function ipv4FromMappedIpv6(host: string): string | undefined {
+  if (!host.includes(':')) return undefined;
+  const halves = host.split('::');
+  if (halves.length > 2) return undefined;
+  const left = halves[0] ? halves[0].split(':') : [];
+  const right = halves.length === 2 && halves[1] ? halves[1].split(':') : [];
+  if (left.some((part) => !/^[0-9a-f]{1,4}$/i.test(part)) || right.some((part) => !/^[0-9a-f]{1,4}$/i.test(part))) {
+    return undefined;
+  }
+  const groups = halves.length === 2
+    ? [...left, ...Array.from({ length: 8 - left.length - right.length }, () => '0'), ...right]
+    : [...left];
+  if (groups.length !== 8 || groups.slice(0, 5).some((part) => part !== '0') || groups[5].toLowerCase() !== 'ffff') {
+    return undefined;
+  }
+  const high = Number.parseInt(groups[6], 16);
+  const low = Number.parseInt(groups[7], 16);
+  return [high >> 8, high & 0xff, low >> 8, low & 0xff].join('.');
 }
 
 function parseHttpUrl(value: unknown, allowQueryAndFragment = true): URL | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
+  if (value.includes('\\')) return undefined;
   try {
     const url = new URL(value.trim());
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
@@ -66,7 +91,7 @@ function safePublicOrigin(value: unknown): string | undefined {
 export function requestOriginFromHeaders(headers: { get(name: string): string | null }): string | undefined {
   const host = headers.get('x-forwarded-host')?.split(',')[0]?.trim() || headers.get('host')?.trim();
   const protocol = headers.get('x-forwarded-proto')?.split(',')[0]?.trim() || 'https';
-  if (!host || (protocol !== 'http' && protocol !== 'https') || host.includes('/')) return undefined;
+  if (!host || (protocol !== 'http' && protocol !== 'https') || host.includes('/') || host.includes('\\')) return undefined;
   return `${protocol}://${host}`;
 }
 
@@ -79,11 +104,29 @@ export function resolvePublicOrigin(configured: unknown, requestOrigin: unknown)
   return undefined;
 }
 
+function sanitizePublicText(value: string): string {
+  return value.replace(/(?:https?:\/\/|\/\/)[^\s<>"'`]+/gi, (candidate) => {
+    const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
+    const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
+    const safe = sanitizePublicUrl(url);
+    return `${safe || '[internal URL omitted]'}${trailing}`;
+  });
+}
+
+function sanitizePublicValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    const direct = sanitizePublicUrl(value);
+    return direct ?? sanitizePublicText(value);
+  }
+  if (Array.isArray(value)) return value.map((item) => sanitizePublicValue(item));
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, entry]) => [key, sanitizePublicValue(entry)]),
+  );
+}
+
 export function sanitizePublicUrlRecord(value: unknown): unknown {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
-  const record = value as Record<string, unknown>;
-  if (!Object.prototype.hasOwnProperty.call(record, 'public_url')) return value;
-  return { ...record, public_url: sanitizePublicUrl(record.public_url) || null };
+  return sanitizePublicValue(value);
 }
 
 export function sanitizePublicUrlJson(body: string): string {
