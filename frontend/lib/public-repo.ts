@@ -13,7 +13,10 @@ function configuredForgejoHostname(): string | undefined {
   const configured = process.env.FORGEJO_API;
   if (!configured) return undefined;
   try {
-    return new URL(configured).hostname.toLowerCase().replace(/\.+$/, '');
+    return new URL(configured).hostname
+      .toLowerCase()
+      .replace(/^\[|\]$/g, '')
+      .replace(/\.+$/, '');
   } catch {
     return undefined;
   }
