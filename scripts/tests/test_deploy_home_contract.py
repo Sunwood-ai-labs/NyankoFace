@@ -38,10 +38,16 @@ class DeployHomeContractTests(unittest.TestCase):
         self.assertIn('"method":"notifications/initialized"', SCRIPT)
         self.assertIn('"method":"tools/list"', SCRIPT)
         self.assertIn('"method":"resources/list"', SCRIPT)
+        self.assertIn('"method":"tools/call"', SCRIPT)
+        self.assertIn('list_repositories', SCRIPT)
         self.assertIn('MCP-Protocol-Version', SCRIPT)
         self.assertIn('"protocolVersion"', SCRIPT)
         self.assertNotIn('tolower($1) == "mcp-protocol-version:"', SCRIPT)
-        self.assertIn('NYANKOFACE_DEPLOY_MCP_TOKEN_FILE', SCRIPT)
+        self.assertIn('NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE', SCRIPT)
+        self.assertNotIn('NYANKOFACE_DEPLOY_MCP_TOKEN_FILE:-', SCRIPT)
+        self.assertIn('curl_options=(-q', SCRIPT)
+        self.assertIn('apostrophe = sprintf("%c", 39)', SCRIPT)
+        self.assertIn('JSON-RPC response id does not match the request', SCRIPT)
         self.assertIn('--config -', SCRIPT)
         self.assertNotIn('mcp_header_file', SCRIPT)
         self.assertIn('requires HTTPS before forwarding the bearer token', SCRIPT)
@@ -120,7 +126,7 @@ elif path == "/mcp":
     data = option("--data")
     code, headers = 200, "content-type: application/json\\n"
     if '"method":"initialize"' in data:
-        body = '{"result":{"protocolVersion":"2025-06-18","serverInfo":{"name":"fixture"}}}'
+        body = '{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","serverInfo":{"name":"fixture"}}}'
     elif '"method":"notifications/initialized"' in data:
         if 'MCP-Protocol-Version: 2025-06-18' not in config:
             raise SystemExit(10)
@@ -128,11 +134,15 @@ elif path == "/mcp":
     elif '"method":"tools/list"' in data:
         if 'MCP-Protocol-Version: 2025-06-18' not in config:
             raise SystemExit(10)
-        body = '{"result":{"tools":[]}}'
+        body = '{"jsonrpc":"2.0","id":2,"result":{"tools":[]}}'
     elif '"method":"resources/list"' in data:
         if 'MCP-Protocol-Version: 2025-06-18' not in config:
             raise SystemExit(10)
-        body = '{"result":{"resources":[]}}'
+        body = '{"jsonrpc":"2.0","id":3,"result":{"resources":[]}}'
+    elif '"method":"tools/call"' in data:
+        if 'MCP-Protocol-Version: 2025-06-18' not in config:
+            raise SystemExit(10)
+        body = '{"jsonrpc":"2.0","id":4,"result":{"content":[]}}'
     else:
         body = '{"error":{"message":"unexpected method"}}'
 else:

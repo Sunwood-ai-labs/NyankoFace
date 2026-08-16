@@ -128,6 +128,11 @@ dotenv_value() {
         sub(/^"/, "", line)
         sub(/"$/, "", line)
       }
+      apostrophe = sprintf("%c", 39)
+      if (line ~ ("^" apostrophe ".*" apostrophe "$")) {
+        sub("^" apostrophe, "", line)
+        sub(apostrophe "$", "", line)
+      }
       print line
       exit
     }
@@ -295,13 +300,46 @@ run_public_smoke_test() {
   [[ "$smoke_timeout" =~ ^[0-9]+$ && "$smoke_timeout" -gt 0 ]] || die "NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS must be a positive integer"
 
   smoke_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/nyankoface-smoke.XXXXXX")"
-  local curl_options=(--silent --show-error --max-time "$smoke_timeout" --retry 0)
+  local curl_options=(-q --silent --show-error --max-time "$smoke_timeout" --retry 0)
   if [[ "${NYANKOFACE_DEPLOY_SMOKE_INSECURE:-0}" == "1" ]]; then
     curl_options+=(--insecure)
   fi
 
   local request_number=0
   local status headers body curl_error
+  validate_mcp_result() {
+    local response_path="$1"
+    local expected_id="$2"
+    local expected_field="$3"
+    python3 - "$response_path" "$expected_id" "$expected_field" <<'PY'
+import json
+import sys
+
+path, expected_id, expected_field = sys.argv[1:]
+try:
+    with open(path, encoding="utf-8") as response_file:
+        payload = json.load(response_file)
+except (OSError, ValueError) as exc:
+    raise SystemExit(f"invalid JSON-RPC response: {exc}")
+
+if payload.get("jsonrpc") != "2.0":
+    raise SystemExit("JSON-RPC response has no version 2.0 envelope")
+if payload.get("id") != int(expected_id):
+    raise SystemExit("JSON-RPC response id does not match the request")
+if "error" in payload:
+    raise SystemExit("JSON-RPC response contains an error")
+result = payload.get("result")
+if not isinstance(result, dict) or expected_field not in result:
+    raise SystemExit(f"JSON-RPC result is missing {expected_field}")
+value = result[expected_field]
+if expected_field == "protocolVersion":
+    if not isinstance(value, str) or not isinstance(result.get("serverInfo"), dict):
+        raise SystemExit("MCP initialize result has an invalid protocolVersion/serverInfo")
+    print(value)
+elif expected_field in {"tools", "resources", "content"} and not isinstance(value, list):
+    raise SystemExit(f"MCP result field {expected_field} is not a list")
+PY
+  }
   smoke_request() {
     local route="$1"
     request_number=$((request_number + 1))
@@ -364,6 +402,7 @@ run_public_smoke_test() {
     fi
   done
   if (( mcp_enabled )); then
+    command -v python3 >/dev/null 2>&1 || die "python3 is required for the authenticated MCP smoke test"
     if [[ "$base_url" == http://* ]] && ! is_loopback_origin "$base_url"; then
       die "MCP public smoke requires HTTPS before forwarding the bearer token"
     fi
@@ -372,18 +411,16 @@ run_public_smoke_test() {
     grep -Eqi '^www-authenticate:.*resource_metadata=' "$headers" || die "public smoke check: MCP challenge has no resource metadata"
     grep -Fqi "resource_metadata=\"${base_url}/.well-known/oauth-protected-resource/mcp\"" "$headers" || die "public smoke check: MCP metadata origin does not match the public URL"
 
-    local mcp_token_file="${NYANKOFACE_DEPLOY_MCP_TOKEN_FILE:-${NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE:-}}"
-    [[ -n "$mcp_token_file" && -f "$mcp_token_file" ]] || die "MCP public smoke requires NYANKOFACE_DEPLOY_MCP_TOKEN_FILE or NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE"
+    local mcp_token_file="${NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE:-}"
+    [[ -n "$mcp_token_file" && -f "$mcp_token_file" ]] || die "MCP public smoke requires NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE"
     local mcp_token
     mcp_token="$(<"$mcp_token_file")"
     [[ -n "$mcp_token" && "$mcp_token" != *$'\r'* && "$mcp_token" != *$'\n'* && "$mcp_token" != *'"'* && "$mcp_token" != *$'\\'* ]] || die "MCP smoke token file is empty or contains unsupported characters"
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"nyankoface-deploy-smoke","version":"1.0"}}}' "$mcp_token"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP initialize returned HTTP $status"
-    grep -Eqi '"result"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize result is missing"
-    grep -Eqi '"serverInfo"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize server info is missing"
     local mcp_protocol_version
-    mcp_protocol_version="$(tr -d '\r\n' < "$body" | sed -nE 's/.*"protocolVersion"[[:space:]]*:[[:space:]]*"([^"\\]+)".*/\1/p')"
+    mcp_protocol_version="$(validate_mcp_result "$body" 1 protocolVersion)" || die "public smoke check: MCP initialize response failed JSON-RPC validation"
     [[ "$mcp_protocol_version" =~ ^[A-Za-z0-9._-]+$ ]] || die "public smoke check: MCP initialize did not return a valid protocol version"
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","method":"notifications/initialized"}' "$mcp_token" "$mcp_protocol_version"
@@ -391,11 +428,15 @@ run_public_smoke_test() {
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' "$mcp_token" "$mcp_protocol_version"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP tools/list returned HTTP $status"
-    grep -Eqi '"tools"[[:space:]]*:' "$body" || die "public smoke check: MCP tools/list result is missing"
+    validate_mcp_result "$body" 2 tools || die "public smoke check: MCP tools/list response failed JSON-RPC validation"
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}' "$mcp_token" "$mcp_protocol_version"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP resources/list returned HTTP $status"
-    grep -Eqi '"resources"[[:space:]]*:' "$body" || die "public smoke check: MCP resources/list result is missing"
+    validate_mcp_result "$body" 3 resources || die "public smoke check: MCP resources/list response failed JSON-RPC validation"
+
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"list_repositories","arguments":{"query":"","page":1,"limit":1}}}' "$mcp_token" "$mcp_protocol_version"
+    [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP read operation returned HTTP $status"
+    validate_mcp_result "$body" 4 content || die "public smoke check: MCP read operation response failed JSON-RPC validation"
   fi
 
   log "public deployment smoke test passed"
