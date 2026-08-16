@@ -75,11 +75,34 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
 
 
 def _is_non_global_ip(hostname: str) -> bool:
+    legacy_ipv4 = _legacy_ipv4_address(hostname)
+    if legacy_ipv4 is not None:
+        return not legacy_ipv4.is_global
     try:
         address = ipaddress.ip_address(hostname)
     except ValueError:
         return False
     return not address.is_global
+
+
+def _legacy_ipv4_address(hostname: str) -> ipaddress.IPv4Address | None:
+    """Parse dotted IPv4 spellings that URL parsers normalize before routing."""
+    parts = hostname.split(".")
+    if not 1 <= len(parts) <= 4 or any(not part.isdecimal() for part in parts):
+        return None
+    values = [int(part, 10) for part in parts]
+    limits = {1: [0xFFFFFFFF], 2: [0xFF, 0xFFFFFF], 3: [0xFF, 0xFF, 0xFFFF], 4: [0xFF] * 4}[len(values)]
+    if any(value > limit for value, limit in zip(values, limits, strict=True)):
+        return None
+    if len(values) == 1:
+        packed = values[0]
+    elif len(values) == 2:
+        packed = (values[0] << 24) | values[1]
+    elif len(values) == 3:
+        packed = (values[0] << 24) | (values[1] << 16) | values[2]
+    else:
+        packed = (values[0] << 24) | (values[1] << 16) | (values[2] << 8) | values[3]
+    return ipaddress.IPv4Address(packed)
 
 
 @dataclass(frozen=True)
