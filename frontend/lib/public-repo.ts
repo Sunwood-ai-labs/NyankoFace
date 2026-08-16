@@ -184,13 +184,20 @@ function sanitizePublicRepoTextOnce(value: string): string {
     return `${safe || '[internal URL omitted]'}${trailing}`;
   };
   const scrubBareEndpoint = (candidate: string): string => {
-    if (/^(?:[01]?\d|2[0-3]):[0-5]\d\b/.test(candidate)) return candidate;
-    const separator = candidate.lastIndexOf(':');
-    const host = candidate.slice(0, separator);
-    const port = candidate.slice(separator + 1);
+    const endpoint = candidate.match(/^((?:[a-z0-9.-]+|\[[0-9a-f:.]+\])):(\d{1,5})(?:[/?#][^\s<>"'`]+)?$/i);
+    if (!endpoint) return candidate;
+    const host = endpoint[1];
+    const port = endpoint[2];
+    if (!candidate.includes('/') && !candidate.includes('?') && !candidate.includes('#') && /^(?:[01]?\d|2[0-3]):[0-5]\d\b/.test(candidate)) {
+      return candidate;
+    }
     return isEstablishedPrivateEndpointHost(host, port) ? '[internal URL omitted]' : candidate;
   };
   const scrubUsernameLessScpEndpoint = (candidate: string): string => {
+    const numericHostPort = candidate.match(/^(\d{1,3}):(\d{1,5})(?=[/?#])/);
+    if (numericHostPort && isEstablishedPrivateEndpointHost(numericHostPort[1], numericHostPort[2])) {
+      return '[internal URL omitted]';
+    }
     const host = candidate.startsWith('[')
       ? candidate.slice(0, candidate.indexOf(']') + 1)
       : candidate.slice(0, candidate.indexOf(':'));
@@ -200,7 +207,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
-    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}\b/gi, scrubBareEndpoint);
+    .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):\d{1,5}(?:[/?#][^\s<>"'`]+)?/gi, scrubBareEndpoint);
 }
 
 function sanitizePublicRepoText(value: string): string {
