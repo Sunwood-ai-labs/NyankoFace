@@ -106,6 +106,13 @@ class SharedNavigationContractTests(unittest.TestCase):
         self.assertIn(f"/css/nyankoface.css?v={STYLESHEET_VERSION}", HEADER)
         self.assertNotIn(PREVIOUS_STYLESHEET_VERSION, HEADER)
 
+    def test_forgejo_fallback_keeps_repositories_separate_from_models(self):
+        self.assertIn('models.className = "item nyankoface-nav-models"', HEADER)
+        self.assertIn('models.href = "/models"', HEADER)
+        self.assertIn('setText(explore, "Repositories")', HEADER)
+        self.assertIn('explore.href = "/git/explore/repos"', HEADER)
+        self.assertNotIn('explore.href = "/models"', HEADER)
+
 
 if __name__ == "__main__":
     unittest.main()

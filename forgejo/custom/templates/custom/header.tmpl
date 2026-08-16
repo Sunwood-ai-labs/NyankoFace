@@ -3499,22 +3499,30 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
     const explore = navItems.find((item) => item.getAttribute("href") === "/git/explore/repos");
     if (explore) {
       const insertAfter = (target, node) => target?.parentElement?.insertBefore(node, target.nextElementSibling);
-      setText(explore, "Models");
-      explore.href = "/models";
-      if (!explore.querySelector(".nyankoface-title-icon")) explore.insertAdjacentHTML("afterbegin", navIcon.models);
+      const insertBefore = (target, node) => target?.parentElement?.insertBefore(node, target);
+      if (!document.querySelector(".nyankoface-nav-models")) {
+        const models = document.createElement("a");
+        models.className = "item nyankoface-nav-models";
+        models.href = "/models";
+        models.innerHTML = `${navIcon.models}<span>Models</span>`;
+        insertBefore(explore, models);
+      }
+      setText(explore, "Repositories");
+      explore.href = "/git/explore/repos";
+      if (!explore.querySelector(".nyankoface-title-icon")) explore.insertAdjacentHTML("afterbegin", navIcon.folder);
       if (!document.querySelector(".nyankoface-nav-datasets")) {
         const datasets = document.createElement("a");
         datasets.className = "item nyankoface-nav-datasets";
         datasets.href = "/datasets";
         datasets.innerHTML = `${navIcon.datasets}<span>Datasets</span>`;
-        insertAfter(explore, datasets);
+        insertAfter(document.querySelector(".nyankoface-nav-models") || explore, datasets);
       }
       if (!document.querySelector(".nyankoface-nav-spaces")) {
         const spaces = document.createElement("a");
         spaces.className = "item nyankoface-nav-spaces";
         spaces.href = "/spaces";
         spaces.innerHTML = `${navIcon.spaces}<span>Spaces</span>`;
-        const datasets = document.querySelector(".nyankoface-nav-datasets") || explore;
+        const datasets = document.querySelector(".nyankoface-nav-datasets") || document.querySelector(".nyankoface-nav-models") || explore;
         insertAfter(datasets, spaces);
       }
     }
