@@ -30,6 +30,7 @@ test('normalizes canonical private host forms before allowing absolute URLs', ()
   assert.equal(sanitizePublicUrl('https://forgejo./api/v1'), '/api/v1');
   assert.equal(sanitizePublicUrl('https://[::ffff:192.168.1.22]:8443/pages/site/'), '/pages/site/');
   assert.equal(sanitizePublicUrl('https://[::ffff:c0a8:116]:8443/pages/site/'), '/pages/site/');
+  assert.equal(sanitizePublicUrl('https://[100::]/pages/site/'), '/pages/site/');
   assert.equal(sanitizePublicUrl('https:\\forgejo\\private'), undefined);
   assert.equal(sanitizePublicUrl('/\\\\evil.example/path'), undefined);
 });
@@ -88,6 +89,7 @@ test('request origin parsing rejects forwarded host path injection', () => {
   assert.equal(requestOriginFromHeaders(headers), 'https://madesk.tail8be30.ts.net');
   assert.equal(shareablePublicUrl('/pages/owner/site/', 'https://madesk.tail8be30.ts.net'), 'https://madesk.tail8be30.ts.net/pages/owner/site/');
   assert.equal(shareablePublicUrl('/pages/owner/site/'), undefined);
+  assert.equal(sanitizePublicUrl('/\n/192.168.1.1/private'), undefined);
 });
 
 test('does not derive a public origin from an untrusted Host header', () => {

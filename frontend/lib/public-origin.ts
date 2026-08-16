@@ -6,6 +6,40 @@ const PRIVATE_SERVICE_HOSTS = new Set([
   'spaces-runner',
 ]);
 
+function parseIpv6Groups(host: string): number[] | undefined {
+  if (!host.includes(':')) return undefined;
+  const sections = host.split('::');
+  if (sections.length > 2) return undefined;
+  const left = sections[0] ? sections[0].split(':') : [];
+  const right = sections.length === 2 && sections[1] ? sections[1].split(':') : [];
+  if (
+    left.some((part) => !/^[0-9a-f]{1,4}$/i.test(part)) ||
+    right.some((part) => !/^[0-9a-f]{1,4}$/i.test(part))
+  ) return undefined;
+  if (sections.length === 1 && left.length !== 8) return undefined;
+  const missing = 8 - left.length - right.length;
+  if (sections.length === 2 && missing < 1) return undefined;
+  return [
+    ...left.map((part) => Number.parseInt(part, 16)),
+    ...(sections.length === 2 ? Array.from({ length: missing }, () => 0) : []),
+    ...right.map((part) => Number.parseInt(part, 16)),
+  ];
+}
+
+function isNonGlobalIpv6(host: string): boolean {
+  const groups = parseIpv6Groups(host);
+  if (!groups) return false;
+  const [first, second] = groups;
+  return (
+    first === 0 ||
+    (first >= 0xfc00 && first <= 0xfdff) ||
+    (first >= 0xfe80 && first <= 0xfebf) ||
+    (first >= 0xff00 && first <= 0xffff) ||
+    (first === 0x100 && groups[1] === 0 && groups[2] === 0 && groups[3] === 0) ||
+    (first === 0x2001 && [0, 2, 0x10, 0x20, 0xdb8].includes(second))
+  );
+}
+
 function isNonGlobalIpv4(host: string): boolean {
   const octets = host.split('.').map((part) => Number(part));
   if (
@@ -54,15 +88,8 @@ export function isPrivateHostname(hostname: string): boolean {
   ) return true;
   if (isNonGlobalIpv4(host)) return true;
   if (host === '::1' || host === '::' || host === '0.0.0.0') return true;
-  if (
-    /^f[cd][0-9a-f:]*$/i.test(host) ||
-    /^fe[89ab][0-9a-f:]*$/i.test(host) ||
-    /^ff[0-9a-f:]*$/i.test(host) ||
-    /^100:0:0:0:/i.test(host) ||
-    /^2001:(?:0|2|10|20|db8)(?::|$)/i.test(host)
-  ) return true;
   const mappedIpv4 = ipv4FromMappedIpv6(host);
-  return mappedIpv4 ? isPrivateHostname(mappedIpv4) : false;
+  return mappedIpv4 ? isPrivateHostname(mappedIpv4) : isNonGlobalIpv6(host);
 }
 
 function ipv4FromMappedIpv6(host: string): string | undefined {
@@ -87,7 +114,7 @@ function ipv4FromMappedIpv6(host: string): string | undefined {
 
 function parseHttpUrl(value: unknown, allowQueryAndFragment = true): URL | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
-  if (value.includes('\\')) return undefined;
+  if (value.includes('\\') || /[\u0000-\u001f\u007f]/.test(value)) return undefined;
   try {
     const url = new URL(value.trim());
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
@@ -103,7 +130,7 @@ function parseHttpUrl(value: unknown, allowQueryAndFragment = true): URL | undef
 export function sanitizePublicUrl(value: unknown): string | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
   const trimmed = value.trim();
-  if (trimmed.includes('\\')) return undefined;
+  if (trimmed.includes('\\') || /[\u0000-\u001f\u007f]/.test(trimmed)) return undefined;
   if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;
   const url = parseHttpUrl(trimmed);
   if (!url) return undefined;
