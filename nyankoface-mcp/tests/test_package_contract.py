@@ -19,7 +19,7 @@ def test_package_metadata_and_runtime_version_match():
         "nyankoface-mcp", "nyankoface-mcp-admin-server", "nyankoface-mcp-server", "nyankoface-mcp-stdio",
     }
     assert metadata["dependencies"] == [
-        "httpx==0.28.1", "mcp==1.26.0", "starlette==1.3.1", "uvicorn==0.41.0",
+        "httpx==0.28.1", "idna==3.18", "mcp==1.26.0", "starlette==1.3.1", "uvicorn==0.41.0",
     ]
 
 
@@ -52,5 +52,5 @@ def test_container_runtime_lock_pins_every_dependency():
     assert lock_lines
     assert all(line.count("==") == 1 for line in lock_lines)
     assert {line.lower().split("==", 1)[0] for line in lock_lines}.issuperset({
-        "httpx", "mcp", "uvicorn", "pydantic", "starlette", "certifi",
+        "httpx", "idna", "mcp", "uvicorn", "pydantic", "starlette", "certifi",
     })
