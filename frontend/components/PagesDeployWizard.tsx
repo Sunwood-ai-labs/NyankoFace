@@ -372,7 +372,10 @@ export default function PagesDeployWizard({
               )}
               <button
                 type="button"
-                onClick={() => void navigator.clipboard.writeText(shareablePublicUrl(result.public_url, publicOrigin) || result.public_url)}
+                onClick={() => {
+                  const shareable = shareablePublicUrl(result.public_url, publicOrigin);
+                  if (shareable) void navigator.clipboard.writeText(shareable);
+                }}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <HfIcon name="link" className="h-3.5 w-3.5" />

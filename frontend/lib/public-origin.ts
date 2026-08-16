@@ -6,6 +6,30 @@ const PRIVATE_SERVICE_HOSTS = new Set([
   'spaces-runner',
 ]);
 
+function isNonGlobalIpv4(host: string): boolean {
+  const octets = host.split('.').map((part) => Number(part));
+  if (
+    octets.length !== 4 ||
+    octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255)
+  ) return false;
+  const [first, second, third] = octets;
+  return (
+    first === 0 ||
+    first === 10 ||
+    first === 127 ||
+    (first === 100 && second >= 64 && second <= 127) ||
+    (first === 169 && second === 254) ||
+    (first === 172 && second >= 16 && second <= 31) ||
+    (first === 192 && second === 0 && (third === 0 || third === 2)) ||
+    (first === 192 && second === 88 && third === 99) ||
+    (first === 192 && second === 168) ||
+    (first === 198 && second >= 18 && second <= 19) ||
+    (first === 198 && second === 51 && third === 100) ||
+    (first === 203 && second === 0 && third === 113) ||
+    first >= 224
+  );
+}
+
 export function isPrivateHostname(hostname: string): boolean {
   const host = hostname
     .toLowerCase()
@@ -28,14 +52,15 @@ export function isPrivateHostname(hostname: string): boolean {
     (!host.includes('.') && !host.includes(':')) ||
     PRIVATE_SERVICE_HOSTS.has(host)
   ) return true;
-  if (/^(?:10|127)\.(?:\d{1,3}\.){2}\d{1,3}$/.test(host)) return true;
-  if (/^169\.254\.(?:\d{1,3}\.)\d{1,3}$/.test(host)) return true;
-  if (/^192\.168\.(?:\d{1,3}\.)\d{1,3}$/.test(host)) return true;
-  if (/^100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.(?:\d{1,3}\.)\d{1,3}$/.test(host)) return true;
-  const private172 = host.match(/^172\.(\d{1,3})\.(?:\d{1,3}\.)\d{1,3}$/);
-  if (private172 && Number(private172[1]) >= 16 && Number(private172[1]) <= 31) return true;
+  if (isNonGlobalIpv4(host)) return true;
   if (host === '::1' || host === '::' || host === '0.0.0.0') return true;
-  if (/^f[cd][0-9a-f:]*$/i.test(host) || /^fe[89ab][0-9a-f:]*$/i.test(host)) return true;
+  if (
+    /^f[cd][0-9a-f:]*$/i.test(host) ||
+    /^fe[89ab][0-9a-f:]*$/i.test(host) ||
+    /^ff[0-9a-f:]*$/i.test(host) ||
+    /^100:0:0:0:/i.test(host) ||
+    /^2001:(?:0|2|10|20|db8)(?::|$)/i.test(host)
+  ) return true;
   const mappedIpv4 = ipv4FromMappedIpv6(host);
   return mappedIpv4 ? isPrivateHostname(mappedIpv4) : false;
 }
@@ -124,7 +149,7 @@ export function shareablePublicUrl(value: unknown, origin?: string): string | un
   const safe = sanitizePublicUrl(value);
   if (!safe || !safe.startsWith('/')) return safe;
   const browserOrigin = origin || (typeof window !== 'undefined' ? window.location.origin : undefined);
-  if (!browserOrigin) return safe;
+  if (!browserOrigin) return undefined;
   try {
     return new URL(safe, browserOrigin).href;
   } catch {

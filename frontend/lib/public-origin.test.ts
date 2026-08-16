@@ -21,6 +21,8 @@ test('converts private absolute URLs to same-origin paths', () => {
 test('keeps public absolute URLs and relative paths usable', () => {
   assert.equal(sanitizePublicUrl('https://pages.example/site/'), 'https://pages.example/site/');
   assert.equal(sanitizePublicUrl('/pages/owner/site/'), '/pages/owner/site/');
+  assert.equal(sanitizePublicUrl('https://198.18.0.1/pages/site/'), '/pages/site/');
+  assert.equal(sanitizePublicUrl('https://192.0.2.1/pages/site/'), '/pages/site/');
 });
 
 test('normalizes canonical private host forms before allowing absolute URLs', () => {
@@ -85,6 +87,7 @@ test('request origin parsing rejects forwarded host path injection', () => {
   });
   assert.equal(requestOriginFromHeaders(headers), 'https://madesk.tail8be30.ts.net');
   assert.equal(shareablePublicUrl('/pages/owner/site/', 'https://madesk.tail8be30.ts.net'), 'https://madesk.tail8be30.ts.net/pages/owner/site/');
+  assert.equal(shareablePublicUrl('/pages/owner/site/'), undefined);
 });
 
 test('does not derive a public origin from an untrusted Host header', () => {

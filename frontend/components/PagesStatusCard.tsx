@@ -18,8 +18,10 @@ export default function PagesStatusCard({ inspection, publicOrigin }: { inspecti
 
   async function copyPublicUrl() {
     if (!inspection.public_url) return;
+    const shareable = shareablePublicUrl(inspection.public_url, publicOrigin);
+    if (!shareable) return;
     try {
-      await navigator.clipboard.writeText(shareablePublicUrl(inspection.public_url, publicOrigin) || inspection.public_url);
+      await navigator.clipboard.writeText(shareable);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
