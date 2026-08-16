@@ -20,14 +20,20 @@ const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:
 const PRIVATE_BARE_HOSTS = new Set([
   'backend',
   'forgejo',
+  'forgejo-actions-dind',
+  'forgejo-actions-runner',
   'frontend',
   'gateway',
   'git',
   'gitea',
   'localhost',
+  'maintenance-agent',
   'mcp',
+  'mcp-admin',
   'nyankoface',
   'nyankoface-mcp',
+  'postgres',
+  'seed',
   'spaces-runner',
 ]);
 
