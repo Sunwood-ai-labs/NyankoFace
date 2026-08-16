@@ -31,7 +31,9 @@ function isPrivateHostname(hostname: string): boolean {
 function safePublicUrl(value: unknown): string | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined;
   const trimmed = value.trim();
-  if (trimmed.startsWith('/')) return trimmed;
+  // A protocol-relative URL such as //forgejo:3000/... is not a safe
+  // root-relative path; browsers resolve it against the current scheme.
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;
   try {
     const url = new URL(trimmed);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
@@ -51,7 +53,7 @@ export function sanitizePublicRepo(repo: Repo): Repo {
   const raw = repo as Repo & Record<string, unknown>;
   const ownerLogin = repo.owner?.login || repo.full_name.split('/')[0];
   const safeOwner = {
-    ...repo.owner,
+    login: ownerLogin,
     ...(safePublicUrl(repo.owner?.avatar_url)
       ? { avatar_url: safePublicUrl(repo.owner?.avatar_url) }
       : { avatar_url: undefined }),
@@ -59,6 +61,17 @@ export function sanitizePublicRepo(repo: Repo): Repo {
   const safe = { ...raw, owner: safeOwner } as Repo & Record<string, unknown>;
 
   for (const field of UPSTREAM_URL_FIELDS) delete safe[field];
+  // Forgejo adds many endpoint-specific *_url fields over time. Keep the
+  // portal-owned html_url below, but never forward an upstream URL field that
+  // was not known when this sanitizer was written.
+  for (const field of Object.keys(safe)) {
+    if (field.endsWith('_url') && field !== 'html_url' && field !== 'space_url') {
+      delete safe[field];
+    }
+  }
+  const safeSpaceUrl = safePublicUrl(repo.space_url);
+  if (safeSpaceUrl) safe.space_url = safeSpaceUrl;
+  else delete safe.space_url;
   safe.html_url = `/git/${ownerLogin}/${repo.name}`;
   return safe as Repo;
 }

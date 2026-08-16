@@ -11,11 +11,13 @@ test('sanitizes upstream repository URLs at the public boundary', () => {
     description: null,
     owner: {
       login: 'alice',
+      html_url: 'http://forgejo:3000/alice',
       avatar_url: 'http://forgejo:3000/user/avatar/alice',
     },
     updated_at: '2026-08-16T00:00:00Z',
     html_url: 'http://192.168.11.22:8443/git/alice/demo',
     url: 'http://forgejo:3000/api/v1/repos/alice/demo',
+    languages_url: 'http://forgejo:3000/api/v1/repos/alice/demo/languages',
     clone_url: 'http://localhost:3000/alice/demo.git',
     ssh_url: 'ssh://git@localhost:2222/alice/demo.git',
   } as unknown as Repo & Record<string, unknown>;
@@ -28,6 +30,8 @@ test('sanitizes upstream repository URLs at the public boundary', () => {
   assert.equal((sanitized as Repo & Record<string, unknown>).url, undefined);
   assert.equal((sanitized as Repo & Record<string, unknown>).clone_url, undefined);
   assert.equal((sanitized as Repo & Record<string, unknown>).ssh_url, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).languages_url, undefined);
+  assert.equal((sanitized.owner as unknown as Record<string, unknown>).html_url, undefined);
   assert.doesNotMatch(serialized, /192\.168\.11\.22|forgejo:3000|localhost:3000|ssh:\/\//);
 });
 
@@ -42,4 +46,17 @@ test('keeps public relative avatar paths usable', () => {
   } as Repo;
 
   assert.equal(sanitizePublicRepo(repo).owner.avatar_url, '/git/avatars/alice.png');
+});
+
+test('rejects protocol-relative avatar URLs that could target an internal host', () => {
+  const repo = {
+    id: 9,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: { login: 'alice', avatar_url: '//forgejo:3000/user/avatar/alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as unknown as Repo;
+
+  assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
 });
