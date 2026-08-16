@@ -35,11 +35,15 @@ class DeployHomeContractTests(unittest.TestCase):
         self.assertIn('resource_metadata=', SCRIPT)
         self.assertIn('MCP metadata origin does not match the public URL', SCRIPT)
         self.assertIn('"method":"initialize"', SCRIPT)
+        self.assertIn('"method":"notifications/initialized"', SCRIPT)
         self.assertIn('"method":"tools/list"', SCRIPT)
         self.assertIn('"method":"resources/list"', SCRIPT)
+        self.assertIn('MCP-Protocol-Version', SCRIPT)
         self.assertIn('NYANKOFACE_DEPLOY_MCP_TOKEN_FILE', SCRIPT)
         self.assertIn('--config -', SCRIPT)
         self.assertNotIn('mcp_header_file', SCRIPT)
+        self.assertIn('requires HTTPS before forwarding the bearer token', SCRIPT)
+        self.assertNotIn('"$base_url" == https://localhost*', SCRIPT)
 
     def test_cleanup_status_collection_is_bounded(self):
         self.assertIn('timeout --signal=KILL 10s', SCRIPT)
@@ -57,7 +61,7 @@ class DeployHomeContractTests(unittest.TestCase):
             fake_bin = tmp / "bin"
             fake_bin.mkdir()
             env_file = tmp / "deploy.env"
-            env_file.write_text("PUBLIC_BASE_URL=http://public.example\n", encoding="utf-8")
+            env_file.write_text("PUBLIC_BASE_URL=https://public.example\n", encoding="utf-8")
             cert_dir = tmp / "certs"
             cert_dir.mkdir()
             token_file = tmp / "mcp-token"
@@ -108,16 +112,25 @@ elif path == "/api/catalog/repositories":
     code, headers, body = 200, "content-type: application/json\\n", '{"ok":true,"data":[],"total_count":0}'
 elif path == "/mcp" and not config:
     code = 401
-    headers = 'www-authenticate: Bearer resource_metadata="http://public.example/.well-known/oauth-protected-resource/mcp"\\n'
+    headers = 'www-authenticate: Bearer resource_metadata="https://public.example/.well-known/oauth-protected-resource/mcp"\\n'
     body = '{"error":"unauthorized"}'
 elif path == "/mcp":
     data = option("--data")
     code, headers = 200, "content-type: application/json\\n"
     if '"method":"initialize"' in data:
+        headers += "MCP-Protocol-Version: 2025-06-18\\n"
         body = '{"result":{"serverInfo":{"name":"fixture"}}}'
+    elif '"method":"notifications/initialized"' in data:
+        if 'MCP-Protocol-Version: 2025-06-18' not in config:
+            raise SystemExit(10)
+        code, body = 202, ""
     elif '"method":"tools/list"' in data:
+        if 'MCP-Protocol-Version: 2025-06-18' not in config:
+            raise SystemExit(10)
         body = '{"result":{"tools":[]}}'
     elif '"method":"resources/list"' in data:
+        if 'MCP-Protocol-Version: 2025-06-18' not in config:
+            raise SystemExit(10)
         body = '{"result":{"resources":[]}}'
     else:
         body = '{"error":{"message":"unexpected method"}}'
@@ -155,7 +168,7 @@ sys.stdout.write(str(code))
                 "NYANKOFACE_DEPLOY_ENV_FILE": env_file_for_bash,
                 "NYANKOFACE_GATEWAY_CERT_DIR": cert_dir_for_bash,
                 "NYANKOFACE_DEPLOY_REF": "refs/heads/main",
-                "NYANKOFACE_DEPLOY_SMOKE_BASE_URL": "http://public.example",
+                "NYANKOFACE_DEPLOY_SMOKE_BASE_URL": "https://public.example",
                 "NYANKOFACE_DEPLOY_TIMEOUT_SECONDS": "5",
                 "NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS": "5",
                 "NYANKOFACE_MCP_FORGEJO_USER_TOKEN_FILE": token_file_for_bash,

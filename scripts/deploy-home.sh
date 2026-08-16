@@ -34,6 +34,29 @@ log() {
   printf '[nyankoface-deploy] %s\n' "$*"
 }
 
+is_loopback_origin() {
+  local candidate="$1"
+  local authority="${candidate#*://}"
+  authority="${authority%%/*}"
+  local port
+  if [[ "$authority" == "localhost" || "$authority" == "127.0.0.1" || "$authority" == "[::1]" ]]; then
+    return 0
+  fi
+  if [[ "$authority" == localhost:* ]]; then
+    port="${authority#*:}"
+    [[ "$port" =~ ^[0-9]+$ ]] && return 0
+  fi
+  if [[ "$authority" == 127.0.0.1:* ]]; then
+    port="${authority#*:}"
+    [[ "$port" =~ ^[0-9]+$ ]] && return 0
+  fi
+  if [[ "$authority" == "[::1]:"* ]]; then
+    port="${authority#*]:}"
+    [[ "$port" =~ ^[0-9]+$ ]] && return 0
+  fi
+  return 1
+}
+
 is_ignored_health_service() {
   local service="$1"
   local candidate
@@ -273,7 +296,7 @@ run_public_smoke_test() {
 
   smoke_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/nyankoface-smoke.XXXXXX")"
   local curl_options=(--silent --show-error --max-time "$smoke_timeout" --retry 0)
-  if [[ "${NYANKOFACE_DEPLOY_SMOKE_INSECURE:-0}" == "1" || "$base_url" == https://localhost* || "$base_url" == https://127.0.0.1* ]]; then
+  if [[ "${NYANKOFACE_DEPLOY_SMOKE_INSECURE:-0}" == "1" ]]; then
     curl_options+=(--insecure)
   fi
 
@@ -294,11 +317,18 @@ run_public_smoke_test() {
     local route="$1"
     local payload="$2"
     local bearer_token="$3"
+    local protocol_version="${4:-}"
+    local curl_config
     request_number=$((request_number + 1))
     headers="$smoke_tmp_dir/headers-$request_number"
     body="$smoke_tmp_dir/body-$request_number"
     curl_error="$smoke_tmp_dir/error-$request_number"
-    if ! status="$(printf 'header = "Authorization: Bearer %s"\n' "$bearer_token" | curl "${curl_options[@]}" \
+    curl_config="$(printf 'header = "Authorization: Bearer %s"' "$bearer_token")"
+    if [[ -n "$protocol_version" ]]; then
+      curl_config+=$'\n'
+      curl_config+="header = \"MCP-Protocol-Version: ${protocol_version}\""
+    fi
+    if ! status="$(printf '%s\n' "$curl_config" | curl "${curl_options[@]}" \
       --config - \
       --header 'Accept: application/json, text/event-stream' \
       --header 'Content-Type: application/json' \
@@ -334,6 +364,9 @@ run_public_smoke_test() {
     fi
   done
   if (( mcp_enabled )); then
+    if [[ "$base_url" == http://* ]] && ! is_loopback_origin "$base_url"; then
+      die "MCP public smoke requires HTTPS before forwarding the bearer token"
+    fi
   smoke_request "/mcp"
     [[ "$status" == "401" ]] || die "public smoke check: MCP endpoint returned HTTP $status without credentials"
     grep -Eqi '^www-authenticate:.*resource_metadata=' "$headers" || die "public smoke check: MCP challenge has no resource metadata"
@@ -349,12 +382,18 @@ run_public_smoke_test() {
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP initialize returned HTTP $status"
     grep -Eqi '"result"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize result is missing"
     grep -Eqi '"serverInfo"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize server info is missing"
+    local mcp_protocol_version
+    mcp_protocol_version="$(awk 'tolower($1) == "mcp-protocol-version:" { print $2; exit }' "$headers")"
+    [[ "$mcp_protocol_version" =~ ^[A-Za-z0-9._-]+$ ]] || die "public smoke check: MCP initialize did not return a valid protocol version"
 
-    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' "$mcp_token"
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","method":"notifications/initialized"}' "$mcp_token" "$mcp_protocol_version"
+    [[ "$status" == "202" ]] || die "public smoke check: MCP initialized notification returned HTTP $status"
+
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' "$mcp_token" "$mcp_protocol_version"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP tools/list returned HTTP $status"
     grep -Eqi '"tools"[[:space:]]*:' "$body" || die "public smoke check: MCP tools/list result is missing"
 
-    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}' "$mcp_token"
+    smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","id":3,"method":"resources/list","params":{}}' "$mcp_token" "$mcp_protocol_version"
     [[ "$status" == "200" ]] || die "public smoke check: authenticated MCP resources/list returned HTTP $status"
     grep -Eqi '"resources"[[:space:]]*:' "$body" || die "public smoke check: MCP resources/list result is missing"
   fi
