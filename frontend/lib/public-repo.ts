@@ -72,12 +72,11 @@ function canonicalNumericIpv4Host(hostname: string, port?: string): string | und
   const isDottedNumeric = /^[0-9a-fx]+(?:\.[0-9a-fx]+){1,3}$/i.test(host);
   const isHexNumeric = /^0x[0-9a-f]+$/i.test(host);
   const isLongDecimal = /^\d{4,}$/.test(host);
-  const isShortDecimalEndpoint = /^\d{1,3}$/.test(host) && (
-    host.length === 3 || /^\d{3,5}$/.test(port || '')
-  );
-  // A short decimal token such as the `12` in `12:30` is ordinary text,
-  // while host-and-port syntax, long decimal, and dotted/hex forms are
-  // accepted numeric IPv4 spellings by WHATWG URL parsing.
+  const isShortDecimalEndpoint = /^\d{1,3}$/.test(host) && (port !== undefined || host.length === 3);
+  // A short decimal token such as the `12` in `12:30` is ordinary text;
+  // the caller excludes clock-shaped tokens while host-and-port syntax,
+  // long decimal, and dotted/hex forms are accepted numeric IPv4 spellings
+  // by WHATWG URL parsing.
   if (!isDottedNumeric && !isHexNumeric && !isLongDecimal && !isShortDecimalEndpoint) return undefined;
   try {
     const parsed = new URL(`http://${host}/`).hostname.replace(/^\[|\]$/g, '');
@@ -185,6 +184,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     return `${safe || '[internal URL omitted]'}${trailing}`;
   };
   const scrubBareEndpoint = (candidate: string): string => {
+    if (/^\d{1,2}:[0-5]\d\b/.test(candidate)) return candidate;
     const separator = candidate.lastIndexOf(':');
     const host = candidate.slice(0, separator);
     const port = candidate.slice(separator + 1);
