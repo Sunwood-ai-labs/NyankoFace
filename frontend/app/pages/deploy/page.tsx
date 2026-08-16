@@ -3,6 +3,8 @@ import HfIcon from '@/components/HfIcon';
 import { getLocale } from '@/lib/i18n-server';
 import { ui } from '@/lib/i18n';
 import { getAppName } from '@/lib/app-config';
+import { headers } from 'next/headers';
+import { requestOriginFromHeaders } from '@/lib/public-origin';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +22,7 @@ export default async function PagesDeployPage({
 }) {
   const locale = await getLocale();
   const params = await searchParams;
+  const publicOrigin = requestOriginFromHeaders(await headers());
 
   return (
     <main className="mx-auto w-full max-w-[1180px] px-4 py-8 sm:py-10" data-pages-deploy-page>
@@ -48,6 +51,7 @@ export default async function PagesDeployPage({
       <PagesDeployWizard
         initialOwner={params?.owner?.trim() || ''}
         initialRepo={params?.repo?.trim() || ''}
+        publicOrigin={publicOrigin}
       />
     </main>
   );

@@ -7,6 +7,7 @@ import { getLocale } from '@/lib/i18n-server';
 import { ui } from '@/lib/i18n';
 import { getAppName } from '@/lib/app-config';
 import { headers } from 'next/headers';
+import { requestOriginFromHeaders, resolvePublicOrigin } from '@/lib/public-origin';
 import AuthSessionProvider from '@/components/AuthSessionProvider';
 import { forgejoBrowserSession } from '@/lib/forgejo-session';
 import NavigationFeedback from '@/components/NavigationFeedback';
@@ -17,15 +18,12 @@ const BRAND_VERSION = '20260807-paw-v1';
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const appName = getAppName();
-  const publicBaseUrl = process.env.PUBLIC_BASE_URL?.trim();
-  return {
-    ...(publicBaseUrl ? { metadataBase: new URL(publicBaseUrl) } : {}),
-    title: ui(locale, `${appName} - ローカルAIコミュニティハブ`, `${appName} - Local AI Community Hub`),
-    description: ui(
-      locale,
-      'Forgejoを基盤に、モデル、データセット、Space、ナレッジを共有できるローカルAIプラットフォーム。',
-      'A local AI platform for sharing models, datasets, Spaces, and knowledge, backed by Forgejo.',
-    ),
+  const requestHeaders = await headers();
+  const publicBaseUrl = resolvePublicOrigin(
+    process.env.PUBLIC_BASE_URL,
+    requestOriginFromHeaders(requestHeaders),
+  );
+  const publicUrlMetadata: Metadata = {
     manifest: `/manifest.webmanifest?v=${BRAND_VERSION}`,
     icons: {
       icon: [
@@ -38,13 +36,25 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: [{ url: `/apple-icon.png?v=${BRAND_VERSION}`, type: 'image/png', sizes: '180x180' }],
       other: [{ rel: 'mask-icon', url: `/brand/mask-icon.svg?v=${BRAND_VERSION}`, color: '#f59e0b' }],
     },
+    ...(publicBaseUrl ? {
+      metadataBase: new URL(publicBaseUrl),
       openGraph: {
         images: [{ url: `/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`, width: 512, height: 512, alt: `${appName} paw mark` }],
-    },
-    twitter: {
-      card: 'summary',
-      images: [`/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`],
-    },
+      },
+      twitter: {
+        card: 'summary' as const,
+        images: [`/brand/nyankoface-paw-logo.png?v=${BRAND_VERSION}`],
+      },
+    } : {}),
+  };
+  return {
+    ...publicUrlMetadata,
+    title: ui(locale, `${appName} - ローカルAIコミュニティハブ`, `${appName} - Local AI Community Hub`),
+    description: ui(
+      locale,
+      'Forgejoを基盤に、モデル、データセット、Space、ナレッジを共有できるローカルAIプラットフォーム。',
+      'A local AI platform for sharing models, datasets, Spaces, and knowledge, backed by Forgejo.',
+    ),
   };
 }
 

@@ -42,6 +42,8 @@ import CharacterRepositoryPanel from '@/components/CharacterRepositoryPanel';
 import { inspectCharacterRepository } from '@/lib/character-format';
 import { getAppName } from '@/lib/app-config';
 import PagesStatusCard from '@/components/PagesStatusCard';
+import { headers } from 'next/headers';
+import { requestOriginFromHeaders } from '@/lib/public-origin';
 import PipelinePanel from '@/components/PipelinePanel';
 import AutomationPreflightPanel from '@/components/AutomationPreflightPanel';
 import { inspectPublicAutomationRepository } from '@/lib/automation-repository';
@@ -89,7 +91,8 @@ export default async function RepoDetailPage({
   params: Promise<{ owner: string; repo: string }>;
   searchParams: Promise<{ tab?: string; path?: string; revision?: string; pet?: string }>;
 }) {
-  const [{ owner, repo }, resolvedSearchParams] = await Promise.all([params, searchParams]);
+  const [{ owner, repo }, resolvedSearchParams, requestHeaders] = await Promise.all([params, searchParams, headers()]);
+  const requestOrigin = requestOriginFromHeaders(requestHeaders);
   const timing = new ServerTimingTrace();
   const routeStartedAt = performance.now();
   const tab = resolvedSearchParams.tab === 'files'
@@ -278,9 +281,10 @@ export default async function RepoDetailPage({
               owner={owner}
               repo={repo}
               path={path}
-              defaultBranch={repoInfo.default_branch || 'main'}
-              updatedAt={repoInfo.updated_at}
-              locale={locale}
+               defaultBranch={repoInfo.default_branch || 'main'}
+               updatedAt={repoInfo.updated_at}
+               requestOrigin={requestOrigin}
+               locale={locale}
             />
           )}
         </div>
@@ -411,10 +415,10 @@ export default async function RepoDetailPage({
           </div>
 
           <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <CloneBlock cloneUrl={cloneUrl(owner, repo)} />
+            <CloneBlock cloneUrl={cloneUrl(owner, repo, requestOrigin)} />
           </div>
 
-          {pagesInspection ? <PagesStatusCard inspection={pagesInspection} /> : null}
+          {pagesInspection ? <PagesStatusCard inspection={pagesInspection} publicOrigin={requestOrigin} /> : null}
 
           <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -566,6 +570,7 @@ async function FilesTabContent({
   path,
   defaultBranch,
   updatedAt,
+  requestOrigin,
   locale,
 }: {
   owner: string;
@@ -573,6 +578,7 @@ async function FilesTabContent({
   path: string;
   defaultBranch: string;
   updatedAt: string;
+  requestOrigin?: string;
   locale: Locale;
 }) {
   const [res, commits] = await Promise.all([
@@ -600,7 +606,7 @@ async function FilesTabContent({
       commits={commits}
       updatedAt={updatedAt}
       forgejoUrl={forgejoTreeUrl(owner, repo, path, defaultBranch)}
-      cloneUrl={cloneUrl(owner, repo)}
+      cloneUrl={cloneUrl(owner, repo, requestOrigin)}
       locale={locale}
     />
   );
