@@ -28,6 +28,9 @@ test('sanitizes upstream repository URLs at the public boundary', () => {
       clone_url: 'http://forgejo:3000/alice/parent.git',
       website: 'http://forgejo:3000/alice/parent/docs',
     },
+    external_tracker: {
+      external_tracker_format: 'http://forgejo:3000/{user}/{repo}/issues/{index}',
+    },
   } as unknown as Repo & Record<string, unknown>;
 
   const sanitized = sanitizePublicRepo(raw);
@@ -41,6 +44,7 @@ test('sanitizes upstream repository URLs at the public boundary', () => {
   assert.equal((sanitized as Repo & Record<string, unknown>).languages_url, undefined);
   assert.equal((sanitized as Repo & Record<string, unknown>).space_url, undefined);
   assert.equal((sanitized as Repo & Record<string, unknown>).website, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).external_tracker, undefined);
   const parent = (sanitized as Repo & Record<string, unknown>).parent as Record<string, unknown>;
   assert.equal(parent.html_url, undefined);
   assert.equal(parent.clone_url, undefined);
