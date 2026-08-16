@@ -36,6 +36,7 @@ test('prefers a safe request origin when configuration points at a LAN host', ()
   const requestHeaders = new Headers({
     host: 'madesk.tail8be30.ts.net',
     'x-forwarded-proto': 'https',
+    'x-nyankoface-trusted-host': '1',
   });
   const requestOrigin = requestOriginFromHeaders(requestHeaders);
   assert.equal(requestOrigin, 'https://madesk.tail8be30.ts.net');
@@ -80,7 +81,19 @@ test('request origin parsing rejects forwarded host path injection', () => {
     host: 'madesk.tail8be30.ts.net',
     'x-forwarded-host': 'madesk.tail8be30.ts.net/path',
     'x-forwarded-proto': 'https',
+    'x-nyankoface-trusted-host': '1',
   });
   assert.equal(requestOriginFromHeaders(headers), 'https://madesk.tail8be30.ts.net');
   assert.equal(shareablePublicUrl('/pages/owner/site/', 'https://madesk.tail8be30.ts.net'), 'https://madesk.tail8be30.ts.net/pages/owner/site/');
+});
+
+test('does not derive a public origin from an untrusted Host header', () => {
+  assert.equal(
+    requestOriginFromHeaders(new Headers({ host: 'attacker.example', 'x-forwarded-proto': 'https' })),
+    undefined,
+  );
+  assert.equal(
+    requestOriginFromHeaders(new Headers({ host: 'madesk.tail8be30.ts.net', 'x-nyankoface-trusted-host': '0' })),
+    undefined,
+  );
 });

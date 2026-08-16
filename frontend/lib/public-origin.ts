@@ -98,10 +98,17 @@ function safePublicOrigin(value: unknown): string | undefined {
 }
 
 export function requestOriginFromHeaders(headers: { get(name: string): string | null }): string | undefined {
+  if (headers.get('x-nyankoface-trusted-host')?.trim() !== '1') return undefined;
   const host = headers.get('host')?.trim();
   const protocol = headers.get('x-forwarded-proto')?.split(',')[0]?.trim() || 'https';
-  if (!host || (protocol !== 'http' && protocol !== 'https') || host.includes('/') || host.includes('\\')) return undefined;
-  return `${protocol}://${host}`;
+  if (!host || (protocol !== 'http' && protocol !== 'https') || host.length > 255 || /[\\/?#@\s,]/.test(host)) return undefined;
+  try {
+    const parsed = new URL(`${protocol}://${host}`);
+    if (parsed.pathname !== '/' || parsed.search || parsed.hash || parsed.username || parsed.password) return undefined;
+    return parsed.origin;
+  } catch {
+    return undefined;
+  }
 }
 
 /** Prefer the configured public origin, then the origin observed at the gateway. */
