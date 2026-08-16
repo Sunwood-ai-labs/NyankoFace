@@ -13,6 +13,7 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://service.internal",
         "https://service.corp",
         "https://mcp.home.arpa",
+        "https://home.arpa:8443",
         "https://mcp.localhost",
         "https://127.0.0.1:8443",
         "https://127.1:8443",

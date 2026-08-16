@@ -103,7 +103,10 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
         and (
             hostname in _PRIVATE_SERVICE_HOSTS
             or ("." not in hostname and ":" not in hostname)
-            or hostname.endswith(_PRIVATE_DNS_SUFFIXES)
+            or any(
+                hostname == suffix.lstrip(".") or hostname.endswith(suffix)
+                for suffix in _PRIVATE_DNS_SUFFIXES
+            )
             or _is_non_global_ip(hostname)
         )
     )
