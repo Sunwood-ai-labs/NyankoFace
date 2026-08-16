@@ -113,7 +113,10 @@ class SharedNavigationContractTests(unittest.TestCase):
         self.assertIn('models.href = "/models"', HEADER)
         self.assertIn('setText(explore, "Repositories")', HEADER)
         self.assertIn('explore.href = "/git/explore/repos"', HEADER)
-        self.assertIn('if (!query) return null;', HEADER)
+        self.assertIn('if (query === "space") return "space";', HEADER)
+        self.assertIn('if (query === "dataset") return "dataset";', HEADER)
+        self.assertIn('if (query === "model") return "model";', HEADER)
+        self.assertIn('return null;', HEADER[HEADER.index('const currentExploreKind'):HEADER.index('const enhanceExploreRepos')])
         self.assertNotIn('explore.href = "/models"', HEADER)
 
 
