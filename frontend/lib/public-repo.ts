@@ -61,7 +61,7 @@ function containsUnsafeNestedUrl(value: string): boolean {
     try {
       decoded = decodeURIComponent(current);
     } catch {
-      break;
+      return true;
     }
     if (decoded === current) break;
     current = decoded;
@@ -71,7 +71,7 @@ function containsUnsafeNestedUrl(value: string): boolean {
   try {
     return decodeURIComponent(current) !== current;
   } catch {
-    return false;
+    return true;
   }
 }
 

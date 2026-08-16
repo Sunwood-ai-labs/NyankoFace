@@ -164,6 +164,10 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     undefined,
   );
   assert.equal(
+    safePublicUrl('https://public.example/redirect?bad=%E0%A4%A&next=http%3A%2F%2Fforgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
     safePublicUrl('https://public.example/redirect?next=https://cdn.example/app'),
     'https://public.example/redirect?next=https://cdn.example/app',
   );
