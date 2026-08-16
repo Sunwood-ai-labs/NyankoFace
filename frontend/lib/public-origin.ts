@@ -36,7 +36,6 @@ function isNonGlobalIpv6(host: string): boolean {
     (second === 1 && groups.slice(2, 7).every((group) => group === 0) && [1, 2, 3].includes(groups[7])) ||
     second === 3 ||
     (second === 4 && groups[2] === 0x112) ||
-    (second >= 0x20 && second <= 0x2f) ||
     (second >= 0x30 && second <= 0x3f)
   );
   const isPublicNat64 = first === 0x64 && second === 0xff9b && groups.slice(2, 6).every((group) => group === 0);
