@@ -107,6 +107,8 @@ class SharedNavigationContractTests(unittest.TestCase):
         self.assertNotIn(PREVIOUS_STYLESHEET_VERSION, HEADER)
 
     def test_forgejo_fallback_keeps_repositories_separate_from_models(self):
+        fallback_icons = HEADER[HEADER.index("const navIcon = {"):HEADER.index("const navItems", HEADER.index("const navIcon = {"))]
+        self.assertIn('folder: fontAwesomeIcon("folder"', fallback_icons)
         self.assertIn('models.className = "item nyankoface-nav-models"', HEADER)
         self.assertIn('models.href = "/models"', HEADER)
         self.assertIn('setText(explore, "Repositories")', HEADER)
