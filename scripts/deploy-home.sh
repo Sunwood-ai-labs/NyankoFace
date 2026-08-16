@@ -16,6 +16,12 @@ Optional runner environment:
   NYANKOFACE_DEPLOY_IGNORE_HEALTH_SERVICES
                                  Comma-separated known health exceptions
   NYANKOFACE_DEPLOY_TIMEOUT_SECONDS
+  NYANKOFACE_DEPLOY_SMOKE_BASE_URL
+                                 Optional public URL override for post-deploy smoke checks
+  NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS
+                                 Per-request smoke-check timeout (default: 20)
+  NYANKOFACE_DEPLOY_SMOKE_INSECURE
+                                 Set to 1 only when the smoke target uses an untrusted TLS certificate
 EOF
 }
 
@@ -153,7 +159,17 @@ show_status() {
   "${compose[@]}" ps -a || true
 }
 
-trap show_status EXIT
+smoke_tmp_dir=""
+cleanup() {
+  local exit_code=$?
+  if [[ -n "$smoke_tmp_dir" && -d "$smoke_tmp_dir" ]]; then
+    rm -rf -- "$smoke_tmp_dir"
+  fi
+  show_status
+  exit "$exit_code"
+}
+
+trap cleanup EXIT
 
 actual_sha="$(git -C "$repo_root" rev-parse HEAD)"
 if [[ -n "${NYANKOFACE_DEPLOY_SHA:-}" && "${NYANKOFACE_DEPLOY_SHA}" != "$actual_sha" ]]; then
@@ -232,7 +248,7 @@ while :; do
 
   if (( pending == 0 )); then
     log "all configured services are ready"
-    exit 0
+    break
   fi
 
   if (( SECONDS - started_at >= timeout_seconds )); then
@@ -240,3 +256,72 @@ while :; do
   fi
   sleep 5
 done
+
+run_public_smoke_test() {
+  command -v curl >/dev/null 2>&1 || die "curl is required for the public deployment smoke test"
+
+  local base_url="${NYANKOFACE_DEPLOY_SMOKE_BASE_URL:-}"
+  if [[ -z "$base_url" ]]; then
+    base_url="$(dotenv_value PUBLIC_BASE_URL)"
+  fi
+  base_url="${base_url:-https://localhost:8443}"
+  base_url="${base_url%/}"
+  [[ "$base_url" == https://* || "$base_url" == http://* ]] || die "public smoke base URL must be HTTP(S)"
+
+  local smoke_timeout="${NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS:-20}"
+  [[ "$smoke_timeout" =~ ^[0-9]+$ && "$smoke_timeout" -gt 0 ]] || die "NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS must be a positive integer"
+
+  smoke_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/nyankoface-smoke.XXXXXX")"
+  local curl_options=(--silent --show-error --location --max-time "$smoke_timeout" --retry 0)
+  if [[ "${NYANKOFACE_DEPLOY_SMOKE_INSECURE:-0}" == "1" || "$base_url" == https://localhost* || "$base_url" == https://127.0.0.1* ]]; then
+    curl_options+=(--insecure)
+  fi
+
+  local request_number=0
+  local status headers body curl_error
+  smoke_request() {
+    local route="$1"
+    request_number=$((request_number + 1))
+    headers="$smoke_tmp_dir/headers-$request_number"
+    body="$smoke_tmp_dir/body-$request_number"
+    curl_error="$smoke_tmp_dir/error-$request_number"
+    if ! status="$(curl "${curl_options[@]}" --dump-header "$headers" --output "$body" --write-out '%{http_code}' "$base_url$route" 2>"$curl_error")"; then
+      die "public smoke request failed for $route"
+    fi
+  }
+
+  log "checking public deployment at $base_url"
+
+  smoke_request "/"
+  [[ "$status" == "200" ]] || die "public smoke check: portal returned HTTP $status"
+  grep -Fqi "NyankoFace" "$body" || die "public smoke check: portal identity is missing"
+  grep -Eqi "SimpleHTTP|TIDELINE" "$body" && die "public smoke check: unexpected static server identity"
+
+  smoke_request "/git/api/v1/version"
+  [[ "$status" == "200" ]] || die "public smoke check: Forgejo API returned HTTP $status"
+  grep -Eqi '^content-type:[[:space:]]*application/json' "$headers" || die "public smoke check: Forgejo API did not return JSON"
+  grep -Eqi '"version"[[:space:]]*:' "$body" || die "public smoke check: Forgejo version payload is missing"
+
+  smoke_request "/api/catalog/repositories?limit=1"
+  [[ "$status" == "200" ]] || die "public smoke check: catalog API returned HTTP $status"
+  grep -Eqi '^content-type:[[:space:]]*application/json' "$headers" || die "public smoke check: catalog API did not return JSON"
+  grep -Eqi '"(ok|data|total_count)"[[:space:]]*:' "$body" || die "public smoke check: catalog payload is missing"
+
+  local mcp_enabled=0
+  for service in "${expected_services[@]}"; do
+    if [[ "$service" == "nyankoface-mcp" ]]; then
+      mcp_enabled=1
+      break
+    fi
+  done
+  if (( mcp_enabled )); then
+    smoke_request "/mcp"
+    [[ "$status" == "401" ]] || die "public smoke check: MCP endpoint returned HTTP $status without credentials"
+    grep -Eqi '^www-authenticate:.*resource_metadata=' "$headers" || die "public smoke check: MCP challenge has no resource metadata"
+    grep -Fqi "resource_metadata=\"${base_url}/.well-known/oauth-protected-resource/mcp\"" "$headers" || die "public smoke check: MCP metadata origin does not match the public URL"
+  fi
+
+  log "public deployment smoke test passed"
+}
+
+run_public_smoke_test
