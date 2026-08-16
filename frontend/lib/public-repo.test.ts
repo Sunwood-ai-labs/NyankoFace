@@ -93,7 +93,7 @@ test('scrubs private origins embedded in retained repository text', () => {
       id: 12,
       name: 'demo',
       full_name: 'alice/demo',
-      description: 'Docs: http://forgejo.ops.example.com/alice/demo; SSH: ssh://git@forgejo:2222/alice/demo.git; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
+      description: 'Docs: http://forgejo.ops.example.com/alice/demo; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
       owner: { login: 'alice' },
       updated_at: '2026-08-16T00:00:00Z',
     } as Repo;
@@ -101,6 +101,7 @@ test('scrubs private origins embedded in retained repository text', () => {
     const sanitized = sanitizePublicRepo(repo);
     assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com/);
     assert.doesNotMatch(sanitized.description || '', /ssh:\/\/|git:\/\//);
+    assert.doesNotMatch(sanitized.description || '', /git@forgejo:/);
     assert.match(sanitized.description || '', /\[internal URL omitted\]/);
     assert.match(sanitized.description || '', /https:\/\/8\.8\.8\.8\/docs/);
   } finally {

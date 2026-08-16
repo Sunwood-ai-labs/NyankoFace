@@ -66,12 +66,15 @@ function stripNestedUrlFields(value: unknown): unknown {
 }
 
 function sanitizePublicRepoText(value: string): string {
-  return value.replace(/(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, (candidate) => {
+  const scrub = (candidate: string): string => {
     const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
     const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
     const safe = safePublicUrl(url);
     return `${safe || '[internal URL omitted]'}${trailing}`;
-  });
+  };
+  return value
+    .replace(/(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
+    .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub);
 }
 
 function sanitizePublicRepoValue(value: unknown): unknown {
