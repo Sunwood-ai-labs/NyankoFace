@@ -81,6 +81,16 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
     if "?" in candidate or "#" in candidate:
         raise ValueError("PUBLIC_BASE_URL must be a public origin without credentials, a query, or a fragment")
     parsed = urlsplit(candidate)
+    authority = parsed.netloc.rsplit("@", 1)[-1]
+    if authority.startswith("["):
+        closing_bracket = authority.find("]")
+        bracketed_host = authority[1:closing_bracket] if closing_bracket > 0 else ""
+        try:
+            ipaddress.IPv6Address(bracketed_host)
+        except ValueError as exc:
+            raise ValueError(
+                "PUBLIC_BASE_URL must use a public origin with a valid IPv6 host"
+            ) from exc
     hostname = _canonical_hostname(parsed.hostname or "")
     if parsed.scheme not in {"http", "https"} or not hostname:
         raise ValueError("PUBLIC_BASE_URL must be an HTTP(S) URL")
