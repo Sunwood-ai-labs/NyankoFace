@@ -64,18 +64,21 @@ function isPrivateHostname(hostname: string): boolean {
   return configuredForgejoHostname() === host || isNonPublicHostname(host);
 }
 
-function canonicalNumericIpv4Host(hostname: string): string | undefined {
+function canonicalNumericIpv4Host(hostname: string, port?: string): string | undefined {
   const host = hostname
     .toLowerCase()
     .replace(/^\[|\]$/g, '')
     .replace(/\.+$/, '');
   const isDottedNumeric = /^[0-9a-fx]+(?:\.[0-9a-fx]+){1,3}$/i.test(host);
   const isHexNumeric = /^0x[0-9a-f]+$/i.test(host);
-  // A short decimal token such as the `12` in `12:30` is ordinary text,
-  // while long decimal and dotted/hex forms are accepted numeric IPv4
-  // spellings by WHATWG URL parsing.
   const isLongDecimal = /^\d{4,}$/.test(host);
-  if (!isDottedNumeric && !isHexNumeric && !isLongDecimal) return undefined;
+  const isShortDecimalEndpoint = /^\d{1,3}$/.test(host) && (
+    host.length === 3 || /^\d{3,5}$/.test(port || '')
+  );
+  // A short decimal token such as the `12` in `12:30` is ordinary text,
+  // while host-and-port syntax, long decimal, and dotted/hex forms are
+  // accepted numeric IPv4 spellings by WHATWG URL parsing.
+  if (!isDottedNumeric && !isHexNumeric && !isLongDecimal && !isShortDecimalEndpoint) return undefined;
   try {
     const parsed = new URL(`http://${host}/`).hostname.replace(/^\[|\]$/g, '');
     return /^\d+\.\d+\.\d+\.\d+$/.test(parsed) ? parsed : undefined;
@@ -84,13 +87,13 @@ function canonicalNumericIpv4Host(hostname: string): string | undefined {
   }
 }
 
-function isEstablishedPrivateEndpointHost(hostname: string): boolean {
+function isEstablishedPrivateEndpointHost(hostname: string, port?: string): boolean {
   const host = hostname
     .toLowerCase()
     .replace(/^\[|\]$/g, '')
     .replace(/\.+$/, '');
   if (configuredForgejoHostname() === host || PRIVATE_BARE_HOSTS.has(host)) return true;
-  const canonicalNumericHost = canonicalNumericIpv4Host(host);
+  const canonicalNumericHost = canonicalNumericIpv4Host(host, port);
   if (canonicalNumericHost && isPrivateHostname(canonicalNumericHost)) return true;
   return (host.includes('.') || host.includes(':')) && isPrivateHostname(host);
 }
@@ -182,8 +185,10 @@ function sanitizePublicRepoTextOnce(value: string): string {
     return `${safe || '[internal URL omitted]'}${trailing}`;
   };
   const scrubBareEndpoint = (candidate: string): string => {
-    const host = candidate.slice(0, candidate.lastIndexOf(':'));
-    return isEstablishedPrivateEndpointHost(host) ? '[internal URL omitted]' : candidate;
+    const separator = candidate.lastIndexOf(':');
+    const host = candidate.slice(0, separator);
+    const port = candidate.slice(separator + 1);
+    return isEstablishedPrivateEndpointHost(host, port) ? '[internal URL omitted]' : candidate;
   };
   const scrubUsernameLessScpEndpoint = (candidate: string): string => {
     const host = candidate.startsWith('[')
