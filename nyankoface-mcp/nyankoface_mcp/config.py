@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import ipaddress
 import os
+import re
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -49,6 +50,8 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
     if not isinstance(value, str):
         raise ValueError("PUBLIC_BASE_URL must be an HTTP(S) URL")
     candidate = value.strip().rstrip("/")
+    if "?" in candidate or "#" in candidate:
+        raise ValueError("PUBLIC_BASE_URL must be a public origin without credentials, a query, or a fragment")
     parsed = urlsplit(candidate)
     hostname = (parsed.hostname or "").rstrip(".").casefold()
     if parsed.scheme not in {"http", "https"} or not hostname:
@@ -75,9 +78,9 @@ def normalize_public_base_url(value: str, *, allow_test_public_base_url: bool = 
 
 
 def _is_non_global_ip(hostname: str) -> bool:
-    legacy_ipv4 = _legacy_ipv4_address(hostname)
-    if legacy_ipv4 is not None:
-        return not legacy_ipv4.is_global
+    if _looks_like_legacy_ipv4(hostname):
+        legacy_ipv4 = _legacy_ipv4_address(hostname)
+        return legacy_ipv4 is None or not legacy_ipv4.is_global
     try:
         address = ipaddress.ip_address(hostname)
     except ValueError:
@@ -86,23 +89,52 @@ def _is_non_global_ip(hostname: str) -> bool:
 
 
 def _legacy_ipv4_address(hostname: str) -> ipaddress.IPv4Address | None:
-    """Parse dotted IPv4 spellings that URL parsers normalize before routing."""
+    """Parse resolver-style dotted IPv4 spellings before routing decisions."""
     parts = hostname.split(".")
-    if not 1 <= len(parts) <= 4 or any(not part.isdecimal() for part in parts):
+    if not 1 <= len(parts) <= 4:
         return None
-    values = [int(part, 10) for part in parts]
-    limits = {1: [0xFFFFFFFF], 2: [0xFF, 0xFFFFFF], 3: [0xFF, 0xFF, 0xFFFF], 4: [0xFF] * 4}[len(values)]
-    if any(value > limit for value, limit in zip(values, limits, strict=True)):
+    values = [_legacy_ipv4_component(part) for part in parts]
+    if any(value is None for value in values):
         return None
-    if len(values) == 1:
-        packed = values[0]
-    elif len(values) == 2:
-        packed = (values[0] << 24) | values[1]
-    elif len(values) == 3:
-        packed = (values[0] << 24) | (values[1] << 16) | values[2]
+    numeric_values = [value for value in values if value is not None]
+    limits = {1: [0xFFFFFFFF], 2: [0xFF, 0xFFFFFF], 3: [0xFF, 0xFF, 0xFFFF], 4: [0xFF] * 4}[len(numeric_values)]
+    if any(value > limit for value, limit in zip(numeric_values, limits, strict=True)):
+        return None
+    if len(numeric_values) == 1:
+        packed = numeric_values[0]
+    elif len(numeric_values) == 2:
+        packed = (numeric_values[0] << 24) | numeric_values[1]
+    elif len(numeric_values) == 3:
+        packed = (numeric_values[0] << 24) | (numeric_values[1] << 16) | numeric_values[2]
     else:
-        packed = (values[0] << 24) | (values[1] << 16) | (values[2] << 8) | values[3]
+        packed = (numeric_values[0] << 24) | (numeric_values[1] << 16) | (numeric_values[2] << 8) | numeric_values[3]
     return ipaddress.IPv4Address(packed)
+
+
+def _looks_like_legacy_ipv4(hostname: str) -> bool:
+    parts = hostname.split(".")
+    return 1 <= len(parts) <= 4 and all(
+        part.isdecimal() or part.casefold().startswith("0x")
+        for part in parts
+    )
+
+
+def _legacy_ipv4_component(part: str) -> int | None:
+    lowered = part.casefold()
+    try:
+        if lowered.startswith("0x"):
+            if not re.fullmatch(r"0x[0-9a-f]+", lowered):
+                return None
+            return int(lowered[2:], 16)
+        if len(part) > 1 and part.startswith("0"):
+            if not re.fullmatch(r"0[0-7]*", part):
+                return None
+            return int(part, 8)
+        if part.isdecimal():
+            return int(part, 10)
+    except ValueError:
+        return None
+    return None
 
 
 @dataclass(frozen=True)

@@ -17,6 +17,12 @@ from nyankoface_mcp.config import Settings, normalize_public_base_url
         "https://127.0.0.1:8443",
         "https://127.1:8443",
         "https://192.168.001.001:8443",
+        "https://0177.0.0.1:8443",
+        "https://0300.0250.1.1:8443",
+        "https://0x7f.0.0.1:8443",
+        "https://0x7f000001:8443",
+        "https://public.example?",
+        "https://public.example#",
     ],
 )
 def test_public_base_url_rejects_private_or_internal_origins(value):
