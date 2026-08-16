@@ -39,6 +39,8 @@ class DeployHomeContractTests(unittest.TestCase):
         self.assertIn('"method":"tools/list"', SCRIPT)
         self.assertIn('"method":"resources/list"', SCRIPT)
         self.assertIn('MCP-Protocol-Version', SCRIPT)
+        self.assertIn('"protocolVersion"', SCRIPT)
+        self.assertNotIn('tolower($1) == "mcp-protocol-version:"', SCRIPT)
         self.assertIn('NYANKOFACE_DEPLOY_MCP_TOKEN_FILE', SCRIPT)
         self.assertIn('--config -', SCRIPT)
         self.assertNotIn('mcp_header_file', SCRIPT)
@@ -118,8 +120,7 @@ elif path == "/mcp":
     data = option("--data")
     code, headers = 200, "content-type: application/json\\n"
     if '"method":"initialize"' in data:
-        headers += "MCP-Protocol-Version: 2025-06-18\\n"
-        body = '{"result":{"serverInfo":{"name":"fixture"}}}'
+        body = '{"result":{"protocolVersion":"2025-06-18","serverInfo":{"name":"fixture"}}}'
     elif '"method":"notifications/initialized"' in data:
         if 'MCP-Protocol-Version: 2025-06-18' not in config:
             raise SystemExit(10)

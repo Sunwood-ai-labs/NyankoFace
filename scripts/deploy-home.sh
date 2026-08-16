@@ -383,7 +383,7 @@ run_public_smoke_test() {
     grep -Eqi '"result"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize result is missing"
     grep -Eqi '"serverInfo"[[:space:]]*:' "$body" || die "public smoke check: MCP initialize server info is missing"
     local mcp_protocol_version
-    mcp_protocol_version="$(awk 'tolower($1) == "mcp-protocol-version:" { print $2; exit }' "$headers")"
+    mcp_protocol_version="$(tr -d '\r\n' < "$body" | sed -nE 's/.*"protocolVersion"[[:space:]]*:[[:space:]]*"([^"\\]+)".*/\1/p')"
     [[ "$mcp_protocol_version" =~ ^[A-Za-z0-9._-]+$ ]] || die "public smoke check: MCP initialize did not return a valid protocol version"
 
     smoke_request_authenticated "/mcp" '{"jsonrpc":"2.0","method":"notifications/initialized"}' "$mcp_token" "$mcp_protocol_version"
