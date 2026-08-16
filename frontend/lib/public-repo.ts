@@ -69,7 +69,7 @@ function canonicalNumericIpv4Host(hostname: string): string | undefined {
     .toLowerCase()
     .replace(/^\[|\]$/g, '')
     .replace(/\.+$/, '');
-  const isDottedNumeric = /^\d+(?:\.\d+){1,3}$/.test(host);
+  const isDottedNumeric = /^[0-9a-fx]+(?:\.[0-9a-fx]+){1,3}$/i.test(host);
   const isHexNumeric = /^0x[0-9a-f]+$/i.test(host);
   // A short decimal token such as the `12` in `12:30` is ordinary text,
   // while long decimal and dotted/hex forms are accepted numeric IPv4
