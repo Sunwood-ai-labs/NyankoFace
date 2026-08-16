@@ -368,6 +368,9 @@ async def test_invalid_token_is_rejected(tmp_path):
                 json=initialize_payload(),
             )
     assert response.status_code == 401
+    challenge = response.headers["www-authenticate"]
+    assert 'resource_metadata="http://testserver/.well-known/oauth-protected-resource/mcp"' in challenge
+    assert "192.168." not in challenge
 
 
 @pytest.mark.asyncio
