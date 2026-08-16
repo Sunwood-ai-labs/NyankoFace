@@ -1,3 +1,4 @@
+import { isPrivateHostname as isNonPublicHostname } from './public-origin';
 import type { Repo } from './forgejo';
 
 const UPSTREAM_URL_FIELDS = [
@@ -27,52 +28,7 @@ function isPrivateHostname(hostname: string): boolean {
     .toLowerCase()
     .replace(/^\[|\]$/g, '')
     .replace(/\.+$/, '');
-  if (configuredForgejoHostname() === host) return true;
-  if (
-    host === 'localhost' ||
-    host.endsWith('.localhost') ||
-    host.endsWith('.local') ||
-    host.endsWith('.internal') ||
-    host.endsWith('.lan') ||
-    host.endsWith('.home') ||
-    host.endsWith('.home.arpa') ||
-    host.endsWith('.corp') ||
-    host.endsWith('.intranet') ||
-    host.endsWith('.private') ||
-    host.endsWith('.svc') ||
-    host.endsWith('.cluster.local') ||
-    host.endsWith('.test') ||
-    (!host.includes('.') && !host.includes(':'))
-  ) return true;
-  const octets = host.split('.').map((part) => Number(part));
-  if (octets.length === 4 && octets.every((part) => Number.isInteger(part) && part >= 0 && part <= 255)) {
-    const [first, second, third, fourth] = octets;
-    if (
-      first === 0 ||
-      first === 10 ||
-      first === 127 ||
-      (first === 100 && second >= 64 && second <= 127) ||
-      (first === 169 && second === 254) ||
-      (first === 172 && second >= 16 && second <= 31) ||
-      (first === 192 && second === 168) ||
-      (first === 192 && second === 0 && third === 0 && fourth !== 9 && fourth !== 10) ||
-      (first === 192 && second === 0 && third === 2) ||
-      (first === 192 && second === 88 && third === 99) ||
-      (first === 198 && second >= 18 && second <= 19) ||
-      (first === 198 && second === 51 && third === 100) ||
-      (first === 203 && second === 0 && third === 113) ||
-      (first >= 224)
-    ) return true;
-  }
-  if (host === '0.0.0.0' || host === '::1' || host === '::') return true;
-  if (/^f[cd][0-9a-f:]*$/i.test(host) || /^fe[89ab][0-9a-f:]*$/i.test(host)) return true;
-  const mappedHex = host.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/i);
-  if (mappedHex) {
-    const high = Number.parseInt(mappedHex[1], 16);
-    const low = Number.parseInt(mappedHex[2], 16);
-    return isPrivateHostname(`${high >> 8}.${high & 255}.${low >> 8}.${low & 255}`);
-  }
-  return /^::ffff:(?:10\.|127\.|169\.254\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/i.test(host);
+  return configuredForgejoHostname() === host || isNonPublicHostname(host);
 }
 
 export function safePublicUrl(value: unknown): string | undefined {

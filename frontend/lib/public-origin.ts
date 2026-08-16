@@ -46,7 +46,7 @@ function isNonGlobalIpv4(host: string): boolean {
     octets.length !== 4 ||
     octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255)
   ) return false;
-  const [first, second, third] = octets;
+  const [first, second, third, fourth] = octets;
   return (
     first === 0 ||
     first === 10 ||
@@ -54,7 +54,8 @@ function isNonGlobalIpv4(host: string): boolean {
     (first === 100 && second >= 64 && second <= 127) ||
     (first === 169 && second === 254) ||
     (first === 172 && second >= 16 && second <= 31) ||
-    (first === 192 && second === 0 && (third === 0 || third === 2)) ||
+    (first === 192 && second === 0 && third === 0 && fourth !== 9 && fourth !== 10) ||
+    (first === 192 && second === 0 && third === 2) ||
     (first === 192 && second === 88 && third === 99) ||
     (first === 192 && second === 168) ||
     (first === 198 && second >= 18 && second <= 19) ||
