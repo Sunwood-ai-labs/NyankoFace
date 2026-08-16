@@ -74,9 +74,11 @@ function safeSegment(value: string): boolean {
 export default function PagesDeployWizard({
   initialOwner = '',
   initialRepo = '',
+  publicOrigin,
 }: {
   initialOwner?: string;
   initialRepo?: string;
+  publicOrigin?: string;
 }) {
   const { locale } = useLocale();
   const [owner, setOwner] = useState(initialOwner);
@@ -370,7 +372,7 @@ export default function PagesDeployWizard({
               )}
               <button
                 type="button"
-                onClick={() => void navigator.clipboard.writeText(shareablePublicUrl(result.public_url) || result.public_url)}
+                onClick={() => void navigator.clipboard.writeText(shareablePublicUrl(result.public_url, publicOrigin) || result.public_url)}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <HfIcon name="link" className="h-3.5 w-3.5" />

@@ -10,7 +10,7 @@ import { shareablePublicUrl } from '@/lib/public-origin';
 
 const PAGES_GUIDE = 'https://sunwood-ai-labs.github.io/NyankoFace/guide/pages';
 
-export default function PagesStatusCard({ inspection }: { inspection: PagesInspection }) {
+export default function PagesStatusCard({ inspection, publicOrigin }: { inspection: PagesInspection; publicOrigin?: string }) {
   const { locale } = useLocale();
   const [copied, setCopied] = useState(false);
   const published = inspection.status === 'published' && Boolean(inspection.public_url);
@@ -19,7 +19,7 @@ export default function PagesStatusCard({ inspection }: { inspection: PagesInspe
   async function copyPublicUrl() {
     if (!inspection.public_url) return;
     try {
-      await navigator.clipboard.writeText(shareablePublicUrl(inspection.public_url) || inspection.public_url);
+      await navigator.clipboard.writeText(shareablePublicUrl(inspection.public_url, publicOrigin) || inspection.public_url);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
