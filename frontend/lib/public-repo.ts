@@ -184,7 +184,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     return `${safe || '[internal URL omitted]'}${trailing}`;
   };
   const scrubBareEndpoint = (candidate: string): string => {
-    if (/^\d{1,2}:[0-5]\d\b/.test(candidate)) return candidate;
+    if (/^(?:[01]?\d|2[0-3]):[0-5]\d\b/.test(candidate)) return candidate;
     const separator = candidate.lastIndexOf(':');
     const host = candidate.slice(0, separator);
     const port = candidate.slice(separator + 1);
