@@ -207,6 +207,21 @@ test('does not parse Zenn delimiters inside raw HTML blocks', () => {
   assert.match(bodyHtml, /This is a Markdown message\./);
 });
 
+test('ends block HTML boundaries at a blank line', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<div>',
+    'Literal HTML content.',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not close a Zenn block on a fenced code line with language info', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
