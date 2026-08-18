@@ -228,12 +228,12 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   const trimmed = line.replace(/^[ \t]{0,3}/, '');
   if (trimmed.startsWith('<!--')) return trimmed.includes('-->') ? null : { kind: 'closing', pattern: /-->/ };
   if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/ };
+  if (/^<!\[CDATA\[/i.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/ };
   if (/^<![A-Z]/.test(trimmed)) return trimmed.endsWith('>') ? null : { kind: 'closing', pattern: />/ };
   const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?>/);
   if (!opening || !RAW_HTML_BLOCK_TAGS.has(opening[1].toLowerCase()) || /\/\s*>$/.test(opening[0])) return null;
   const tagName = opening[1].toLowerCase();
   const closing = new RegExp(`</${tagName}\\s*>`, 'i');
-  if (closing.test(trimmed.slice(opening[0].length))) return null;
   return RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)
     ? { kind: 'closing', pattern: closing }
     : { kind: 'blank' };
