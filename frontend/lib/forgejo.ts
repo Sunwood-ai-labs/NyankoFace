@@ -598,13 +598,21 @@ export async function getPagesInspection(
 // ---------------------------------------------------------------------------
 // Directory / file listing
 // ---------------------------------------------------------------------------
+export function encodeRepositoryPath(path: string): string {
+  return path
+    .replace(/^\/+/, '')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
 export async function getContents(
   owner: string,
   repo: string,
   path: string = '',
   ref?: string,
 ): Promise<GetContentsResult> {
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = encodeRepositoryPath(path);
   const query = ref ? `?ref=${encodeURIComponent(ref)}` : '';
   const res = await apiFetch(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${cleanPath}${query}`
@@ -655,7 +663,7 @@ export async function getRawFile(
   const token = getToken();
   const headers: Record<string, string> = {};
   if (token) headers['Authorization'] = `token ${token}`;
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = encodeRepositoryPath(path);
   const url = `${FORGEJO_API}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
     repo
   )}/raw/${cleanPath}${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`;

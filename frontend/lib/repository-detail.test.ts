@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { forgejoCommitsUrl, forgejoRawUrl, forgejoTreeUrl } from './forgejo';
+import { encodeRepositoryPath, forgejoCommitsUrl, forgejoRawUrl, forgejoTreeUrl } from './forgejo';
 
 const repoPageSource = readFileSync(
   new URL('../app/[owner]/[repo]/page.tsx', import.meta.url),
@@ -55,6 +55,12 @@ test('encodes slash-bearing branch and tag names in Forgejo navigation URLs', ()
     forgejoCommitsUrl('owner', 'repo', '', ref, 'tag'),
     '/git/owner/repo/commits/tag/release%2Fcandidate%201%232%3Ffinal',
   );
+});
+
+test('encodes reserved characters in Forgejo repository paths by segment', () => {
+  assert.equal(encodeRepositoryPath('docs#v1/README.md'), 'docs%23v1/README.md');
+  assert.equal(encodeRepositoryPath('docs?draft/README.md'), 'docs%3Fdraft/README.md');
+  assert.equal(encodeRepositoryPath('/docs/space name/README.md'), 'docs/space%20name/README.md');
 });
 
 test('untyped repositories keep repository labels and avoid model-only actions', () => {
