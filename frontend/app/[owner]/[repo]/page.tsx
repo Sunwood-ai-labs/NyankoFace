@@ -84,35 +84,49 @@ const KIND_ICON: Record<string, HfIconName> = {
 };
 
 const MAX_README_PREVIEW_BYTES = 2_000_000;
+const REPOSITORY_README_CACHE_TTL_MS = Math.max(
+  60,
+  Number.parseInt(process.env.README_CACHE_TTL_SECONDS || '300', 10) || 300,
+) * 1000;
 
 type RepositoryReadmeResult =
   | { status: 'present'; raw: string; path: string; size: number }
   | { status: 'absent' | 'unavailable' | 'too-large'; path?: string; size?: number };
 
+const repositoryReadmeCache = new Map<string, { value: RepositoryReadmeResult; expiresAt: number }>();
+
 async function loadRepositoryReadme(owner: string, repo: string, ref: string): Promise<RepositoryReadmeResult> {
+  const cacheKey = `${owner}/${repo}@${ref}`;
+  const cached = repositoryReadmeCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const remember = (value: RepositoryReadmeResult): RepositoryReadmeResult => {
+    repositoryReadmeCache.set(cacheKey, { value, expiresAt: Date.now() + REPOSITORY_README_CACHE_TTL_MS });
+    return value;
+  };
+
   try {
     const root = await getContents(owner, repo, '', ref);
-    if (!root.ok || !Array.isArray(root.data)) return { status: 'unavailable' };
+    if (!root.ok || !Array.isArray(root.data)) return remember({ status: 'unavailable' });
 
     const entry = root.data.find((candidate) =>
       candidate.type === 'file' && candidate.name.toLowerCase() === 'readme.md',
     );
-    if (!entry) return { status: 'absent' };
+    if (!entry) return remember({ status: 'absent' });
     if (entry.size >= MAX_README_PREVIEW_BYTES) {
-      return { status: 'too-large', path: entry.path, size: entry.size };
+      return remember({ status: 'too-large', path: entry.path, size: entry.size });
     }
 
     const file = await getContents(owner, repo, entry.path, ref);
     if (!file.ok || !file.data || Array.isArray(file.data) || file.data.type !== 'file' || typeof file.data.content !== 'string') {
-      return { status: 'unavailable', path: entry.path, size: entry.size };
+      return remember({ status: 'unavailable', path: entry.path, size: entry.size });
     }
     const raw = Buffer.from(
       file.data.content,
       (file.data.encoding as BufferEncoding) || 'base64',
     ).toString('utf-8');
-    return { status: 'present', raw, path: entry.path, size: file.data.size ?? entry.size };
+    return remember({ status: 'present', raw, path: entry.path, size: file.data.size ?? entry.size });
   } catch {
-    return { status: 'unavailable' };
+    return remember({ status: 'unavailable' });
   }
 }
 

@@ -135,7 +135,7 @@ test('renders Zenn message and details blocks through the shared safe Markdown p
     '```',
     ':::',
     '',
-    ':::message alert',
+    ':::message  alert',
     '警告メッセージ',
     ':::',
     '',
