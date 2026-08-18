@@ -170,6 +170,22 @@ test('ends a GitHub alert before an unquoted fenced code block', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends a GitHub alert before an interrupting raw HTML block', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    '<div>outside</div>',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /<div>outside<\/div>/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('requires at most one padding space before a GitHub alert marker', () => {
   const { bodyHtml } = parseReadme('>  [!NOTE]\n> This remains an ordinary blockquote.');
 

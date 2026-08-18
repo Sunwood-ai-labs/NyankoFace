@@ -591,6 +591,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         || startsMarkdownBlock(line, paragraphActive)
         || matchZennFence(line)
         || parseZennOpeningLine(line)
+        || rawHtmlBlockEnd(line)?.interruptsParagraph
       )
     ) break;
     cursor = end;
