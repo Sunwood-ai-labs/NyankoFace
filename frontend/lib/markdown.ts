@@ -180,6 +180,9 @@ type RawHtmlBlockBoundary =
   | { kind: 'blank'; interruptsParagraph: boolean }
   | { kind: 'closing'; pattern: RegExp; interruptsParagraph: boolean };
 
+type RawHtmlBlockResult = RawHtmlBlockBoundary
+  | { kind: 'complete'; interruptsParagraph: true };
+
 type RawHtmlBlockState = {
   boundary: RawHtmlBlockBoundary;
   listContentIndent?: number;
@@ -406,7 +409,7 @@ function matchRawHtmlOpening(line: string): { tagName: string; raw: string } | u
   return undefined;
 }
 
-function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
+function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
   const trimmed = line.replace(/^[ \t]{0,3}/, '');
   if (trimmed.startsWith('<!--')) return trimmed.includes('-->') ? null : { kind: 'closing', pattern: /-->/, interruptsParagraph: true };
   if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/, interruptsParagraph: true };
@@ -439,7 +442,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   const closing = new RegExp(`</${tagName}>`, 'i');
   if (RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) {
     return closing.test(trimmed.slice(opening.raw.length))
-      ? null
+      ? { kind: 'complete', interruptsParagraph: true }
       : { kind: 'closing', pattern: closing, interruptsParagraph: true };
   }
   const isSelfClosing = /\/>$/.test(opening.raw);
@@ -449,15 +452,6 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   }
   if (!isBlockTag && trimmed.slice(opening.raw.length).trim() !== '') return null;
   return { kind: 'blank', interruptsParagraph: isBlockTag };
-}
-
-function isCompletedExplicitRawHtml(line: string): boolean {
-  const trimmed = line.replace(/^[ \t]{0,3}/, '');
-  const opening = matchRawHtmlOpening(trimmed);
-  if (!opening) return false;
-  const tagName = opening.tagName.toLowerCase();
-  if (!RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) return false;
-  return new RegExp(`</${tagName}>`, 'i').test(trimmed.slice(opening.raw.length));
 }
 
 function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
@@ -514,18 +508,18 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         }
       }
       const rawHtml = rawHtmlBlockEnd(stripZennContainerPrefix(line));
+      if (rawHtml?.kind === 'complete') {
+        paragraphActive = false;
+        previousLine = line;
+        offset = end;
+        continue;
+      }
       if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph)) {
         const listPrefix = line.match(LIST_CONTAINER_PREFIX);
         htmlBlockEnd = {
           boundary: rawHtml,
           listContentIndent: listPrefix ? textColumns(listPrefix[0]) : listContentIndents.at(-1),
         };
-        paragraphActive = false;
-        previousLine = line;
-        offset = end;
-        continue;
-      }
-      if (!rawHtml && isCompletedExplicitRawHtml(stripZennContainerPrefix(line))) {
         paragraphActive = false;
         previousLine = line;
         offset = end;
@@ -632,6 +626,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   let rawLength = header[0].length;
   let cursor = rawLength;
   let paragraphActive = false;
+  let previousLine: string | undefined;
   while (cursor < source.length) {
     const newlineIndex = source.indexOf('\n', cursor);
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
@@ -652,8 +647,9 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
     cursor = end;
     const quotedFence = matchZennFence(contentLine);
     paragraphActive = contentLine.trim() !== ''
-      && !startsMarkdownBlock(contentLine, paragraphActive)
+      && !startsMarkdownBlock(contentLine, paragraphActive, previousLine)
       && !quotedFence;
+    previousLine = contentLine;
   }
   rawLength = cursor;
   const raw = source.slice(0, rawLength);
