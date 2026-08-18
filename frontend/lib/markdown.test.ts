@@ -129,6 +129,9 @@ test('requires at most one padding space before a GitHub alert marker', () => {
   assert.doesNotMatch(bodyHtml, /data-markdown-block="github-alert"/);
   assert.match(bodyHtml, /<blockquote>/);
   assert.match(bodyHtml, /\[!NOTE\]/);
+
+  const tabIndented = parseReadme('\t> [!NOTE]\n\t> This remains indented code.');
+  assert.doesNotMatch(tabIndented.bodyHtml, /data-markdown-block="github-alert"/);
 });
 
 test('renders Zenn message and details blocks through the shared safe Markdown pipeline', () => {
@@ -384,6 +387,26 @@ test('resets paragraph state after list and blockquote blocks before type-7 HTML
     assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
     assert.match(bodyHtml, /:::/);
     assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+  }
+});
+
+test('resets paragraph state after short hyphen setext underlines', () => {
+  for (const underline of ['-', '--']) {
+    const { bodyHtml } = parseReadme([
+      ':::message',
+      'Heading',
+      underline,
+      '<my-widget>',
+      ':::',
+      '',
+      ':::',
+      '',
+      '# After',
+    ].join('\n'));
+
+    assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1, underline);
+    assert.match(bodyHtml, /:::/, underline);
+    assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/, underline);
   }
 });
 

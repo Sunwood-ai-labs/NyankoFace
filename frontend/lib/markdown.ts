@@ -240,7 +240,7 @@ function continuesZennFenceContainer(line: string, container: ZennFenceContainer
 
 function startsMarkdownBlock(line: string): boolean {
   const content = line.replace(/^[ \t]{0,3}/, '');
-  return /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|(?:[*+-]|\d{1,9}[.)])[ \t]+|>[ \t]?)/.test(content);
+  return /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){1,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|(?:[*+-]|\d{1,9}[.)])[ \t]+|>[ \t]?)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
@@ -414,7 +414,7 @@ function blockTokens(
 }
 
 function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlockToken | undefined {
-  const header = source.match(/^[ \t]{0,3}>[ \t]?\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\r?\n|$)/i);
+  const header = source.match(/^ {0,3}>[ \t]?\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\r?\n|$)/i);
   if (!header) return undefined;
 
   let rawLength = header[0].length;
