@@ -283,8 +283,10 @@ function isGfmTableDelimiter(line: string): boolean {
 function startsMarkdownBlock(line: string, paragraphActive = false): boolean {
   if (leadingIndentColumns(line) >= 4) return !paragraphActive;
   const content = line.replace(/^ {0,3}/, '');
+  const orderedList = content.match(/^(\d{1,9})[.)][ \t]+/);
+  if (orderedList) return !paragraphActive || Number.parseInt(orderedList[1], 10) === 1;
   return isGfmTableDelimiter(content)
-    || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){1,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|(?:[*+-]|\d{1,9}[.)])[ \t]+|>[ \t]?)/.test(content);
+    || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){1,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
@@ -322,7 +324,10 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   const tagName = opening[1].toLowerCase();
   const isBlockTag = RAW_HTML_BLOCK_TAGS.has(tagName);
   const isSelfClosing = /\/\s*>$/.test(opening[0]);
-  if (isSelfClosing) return { kind: 'blank', interruptsParagraph: isBlockTag };
+  if (isSelfClosing) {
+    if (!isBlockTag && trimmed.slice(opening[0].length).trim() !== '') return null;
+    return { kind: 'blank', interruptsParagraph: isBlockTag };
+  }
   const closing = new RegExp(`</${tagName}\\s*>`, 'i');
   if (RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) {
     return closing.test(trimmed.slice(opening[0].length))

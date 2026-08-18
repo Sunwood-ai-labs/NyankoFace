@@ -307,6 +307,22 @@ test('keeps compact and spaced self-closing HTML blocks open until a blank line'
   }
 });
 
+test('does not treat trailing text after a custom self-closing tag as an HTML block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<my-widget/> inline text',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /inline text/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not let a type-7 HTML tag interrupt a paragraph', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -338,6 +354,24 @@ test('preserves paragraph continuation before a type-7 HTML tag', () => {
 
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /paragraph/);
+  assert.match(bodyHtml, /continuation/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps non-one ordered markers inside an active paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'paragraph',
+    '2. continuation',
+    '<my-widget>',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /continuation/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
