@@ -370,6 +370,56 @@ test('keeps quoted angle brackets inside custom HTML attributes', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps trailing content after a closing block tag inside raw HTML', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '</div> trailing',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<\/div> trailing/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not close explicit-end HTML on spaced pseudo-closers', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre>',
+    '</pre >',
+    ':::',
+    '',
+    '</pre>',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<pre>/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not treat lowercase CDATA openers as raw HTML blocks', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<![cdata[',
+    ':::',
+    ']]>',
+    ':::message',
+    'After',
+    ':::',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 2);
+  assert.match(bodyHtml, /]]&gt;/);
+});
+
 test('does not treat malformed custom HTML attributes as a raw block', () => {
   const { bodyHtml } = parseReadme([
     ':::message',

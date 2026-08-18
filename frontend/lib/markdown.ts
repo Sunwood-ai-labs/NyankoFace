@@ -391,9 +391,9 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   const trimmed = line.replace(/^[ \t]{0,3}/, '');
   if (trimmed.startsWith('<!--')) return trimmed.includes('-->') ? null : { kind: 'closing', pattern: /-->/, interruptsParagraph: true };
   if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/, interruptsParagraph: true };
-  if (/^<!\[CDATA\[/i.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/, interruptsParagraph: true };
+  if (/^<!\[CDATA\[/.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/, interruptsParagraph: true };
   if (/^<![A-Z]/.test(trimmed)) return trimmed.includes('>') ? null : { kind: 'closing', pattern: />/, interruptsParagraph: true };
-  const closingTag = trimmed.match(/^<\/([A-Za-z][A-Za-z0-9-]*)\s*>\s*$/);
+  const closingTag = trimmed.match(/^<\/([A-Za-z][A-Za-z0-9-]*)>/);
   if (closingTag) {
     return {
       kind: 'blank',
@@ -419,7 +419,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
     if (!isBlockTag && trimmed.slice(opening.raw.length).trim() !== '') return null;
     return { kind: 'blank', interruptsParagraph: isBlockTag };
   }
-  const closing = new RegExp(`</${tagName}\\s*>`, 'i');
+  const closing = new RegExp(`</${tagName}>`, 'i');
   if (RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) {
     return closing.test(trimmed.slice(opening.raw.length))
       ? null

@@ -128,6 +128,7 @@ function normalizeRepositoryPath(value: string): string | undefined {
 }
 
 function resolveRepositorySymlinkPath(entryPath: string, target: string): string | undefined {
+  if (target.startsWith('/')) return undefined;
   const basePath = entryPath.split('/').slice(0, -1).join('/');
   return normalizeRepositoryPath([basePath, target].filter(Boolean).join('/'));
 }
