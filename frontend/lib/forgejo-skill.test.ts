@@ -196,3 +196,44 @@ test('fills the requested Skill page after invalid roots consume raw result slot
   });
   assert.deepEqual(requestedPages, [1, 2]);
 });
+
+test('continues across raw pages that contain only private Skills', async () => {
+  const privateCandidate = repo('private-first', true);
+  const valid = repo('public-second');
+  const requestedPages: number[] = [];
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) {
+      const page = Number(url.searchParams.get('page'));
+      requestedPages.push(page);
+      if (page === 1) return jsonResponse({ data: [privateCandidate] }, 200, { 'x-total-count': '2' });
+      return jsonResponse({ data: [valid] }, 200, { 'x-total-count': '2' });
+    }
+    if (url.pathname.endsWith('/contents/SKILL.md')) return jsonResponse(skillRootEntry());
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    const listing = await searchRepos({ topic: 'skill', limit: 1, page: 1 });
+    assert.deepEqual(listing.data.map((item) => item.full_name), ['owner/public-second']);
+  });
+  assert.deepEqual(requestedPages, [1, 2]);
+});
+
+test('scans the all-Skill catalog once instead of rescanning earlier raw pages', async () => {
+  const first = repo('first');
+  const second = repo('second');
+  const requestedPages: number[] = [];
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) {
+      const page = Number(url.searchParams.get('page'));
+      requestedPages.push(page);
+      return page === 1
+        ? jsonResponse({ data: [first] }, 200, { 'x-total-count': '101' })
+        : jsonResponse({ data: [second] }, 200, { 'x-total-count': '101' });
+    }
+    if (url.pathname.endsWith('/contents/SKILL.md')) return jsonResponse(skillRootEntry());
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    const listing = await searchAllReposByTopicAndQuery('skill');
+    assert.deepEqual(listing.data.map((item) => item.full_name), ['owner/first', 'owner/second']);
+  });
+  assert.deepEqual(requestedPages, [1, 2]);
+});

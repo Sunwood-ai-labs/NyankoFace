@@ -267,7 +267,7 @@ async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposR
     if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
     admitted.push(...skillResult.repos);
 
-    const rawPageExhausted = result.data.length === 0 || rawPage * limit >= rawTotal;
+    const rawPageExhausted = rawPage * limit >= rawTotal;
     if (admitted.length >= firstAdmittedIndex + limit || rawPageExhausted) break;
   }
 
@@ -305,6 +305,8 @@ export async function searchAllReposByTopicAndQuery(
   topic: RepoKind | undefined,
   q?: string,
 ): Promise<SearchReposResult> {
+  if (topic === 'skill') return searchAllSkillReposByTopicAndQuery(q);
+
   const pageSize = 100;
   let page = 1;
   let expectedTotal = Number.POSITIVE_INFINITY;
@@ -321,6 +323,33 @@ export async function searchAllReposByTopicAndQuery(
     // be omitted from the global metric ranking.
     if (page * pageSize >= expectedTotal || result.data.length === 0 && expectedTotal === 0) break;
     page += 1;
+  }
+
+  const needle = q?.toLowerCase();
+  const filtered = needle
+    ? repos.filter((repo) =>
+        repo.name.toLowerCase().includes(needle) ||
+        (repo.description || '').toLowerCase().includes(needle) ||
+        repo.full_name.toLowerCase().includes(needle) ||
+        (repo.topics || []).some((repoTopic) => repoTopic.toLowerCase().includes(needle)),
+      )
+    : repos;
+  return { ok: true, data: filtered, total_count: filtered.length };
+}
+
+async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchReposResult> {
+  const pageSize = 100;
+  const repos: Repo[] = [];
+  let rawTotal = Number.POSITIVE_INFINITY;
+
+  for (let page = 1; page <= MAX_SKILL_SEARCH_PAGES; page += 1) {
+    const result = await fetchRepoSearchPage({ topic: 'skill', sort: 'updated', limit: pageSize, page });
+    if (!result.ok) return result;
+    rawTotal = result.total_count;
+    const skillResult = await enrichSkillMetadata(result.data);
+    if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
+    repos.push(...skillResult.repos);
+    if (page * pageSize >= rawTotal) break;
   }
 
   const needle = q?.toLowerCase();
