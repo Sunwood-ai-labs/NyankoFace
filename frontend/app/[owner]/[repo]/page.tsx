@@ -9,7 +9,7 @@ import {
   getRepoTags,
   searchRepos,
   getTextFile,
-  getRawFileSize,
+  getContentMetadata,
   cloneUrl,
   encodeRepositoryPath,
   forgejoRepoUrl,
@@ -177,9 +177,9 @@ async function loadRepositoryReadme(owner: string, repo: string, ref: string): P
       }
       const targetPath = resolveRepositorySymlinkPath(readmePath, currentEntry.target);
       if (!targetPath) return remember({ status: 'unavailable', path: readmePath, size: currentEntry.size });
-      const targetSize = await getRawFileSize(owner, repo, targetPath, ref);
-      if (targetSize !== null && targetSize >= MAX_README_PREVIEW_BYTES) {
-        return remember({ status: 'too-large', path: targetPath, size: targetSize });
+      const targetMetadata = await getContentMetadata(owner, repo, targetPath, ref);
+      if (targetMetadata && targetMetadata.size >= MAX_README_PREVIEW_BYTES) {
+        return remember({ status: 'too-large', path: targetPath, size: targetMetadata.size });
       }
       const target = await getContents(owner, repo, targetPath, ref);
       if (!target.ok || !target.data || Array.isArray(target.data)) {

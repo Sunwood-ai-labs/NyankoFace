@@ -673,6 +673,21 @@ export async function getContents(
   return { ok: true, data: res.json };
 }
 
+export async function getContentMetadata(
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string,
+): Promise<ContentEntry | null> {
+  const cleanPath = path.replace(/^\/+|\/+$/g, '');
+  if (!cleanPath) return null;
+  const separator = cleanPath.lastIndexOf('/');
+  const parentPath = separator === -1 ? '' : cleanPath.slice(0, separator);
+  const listing = await getContents(owner, repo, parentPath, ref);
+  if (!listing.ok || !Array.isArray(listing.data)) return null;
+  return listing.data.find((entry) => entry.path.replace(/^\/+|\/+$/g, '') === cleanPath) || null;
+}
+
 export async function getRepoTags(owner: string, repo: string): Promise<RepoTag[]> {
   const res = await apiFetch(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/tags?limit=100`,
@@ -721,29 +736,6 @@ export async function getRawFile(
     const res = await fetch(url, { headers, cache: 'no-store' });
     if (!res.ok) return null;
     return await res.text();
-  } catch {
-    return null;
-  }
-}
-
-export async function getRawFileSize(
-  owner: string,
-  repo: string,
-  path: string,
-  ref?: string,
-): Promise<number | null> {
-  const token = getToken();
-  const headers: Record<string, string> = {};
-  if (token) headers['Authorization'] = `token ${token}`;
-  const cleanPath = encodeRepositoryPath(path);
-  const url = `${FORGEJO_API}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
-    repo
-  )}/raw/${cleanPath}${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`;
-  try {
-    const res = await fetch(url, { method: 'HEAD', headers, cache: 'no-store' });
-    if (!res.ok) return null;
-    const size = Number.parseInt(res.headers.get('content-length') || '', 10);
-    return Number.isSafeInteger(size) && size >= 0 ? size : null;
   } catch {
     return null;
   }

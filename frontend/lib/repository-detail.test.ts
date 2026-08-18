@@ -16,8 +16,8 @@ test('repository detail resolves a case-insensitive root README and distinguishe
   assert.match(repoPageSource, /loadRepositoryReadme\(owner, repo, ref\)/);
   assert.match(repoPageSource, /candidate\.type === 'file' \|\| candidate\.type === 'symlink'/);
   assert.match(repoPageSource, /resolveRepositorySymlinkPath\(readmePath, currentEntry\.target\)/);
-  assert.match(repoPageSource, /getRawFileSize\(owner, repo, targetPath, ref\)/);
-  assert.match(repoPageSource, /const targetSize = await getRawFileSize/);
+  assert.match(repoPageSource, /getContentMetadata\(owner, repo, targetPath, ref\)/);
+  assert.match(repoPageSource, /const targetMetadata = await getContentMetadata/);
   assert.match(repoPageSource, /target\.startsWith\('\/'\)/);
   assert.match(repoPageSource, /normalizeRepositoryPath/);
   assert.doesNotMatch(repoPageSource, /const trimmed = value\.trim\(\)/);
