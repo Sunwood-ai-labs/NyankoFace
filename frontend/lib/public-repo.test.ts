@@ -497,6 +497,31 @@ test('scrubs relative-looking text without rewriting repository identifiers', ()
   }
 });
 
+test('preserves skill dependency identifiers while scrubbing their explanations', () => {
+  const sanitized = sanitizePublicRepo({
+    id: 21,
+    name: 'skill-with-dependency',
+    full_name: 'alice/skill-with-dependency',
+    description: null,
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+    skill_relationships: {
+      schemaVersion: 2,
+      dependencies: [{
+        repo: 'docs.internal',
+        type: 'required',
+        reason: 'Requires docs.internal for the guide.',
+        evidence: 'See docs.internal in the setup notes.',
+      }],
+    },
+  } as Repo);
+  const dependency = sanitized.skill_relationships?.dependencies[0];
+
+  assert.equal(dependency?.repo, 'docs.internal');
+  assert.doesNotMatch(dependency?.reason || '', /docs\.internal/);
+  assert.doesNotMatch(dependency?.evidence || '', /docs\.internal/);
+});
+
 test('scrubs Unicode configured hosts in bare host paths', () => {
   const original = process.env.FORGEJO_API;
   try {

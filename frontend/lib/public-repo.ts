@@ -451,17 +451,19 @@ function sanitizePublicRepoText(value: string): string {
   }
 }
 
-function sanitizePublicRepoValue(value: unknown, fieldName?: string): unknown {
+function sanitizePublicRepoValue(value: unknown, fieldName?: string, parentFieldName?: string): unknown {
   if (typeof value === 'string') {
-    if (fieldName === 'name' || fieldName === 'full_name') return value;
+    if (fieldName === 'name' || fieldName === 'full_name' || (fieldName === 'repo' && parentFieldName === 'dependencies')) {
+      return value;
+    }
     if (fieldName?.endsWith('_at') && ISO_TIMESTAMP_PATTERN.test(value)) return value;
     const direct = safePublicUrl(value);
     return direct && !direct.startsWith('/') ? direct : sanitizePublicRepoText(value);
   }
-  if (Array.isArray(value)) return value.map((entry) => sanitizePublicRepoValue(entry, fieldName));
+  if (Array.isArray(value)) return value.map((entry) => sanitizePublicRepoValue(entry, fieldName, parentFieldName));
   if (!value || typeof value !== 'object') return value;
   return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).map(([key, entry]) => [key, sanitizePublicRepoValue(entry, key)]),
+    Object.entries(value as Record<string, unknown>).map(([key, entry]) => [key, sanitizePublicRepoValue(entry, key, fieldName)]),
   );
 }
 
