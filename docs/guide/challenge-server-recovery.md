@@ -211,7 +211,7 @@ PY
 
 failure_body_file="$(mktemp)"
 failure_metadata="$(curl --silent --show-error --max-time 3 \
-  --header 'Accept: text/plain' \
+  --header "Accept: $FAILURE_CONTENT_TYPE" \
   --output "$failure_body_file" \
   --write-out $'%{http_code}\n%{content_type}' "$FAILURE_URL")" || { rm -f "$failure_body_file"; exit 1; }
 failure_status="${failure_metadata%%$'\n'*}"
