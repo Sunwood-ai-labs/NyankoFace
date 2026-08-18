@@ -141,7 +141,7 @@ function parseZennOpeningLine(line: string): {
 } | null {
   const match = line.match(/^[ \t]{0,3}:::(message(?:[ \t]+alert)?|details(?:[ \t]+([^\r\n]*))?)[ \t]*$/i);
   if (!match) return null;
-  const directive = match[1].toLowerCase();
+  const directive = match[1].toLowerCase().replace(/\s+/g, ' ').trim();
   if (directive === 'message' || directive === 'message alert') {
     return {
       blockType: 'zenn-message',

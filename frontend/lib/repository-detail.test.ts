@@ -13,6 +13,8 @@ const detailTabsSource = readFileSync(
 
 test('repository detail resolves a case-insensitive root README and distinguishes load states', () => {
   assert.match(repoPageSource, /loadRepositoryReadme\(owner, repo, ref\)/);
+  assert.match(repoPageSource, /REPOSITORY_README_CACHE_TTL_MS/);
+  assert.match(repoPageSource, /repositoryReadmeCache/);
   assert.match(repoPageSource, /candidate\.name\.toLowerCase\(\) === 'readme\.md'/);
   assert.match(repoPageSource, /status: 'absent'/);
   assert.match(repoPageSource, /status: 'unavailable'/);
