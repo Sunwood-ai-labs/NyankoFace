@@ -335,6 +335,25 @@ test('resets paragraph state after a heading before type-7 HTML', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('resets paragraph state after asterisk and underscore thematic breaks', () => {
+  for (const thematicBreak of ['***', '___']) {
+    const { bodyHtml } = parseReadme([
+      ':::message',
+      thematicBreak,
+      '<my-widget>',
+      ':::',
+      '',
+      ':::',
+      '',
+      '# After',
+    ].join('\n'));
+
+    assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+    assert.match(bodyHtml, /:::/);
+    assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+  }
+});
+
 test('does not borrow a later closer for an unmatched Zenn opener', () => {
   const { bodyHtml } = parseReadme([
     ':::message',

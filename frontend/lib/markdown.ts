@@ -180,6 +180,7 @@ type RawHtmlBlockBoundary =
 type ZennBoundary = { start: number; end: number };
 
 type ZennBoundaryIndex = {
+  source: string;
   sourceLength: number;
   boundaries: Map<number, ZennBoundary>;
 };
@@ -233,7 +234,7 @@ function continuesZennFenceContainer(line: string, container: ZennFenceContainer
 
 function startsMarkdownBlock(line: string): boolean {
   const content = line.replace(/^[ \t]{0,3}/, '');
-  return /^(?:#{1,6}(?:[ \t]+|$)|={2,}[ \t]*$|-{3,}[ \t]*$)/.test(content);
+  return /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
@@ -365,7 +366,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     }
     offset = end;
   }
-  return { sourceLength: source.length, boundaries };
+  return { source, sourceLength: source.length, boundaries };
 }
 
 function blockTokens(
@@ -425,7 +426,8 @@ function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryInde
     ? context.sourceStart + context.sourceLength - source.length
     : rootBoundaryIndex.sourceLength - source.length;
   let absoluteClosing = boundaryIndex.boundaries.get(sourceOffset);
-  if (!absoluteClosing) {
+  const rootSourceMatches = rootBoundaryIndex.source.startsWith(firstLine, sourceOffset);
+  if (!absoluteClosing && (context || !rootSourceMatches)) {
     const localBoundaryIndex = buildZennBoundaryIndex(source);
     const localOffset = localBoundaryIndex.boundaries.keys().next().value;
     if (localOffset === 0) {
