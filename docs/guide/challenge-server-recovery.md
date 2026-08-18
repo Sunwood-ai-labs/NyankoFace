@@ -168,14 +168,22 @@ content_type_in_list() {
 }
 
 body_contract_valid() {
-  [[ "$1" != 'unexpected' && "$1" != 'invalid-json' && -n "$1" ]]
+  [[ "$1" == valid:* && -n "${1#valid:}" ]]
+}
+
+body_contract_value() {
+  if [[ "$1" == valid:* ]]; then
+    printf '%s' "${1#valid:}"
+  else
+    printf '%s' "$1"
+  fi
 }
 
 read_health_body_contract() {
   local body_file="$1"
   local content_type="${2,,}"
   if ! content_type_in_list "$content_type" "$HEALTH_CONTENT_TYPES"; then
-    printf 'unexpected\n'
+    printf 'invalid:content-type\n'
     return
   fi
   if content_type_in_list "$content_type" "$HEALTH_JSON_CONTENT_TYPES"; then
@@ -191,7 +199,7 @@ except (OSError, UnicodeError, ValueError):
 else:
     status = value.get(sys.argv[2]) if isinstance(value, dict) else None
     expected = {item.strip() for item in sys.argv[3].split(',') if item.strip()}
-    print(status if isinstance(status, str) and status in expected else 'unexpected')
+    print(f'valid:{status}' if isinstance(status, str) and status in expected else 'invalid:body')
 PY
     return
   fi
@@ -201,12 +209,12 @@ PY
     IFS=',' read -r -a expected_bodies <<< "$HEALTH_BODY_CONTRACTS"
     for expected_body in "${expected_bodies[@]}"; do
       if printf '%s' "$expected_body" | cmp -s "$body_file" -; then
-        printf '%s\n' "$expected_body"
+        printf 'valid:%s\n' "$expected_body"
         return
       fi
     done
   fi
-  printf 'unexpected\n'
+  printf 'invalid:body\n'
 }
 
 failure_body_file="$(mktemp)"
@@ -308,9 +316,10 @@ record_stable_response() {
   http_status="${metadata%%$'\n'*}"
   content_type="${metadata#*$'\n'}"
   body_contract="$(read_health_body_contract "$body_file" "$content_type")"
+  contract_value="$(body_contract_value "$body_contract")"
   rm -f "$body_file"
   printf 'stage=%s stable-name http_status=%s content_type=%s body_contract=%s\n' \
-    "$name" "$http_status" "$content_type" "$body_contract"
+    "$name" "$http_status" "$content_type" "$contract_value"
   [[ "$http_status" == "$HEALTH_STATUS" ]] && body_contract_valid "$body_contract"
 }
 
@@ -330,9 +339,11 @@ run_stage() {
   return "$stage_status"
 }
 
-run_stage stage-1 "$VENV/bin/python" scripts/stage1.py
-run_stage stage-2 "$VENV/bin/python" scripts/stage2.py
-run_stage stage-3 "$VENV/bin/python" scripts/stage3.py
+matrix_status=0
+if ! run_stage stage-1 "$VENV/bin/python" scripts/stage1.py; then matrix_status=1; fi
+if ! run_stage stage-2 "$VENV/bin/python" scripts/stage2.py; then matrix_status=1; fi
+if ! run_stage stage-3 "$VENV/bin/python" scripts/stage3.py; then matrix_status=1; fi
+if (( matrix_status != 0 )); then exit 1; fi
 ~~~
 
 Then run negative cases that must fail closed:
