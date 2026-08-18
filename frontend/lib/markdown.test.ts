@@ -171,3 +171,18 @@ test('renders Zenn message and details blocks through the shared safe Markdown p
   assert.match(bodyHtml, /:::unsupported/);
   assert.doesNotMatch(bodyHtml, /<script|javascript:/i);
 });
+
+test('does not close a Zenn block on a fenced code line with language info', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '```',
+    '```ts',
+    ':::',
+    '```',
+    ':::',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /```ts/);
+  assert.doesNotMatch(bodyHtml, /data-markdown-block="zenn-details"/);
+});

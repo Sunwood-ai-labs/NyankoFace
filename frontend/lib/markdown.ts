@@ -167,7 +167,13 @@ function findZennClosingLine(source: string): { start: number; end: number } | n
     const fence = line.match(/^[ \t]{0,3}(`{3,}|~{3,})/);
 
     if (fenceChar) {
-      if (fence && fence[1][0] === fenceChar && fence[1].length >= fenceLength) {
+      const closesFence = Boolean(
+        fence
+        && fence[1][0] === fenceChar
+        && fence[1].length >= fenceLength
+        && line.slice(fence[0].length).trim() === '',
+      );
+      if (closesFence) {
         fenceChar = null;
         fenceLength = 0;
       }
