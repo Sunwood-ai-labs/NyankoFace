@@ -217,6 +217,27 @@ function leadingIndentColumns(line: string): number {
   return columns;
 }
 
+function expandLeadingTabs(line: string): string {
+  let columns = 0;
+  let index = 0;
+  let expanded = '';
+  while (index < line.length) {
+    const character = line[index];
+    if (character === ' ') {
+      expanded += character;
+      columns += 1;
+    } else if (character === '\t') {
+      const width = 4 - (columns % 4);
+      expanded += ' '.repeat(width);
+      columns += width;
+    } else {
+      break;
+    }
+    index += 1;
+  }
+  return expanded + line.slice(index);
+}
+
 function matchZennFence(line: string): ZennFenceMatch | null {
   const blockquote = line.match(/^ {0,3}>[ \t]?(`{3,}|~{3,})/);
   if (blockquote) {
@@ -574,9 +595,7 @@ function renderMarkdown(markdown: string, urls?: ReadmeRenderUrls): string {
   // Marked expands leading tabs before block tokenization; index the same source
   // so custom block offsets remain aligned with the parser's input.
   const normalizedMarkdown = markdown.replace(/\r\n?/g, '\n');
-  const markedMarkdown = normalizedMarkdown.replace(/^( *)(\t+)/gm, (_, leading, tabs) => (
-    `${leading}${'    '.repeat(tabs.length)}`
-  ));
+  const markedMarkdown = normalizedMarkdown.replace(/^[ \t]+/gm, expandLeadingTabs);
   const boundaryIndex = buildZennBoundaryIndex(markedMarkdown);
   const parser = new Marked({
     gfm: true,

@@ -595,6 +595,17 @@ test('does not treat tab-indented fences as Zenn code fences', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('expands mixed leading whitespace at tab stops before rendering code', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    ' \tcode',
+    ':::',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /<code[^>]*>code<\/code>/);
+  assert.doesNotMatch(bodyHtml, /<code[^>]*> code<\/code>/);
+});
+
 test('resets paragraph state after indented code before type-7 HTML', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
