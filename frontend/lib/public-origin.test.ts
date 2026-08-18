@@ -22,6 +22,7 @@ test('keeps public absolute URLs and relative paths usable', () => {
   assert.equal(sanitizePublicUrl('https://pages.example/site/'), 'https://pages.example/site/');
   assert.equal(sanitizePublicUrl('/pages/owner/site/'), '/pages/owner/site/');
   assert.equal(sanitizePublicUrl('https://[2001:20::1]/pages/site/'), 'https://[2001:20::1]/pages/site/');
+  assert.equal(sanitizePublicUrl('https://[2001:2f::1]/pages/site/'), 'https://[2001:2f::1]/pages/site/');
   assert.equal(sanitizePublicUrl('https://198.18.0.1/pages/site/'), '/pages/site/');
   assert.equal(sanitizePublicUrl('https://192.0.2.1/pages/site/'), '/pages/site/');
 });
