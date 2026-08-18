@@ -271,6 +271,37 @@ test('keeps type-7 custom HTML blocks open until a blank line', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps self-closing HTML blocks open until a blank line', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<hr />',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<hr\s*\/>/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not let a type-7 HTML tag interrupt a paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'paragraph',
+    '<my-widget>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /paragraph/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not treat incomplete inline HTML as a raw block', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -359,6 +390,20 @@ test('tracks Zenn blocks nested immediately after a list marker', () => {
   ].join('\n'));
 
   assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('tracks top-level Zenn blocks nested inside containers', () => {
+  const { bodyHtml } = parseReadme([
+    '- :::message',
+    '  Container body',
+    '  :::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /Container body/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
