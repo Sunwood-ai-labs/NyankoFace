@@ -208,6 +208,14 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     undefined,
   );
   assert.equal(
+    safePublicUrl('https://public.example/redirect?next=javascript:alert(1)'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/docs/time:12'),
+    'https://public.example/docs/time:12',
+  );
+  assert.equal(
     safePublicUrl('https://public.example/docs/http:status'),
     'https://public.example/docs/http:status',
   );
