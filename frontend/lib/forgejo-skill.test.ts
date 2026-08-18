@@ -2,7 +2,15 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getRepo, searchAllReposByTopicAndQuery, searchRepos, SKILL_MAX_BYTES, type Repo } from './forgejo';
 
-const SKILL_CONTENT = '# Example Skill\n\nUse this skill for the regression test.\n';
+const SKILL_CONTENT = `---
+name: regression-skill
+description: Use this skill for the regression test.
+---
+
+# Example Skill
+
+Use this skill for the regression test.
+`;
 
 function repo(name: string, isPrivate = false): Repo {
   return {
@@ -121,6 +129,10 @@ test('fails closed for oversized and malformed root content', async () => {
       entry: null,
     },
     {
+      name: 'missing-frontmatter',
+      entry: skillRootEntry('# Missing required metadata\n'),
+    },
+    {
       name: 'malformed-encoding',
       entry: { ...skillRootEntry(), encoding: 7 },
     },
@@ -158,4 +170,29 @@ test('keeps private Skill repositories outside root validation and the public ca
     assert.equal(await getRepo('owner', 'private-skill'), null);
   });
   assert.equal(rootRead, false);
+});
+
+test('fills the requested Skill page after invalid roots consume raw result slots', async () => {
+  const invalid = repo('invalid-first');
+  const valid = repo('valid-second');
+  const requestedPages: number[] = [];
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) {
+      const page = Number(url.searchParams.get('page'));
+      requestedPages.push(page);
+      if (page === 1) return jsonResponse({ data: [invalid] }, 200, { 'x-total-count': '2' });
+      return jsonResponse({ data: [valid] }, 200, { 'x-total-count': '2' });
+    }
+    if (url.pathname.endsWith('/contents/SKILL.md')) {
+      return url.pathname.includes('invalid-first')
+        ? jsonResponse({ message: 'not found' }, 404)
+        : jsonResponse(skillRootEntry());
+    }
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    const listing = await searchRepos({ topic: 'skill', limit: 1, page: 1 });
+    assert.equal(listing.ok, true);
+    assert.deepEqual(listing.data.map((item) => item.full_name), ['owner/valid-second']);
+  });
+  assert.deepEqual(requestedPages, [1, 2]);
 });

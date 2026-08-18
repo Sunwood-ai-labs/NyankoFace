@@ -205,7 +205,7 @@ export interface SearchReposParams {
   signal?: AbortSignal;
 }
 
-export async function searchRepos(params: SearchReposParams): Promise<SearchReposResult> {
+async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchReposResult> {
   const { topic, q, sort = 'updated', limit = 20, page = 1, signal } = params;
 
   const qs = new URLSearchParams();
@@ -241,26 +241,56 @@ export async function searchRepos(params: SearchReposParams): Promise<SearchRepo
   // metadata. Never let that privileged token turn private Forgejo assets into
   // public NyankoFace catalog entries.
   const data = (Array.isArray(res.json.data) ? res.json.data as Repo[] : []).filter((repo) => !repo.private);
-  let enrichedData = data;
-  if (topic === 'space') {
-    enrichedData = await enrichSpaceMetadata(data);
-  } else if (topic === 'skill') {
-    const skillResult = await enrichSkillMetadata(data);
-    // A failed root-content read is an upstream availability failure, not
-    // evidence that every candidate was deleted. Preserve the existing
-    // SearchReposResult unavailable contract instead of returning a partial
-    // catalog that could be mistaken for a complete deletion.
-    if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
-    enrichedData = skillResult.repos;
-  }
   const headerTotal = Number.parseInt(res.headers?.get('x-total-count') || '', 10);
   return {
     ok: true,
-    data: enrichedData,
-    // Keep Forgejo's raw total for page traversal. The all-topic catalog
-    // performs its final admitted-item count after it has scanned every raw
-    // page; using the filtered page length here would stop that scan early.
+    data,
     total_count: Number.isFinite(headerTotal) ? headerTotal : data.length,
+  };
+}
+
+const MAX_SKILL_SEARCH_PAGES = 100;
+
+async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposResult> {
+  const limit = Math.max(1, params.limit || 20);
+  const requestedPage = Math.max(1, params.page || 1);
+  const firstAdmittedIndex = (requestedPage - 1) * limit;
+  const admitted: Repo[] = [];
+  let rawTotal = 0;
+
+  for (let rawPage = 1; rawPage <= MAX_SKILL_SEARCH_PAGES; rawPage += 1) {
+    const result = await fetchRepoSearchPage({ ...params, limit, page: rawPage });
+    if (!result.ok) return result;
+    rawTotal = result.total_count;
+
+    const skillResult = await enrichSkillMetadata(result.data);
+    if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
+    admitted.push(...skillResult.repos);
+
+    const rawPageExhausted = result.data.length === 0 || rawPage * limit >= rawTotal;
+    if (admitted.length >= firstAdmittedIndex + limit || rawPageExhausted) break;
+  }
+
+  return {
+    ok: true,
+    data: admitted.slice(firstAdmittedIndex, firstAdmittedIndex + limit),
+    total_count: rawTotal,
+  };
+}
+
+export async function searchRepos(params: SearchReposParams): Promise<SearchReposResult> {
+  const { topic } = params;
+  if (topic === 'skill') return searchSkillRepos(params);
+
+  const result = await fetchRepoSearchPage(params);
+  if (!result.ok) return result;
+  let enrichedData = result.data;
+  if (topic === 'space') {
+    enrichedData = await enrichSpaceMetadata(result.data);
+  }
+  return {
+    ...result,
+    data: enrichedData,
   };
 }
 
@@ -744,12 +774,27 @@ function decodeSkillRootContent(entry: unknown): string | null {
   }
 }
 
+function hasRequiredSkillFrontmatter(content: string): boolean {
+  try {
+    const data = matter(content).data as Record<string, unknown>;
+    return (
+      typeof data.name === 'string'
+      && Boolean(data.name.trim())
+      && typeof data.description === 'string'
+      && Boolean(data.description.trim())
+    );
+  } catch {
+    return false;
+  }
+}
+
 async function getSkillRootStatus(owner: string, repo: string): Promise<SkillRootStatus> {
   const res = await apiFetch(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${SKILL_ROOT_PATH}`,
   );
   if (!res.ok) return isSkillRootUnavailable(res.status) ? 'unavailable' : 'invalid';
-  return decodeSkillRootContent(res.json as ContentEntry) ? 'valid' : 'invalid';
+  const content = decodeSkillRootContent(res.json as ContentEntry);
+  return content && hasRequiredSkillFrontmatter(content) ? 'valid' : 'invalid';
 }
 
 async function enrichSkillMetadata(repos: Repo[]): Promise<SkillEnrichmentResult> {
