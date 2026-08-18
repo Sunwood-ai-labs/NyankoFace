@@ -138,6 +138,20 @@ test('keeps lazy blockquote continuations inside GitHub alerts', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps non-one ordered lazy continuations inside GitHub alerts', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    '2. continuation',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="github-alert" data-alert-type="NOTE"/);
+  assert.match(bodyHtml, /2\. continuation/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('requires at most one padding space before a GitHub alert marker', () => {
   const { bodyHtml } = parseReadme('>  [!NOTE]\n> This remains an ordinary blockquote.');
 
@@ -806,6 +820,20 @@ test('tracks Zenn blocks nested after ordered list markers', () => {
   assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
   assert.match(bodyHtml, /<details/);
   assert.match(bodyHtml, /Ordered nested body/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('matches a top-level closer after an unmatched list-nested directive', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- :::details Inner',
+    '  body',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 

@@ -427,6 +427,17 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
       openings.push({ offset, listContentIndent: listPrefix?.[0].length });
       paragraphActive = false;
     } else if (isZennClosingLine(line, openings.at(-1)?.listContentIndent)) {
+      while (
+        openings.at(-1)?.listContentIndent !== undefined
+        && line.trim() !== ''
+        && leadingIndentColumns(line) < (openings.at(-1)?.listContentIndent || 0)
+      ) {
+        openings.pop();
+      }
+      if (openings.length === 0) {
+        offset = end;
+        continue;
+      }
       const opening = openings.pop();
       if (opening !== undefined) {
         boundaries.set(opening.offset, { start: offset, end });
@@ -468,14 +479,17 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
 
   let rawLength = header[0].length;
   let cursor = rawLength;
+  let paragraphActive = false;
   while (cursor < source.length) {
     const newlineIndex = source.indexOf('\n', cursor);
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
     const line = source.slice(cursor, end).replace(/\r?\n$/, '');
     if (line.trim() === '') break;
     const isQuoted = /^ {0,3}>/.test(line);
-    if (!isQuoted && (startsMarkdownBlock(line) || parseZennOpeningLine(line))) break;
+    const contentLine = isQuoted ? line.replace(/^[ \t]{0,3}>[ \t]?/, '') : line;
+    if (!isQuoted && (!paragraphActive || startsMarkdownBlock(line, paragraphActive) || parseZennOpeningLine(line))) break;
     cursor = end;
+    paragraphActive = contentLine.trim() !== '' && !startsMarkdownBlock(contentLine, paragraphActive);
   }
   rawLength = cursor;
   const raw = source.slice(0, rawLength);
