@@ -212,6 +212,22 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     undefined,
   );
   assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=forgejo:org/repo'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=github.com:org/repo'),
+    'https://public.example/redirect?clone=github.com:org/repo',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/docs/git:main'),
+    'https://public.example/docs/git:main',
+  );
+  assert.equal(
+    safePublicUrl('/docs/blob:pending'),
+    '/docs/blob:pending',
+  );
+  assert.equal(
     safePublicUrl('https://public.example/docs/time:12'),
     'https://public.example/docs/time:12',
   );

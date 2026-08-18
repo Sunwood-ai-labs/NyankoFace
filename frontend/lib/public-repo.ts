@@ -11,12 +11,13 @@ const UPSTREAM_URL_FIELDS = [
 ] as const;
 
 const NESTED_URL_PATTERNS = [
-  /(?<![a-z0-9.-])(?=((?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
+  /(?<=[?&#=\s([{<])(?=((?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
   /(?<![a-z0-9+.-])(?=([a-z][a-z0-9+.-]*:[\\/]{1,3}[^\s<>"'`&]+))/gi,
   /(?<![a-z0-9+.-])(?=(https?:(?![\\/])[^\s<>"'`&]+))/gi,
-  /(?<![a-z0-9+.-])(?=((?:about|blob|data|file|ftp|git|gopher|javascript|mailto|ssh|tel|vbscript|ws|wss):[^\s<>"'`&]+))/gi,
+  /(?<=[?&#=\s([{<])(?=((?:about|blob|data|file|ftp|git|gopher|javascript|mailto|ssh|tel|vbscript|ws|wss):[^\s<>"'`&]+))/gi,
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
   /(?=(\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
+  /(?<=[?&#=\s([{<])(?=((?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`&]+\/[^\s<>"'`]+))/gi,
 ];
 const MAX_URL_DECODE_PASSES = 8;
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
@@ -296,7 +297,7 @@ function sanitizePublicRepoText(value: string): string {
     }
     if (decoded === current) {
       const sanitized = sanitizePublicRepoTextOnce(current);
-      return sanitized !== current ? sanitized : original;
+      return sanitized.includes('[internal URL omitted]') ? sanitized : original;
     }
     current = decoded;
   }
