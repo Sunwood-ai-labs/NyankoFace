@@ -271,6 +271,19 @@ test('keeps type-7 custom HTML blocks open until a blank line', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('does not treat incomplete inline HTML as a raw block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<span>inline text',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends block HTML boundaries at a blank line', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -363,6 +376,19 @@ test('tracks nested Zenn closers after four-space list indentation', () => {
   assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
   assert.match(bodyHtml, /<details/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not treat four-space indented directives as nested Zenn blocks', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '    :::message',
+    '    literal code',
+    '    :::',
+    ':::',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /:::message/);
 });
 
 test('reuses one boundary index for deeply nested Zenn blocks', () => {

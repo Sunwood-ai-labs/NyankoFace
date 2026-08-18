@@ -215,9 +215,14 @@ function matchZennFence(line: string): ZennFenceMatch | null {
 
 function stripZennContainerPrefix(line: string): string {
   const prefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
-  if (prefix) return line.slice(prefix[0].length);
-  const listContinuation = line.match(/^[ \t]{4}/);
-  return listContinuation ? line.slice(listContinuation[0].length) : line;
+  return prefix ? line.slice(prefix[0].length) : line;
+}
+
+function isZennClosingLine(line: string, listContentIndent?: number): boolean {
+  if (/^[ \t]{0,3}:::[ \t]*$/.test(line)) return true;
+  if (listContentIndent === undefined) return false;
+  const prefix = line.slice(0, listContentIndent);
+  return /^[ \t]+$/.test(prefix) && /^:::[ \t]*$/.test(line.slice(listContentIndent));
 }
 
 function continuesZennFenceContainer(line: string, container: ZennFenceContainer): boolean {
@@ -239,7 +244,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/ };
   if (/^<!\[CDATA\[/i.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/ };
   if (/^<![A-Z]/.test(trimmed)) return trimmed.endsWith('>') ? null : { kind: 'closing', pattern: />/ };
-  if (/^<\/[A-Za-z][A-Za-z0-9-]*\s*>/.test(trimmed)) return { kind: 'blank' };
+  if (/^<\/[A-Za-z][A-Za-z0-9-]*\s*>\s*$/.test(trimmed)) return { kind: 'blank' };
   const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?>/);
   if (!opening || /\/\s*>$/.test(opening[0])) return null;
   const tagName = opening[1].toLowerCase();
@@ -247,12 +252,13 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   if (RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) {
     return closing.test(trimmed.slice(opening[0].length)) ? null : { kind: 'closing', pattern: closing };
   }
+  if (!RAW_HTML_BLOCK_TAGS.has(tagName) && trimmed.slice(opening[0].length).trim() !== '') return null;
   return { kind: 'blank' };
 }
 
 function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   const boundaries = new Map<number, ZennBoundary>();
-  const openings: number[] = [];
+  const openings: Array<{ offset: number; listContentIndent?: number }> = [];
   let offset = 0;
   let fenceChar: '`' | '~' | null = null;
   let fenceLength = 0;
@@ -274,7 +280,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         continue;
       }
       htmlBlockEnd = rawHtmlBlockEnd(line);
-      if (htmlBlockEnd || /^\s*(?:<!--|<\?|<![A-Z]|<[A-Za-z][A-Za-z0-9-]*\b)/.test(line)) {
+      if (htmlBlockEnd || /^\s*(?:<!--|<\?|<![A-Z])/.test(line)) {
         offset = end;
         continue;
       }
@@ -309,11 +315,12 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         fenceContainer = fence.container;
       }
     } else if (parseZennOpeningLine(stripZennContainerPrefix(line))) {
-      openings.push(offset);
-    } else if (/^[ \t]{0,3}:::[ \t]*$/.test(stripZennContainerPrefix(line))) {
+      const listPrefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
+      openings.push({ offset, listContentIndent: listPrefix?.[0].length });
+    } else if (isZennClosingLine(line, openings.at(-1)?.listContentIndent)) {
       const opening = openings.pop();
       if (opening !== undefined) {
-        boundaries.set(opening, { start: offset, end });
+        boundaries.set(opening.offset, { start: offset, end });
       }
     }
     offset = end;
