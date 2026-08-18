@@ -23,6 +23,7 @@ test('repository detail resolves a case-insensitive root README and distinguishe
   assert.match(repoPageSource, /repositoryReadmeCache/);
   assert.match(repoPageSource, /pruneRepositoryReadmeCache/);
   assert.match(repoPageSource, /candidate\.name\.toLowerCase\(\) === 'readme\.md'/);
+  assert.match(repoPageSource, /readmeEntries\.find\(\(candidate\) => candidate\.name === 'README\.md'\) \|\| readmeEntries\[0\]/);
   assert.match(repoPageSource, /status: 'absent'/);
   assert.match(repoPageSource, /status: 'unavailable'/);
   assert.match(repoPageSource, /status: 'too-large'/);

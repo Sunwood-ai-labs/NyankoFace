@@ -150,9 +150,10 @@ async function loadRepositoryReadme(owner: string, repo: string, ref: string): P
     const root = await getContents(owner, repo, '', ref);
     if (!root.ok || !Array.isArray(root.data)) return remember({ status: 'unavailable' });
 
-    const entry = root.data.find((candidate) =>
+    const readmeEntries = root.data.filter((candidate) =>
       (candidate.type === 'file' || candidate.type === 'symlink') && candidate.name.toLowerCase() === 'readme.md',
     );
+    const entry = readmeEntries.find((candidate) => candidate.name === 'README.md') || readmeEntries[0];
     if (!entry) return remember({ status: 'absent' });
     const readmePath = entry.type === 'symlink'
       ? typeof entry.target === 'string' ? resolveRepositorySymlinkPath(entry.path, entry.target) : undefined
