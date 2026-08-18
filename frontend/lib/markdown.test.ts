@@ -891,6 +891,22 @@ test('tracks Zenn blocks nested immediately after a list marker', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('does not treat over-padded list directives as nested Zenn blocks', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '-     :::details Over-padded',
+    '  literal continuation',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.doesNotMatch(bodyHtml, /<details/);
+  assert.match(bodyHtml, /:::details Over-padded/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('tracks top-level Zenn blocks nested inside containers', () => {
   const { bodyHtml } = parseReadme([
     '- :::message',

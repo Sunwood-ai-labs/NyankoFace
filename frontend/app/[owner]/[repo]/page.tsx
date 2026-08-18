@@ -85,6 +85,7 @@ const KIND_ICON: Record<string, HfIconName> = {
 };
 
 const MAX_README_PREVIEW_BYTES = 2_000_000;
+const MAX_README_SYMLINK_DEPTH = 8;
 const REPOSITORY_README_CACHE_TTL_MS = Math.max(
   60,
   Number.parseInt(process.env.README_CACHE_TTL_SECONDS || '300', 10) || 300,
@@ -155,17 +156,43 @@ async function loadRepositoryReadme(owner: string, repo: string, ref: string): P
     );
     const entry = readmeEntries.find((candidate) => candidate.name === 'README.md') || readmeEntries[0];
     if (!entry) return remember({ status: 'absent' });
-    const readmePath = entry.type === 'symlink'
-      ? typeof entry.target === 'string' ? resolveRepositorySymlinkPath(entry.path, entry.target) : undefined
-      : normalizeRepositoryPath(entry.path);
-    if (!readmePath) return remember({ status: 'unavailable', path: entry.path, size: entry.size });
-    if (entry.type === 'file' && entry.size >= MAX_README_PREVIEW_BYTES) {
-      return remember({ status: 'too-large', path: readmePath, size: entry.size });
+    let currentEntry = entry;
+    let readmePath = normalizeRepositoryPath(entry.path);
+    const visitedReadmePaths = new Set<string>();
+    let fileEntry: typeof entry | undefined;
+    for (let depth = 0; depth <= MAX_README_SYMLINK_DEPTH; depth += 1) {
+      if (!readmePath || visitedReadmePaths.has(readmePath)) {
+        return remember({ status: 'unavailable', path: readmePath || entry.path, size: currentEntry.size });
+      }
+      visitedReadmePaths.add(readmePath);
+      if (currentEntry.type === 'file') {
+        fileEntry = currentEntry;
+        break;
+      }
+      if (currentEntry.type !== 'symlink' || typeof currentEntry.target !== 'string' || depth === MAX_README_SYMLINK_DEPTH) {
+        return remember({ status: 'unavailable', path: readmePath, size: currentEntry.size });
+      }
+      const targetPath = resolveRepositorySymlinkPath(readmePath, currentEntry.target);
+      if (!targetPath) return remember({ status: 'unavailable', path: readmePath, size: currentEntry.size });
+      const target = await getContents(owner, repo, targetPath, ref);
+      if (!target.ok || !target.data || Array.isArray(target.data)) {
+        return remember({ status: 'unavailable', path: targetPath, size: currentEntry.size });
+      }
+      currentEntry = target.data;
+      readmePath = normalizeRepositoryPath(currentEntry.path || targetPath);
+    }
+    if (!fileEntry || !readmePath) {
+      return remember({ status: 'unavailable', path: readmePath || entry.path, size: currentEntry.size });
+    }
+    if (fileEntry.size >= MAX_README_PREVIEW_BYTES) {
+      return remember({ status: 'too-large', path: readmePath, size: fileEntry.size });
     }
 
-    const file = await getContents(owner, repo, readmePath, ref);
+    const file = typeof fileEntry.content === 'string'
+      ? { ok: true, data: fileEntry }
+      : await getContents(owner, repo, readmePath, ref);
     if (!file.ok || !file.data || Array.isArray(file.data) || file.data.type !== 'file' || typeof file.data.content !== 'string') {
-      return remember({ status: 'unavailable', path: readmePath, size: entry.size });
+      return remember({ status: 'unavailable', path: readmePath, size: fileEntry.size });
     }
     const rawBuffer = Buffer.from(
       file.data.content,

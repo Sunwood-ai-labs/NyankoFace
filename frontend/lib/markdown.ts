@@ -164,6 +164,8 @@ type ZennFenceMatch = {
   container?: ZennFenceContainer;
 };
 
+const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
+
 const RAW_HTML_BLOCK_TAGS = new Set([
   'address', 'article', 'aside', 'base', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup',
   'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer',
@@ -255,7 +257,7 @@ function matchZennFence(line: string): ZennFenceMatch | null {
   if (blockquote) {
     return { token: blockquote[1], end: blockquote[0].length, container: { kind: 'blockquote' } };
   }
-  const list = line.match(/^ {0,3}(?:[*+-]|\d+[.)])[ \t]+(`{3,}|~{3,})/);
+  const list = line.match(/^ {0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)(`{3,}|~{3,})/);
   if (list) {
     return {
       token: list[1],
@@ -271,7 +273,7 @@ function matchZennFence(line: string): ZennFenceMatch | null {
 }
 
 function stripZennContainerPrefix(line: string): string {
-  const prefix = line.match(/^ {0,3}(?:[*+-]|\d+[.)])[ \t]+/);
+  const prefix = line.match(LIST_CONTAINER_PREFIX);
   return prefix ? line.slice(prefix[0].length) : line;
 }
 
@@ -467,7 +469,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
       }
       const rawHtml = rawHtmlBlockEnd(stripZennContainerPrefix(line));
       if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph)) {
-        const listPrefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
+        const listPrefix = line.match(LIST_CONTAINER_PREFIX);
         htmlBlockEnd = {
           boundary: rawHtml,
           listContentIndent: listPrefix?.[0].length,
@@ -516,7 +518,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         paragraphActive = false;
       }
     } else if (parseZennOpeningLine(stripZennContainerPrefix(line))) {
-      const listPrefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
+      const listPrefix = line.match(LIST_CONTAINER_PREFIX);
       openings.push({ offset, listContentIndent: listPrefix?.[0].length });
       paragraphActive = false;
     } else if (isZennClosingLine(line, openings.at(-1)?.listContentIndent)) {

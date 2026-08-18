@@ -15,11 +15,14 @@ const detailTabsSource = readFileSync(
 test('repository detail resolves a case-insensitive root README and distinguishes load states', () => {
   assert.match(repoPageSource, /loadRepositoryReadme\(owner, repo, ref\)/);
   assert.match(repoPageSource, /candidate\.type === 'file' \|\| candidate\.type === 'symlink'/);
-  assert.match(repoPageSource, /resolveRepositorySymlinkPath\(entry\.path, entry\.target\)/);
+  assert.match(repoPageSource, /resolveRepositorySymlinkPath\(readmePath, currentEntry\.target\)/);
   assert.match(repoPageSource, /normalizeRepositoryPath/);
   assert.doesNotMatch(repoPageSource, /const trimmed = value\.trim\(\)/);
   assert.match(repoPageSource, /REPOSITORY_README_CACHE_TTL_MS/);
   assert.match(repoPageSource, /MAX_REPOSITORY_README_CACHE_ENTRIES/);
+  assert.match(repoPageSource, /MAX_README_SYMLINK_DEPTH/);
+  assert.match(repoPageSource, /visitedReadmePaths/);
+  assert.match(repoPageSource, /currentEntry\.type !== 'symlink'/);
   assert.match(repoPageSource, /repositoryReadmeCache/);
   assert.match(repoPageSource, /pruneRepositoryReadmeCache/);
   assert.match(repoPageSource, /candidate\.name\.toLowerCase\(\) === 'readme\.md'/);
