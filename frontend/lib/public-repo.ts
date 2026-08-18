@@ -350,6 +350,11 @@ function sanitizePublicRepoValue(value: unknown, fieldName?: string): unknown {
  */
 export function sanitizePublicRepo(repo: Repo): Repo {
   const raw = repo as Repo & Record<string, unknown>;
+  const operationalDefaultBranch = typeof raw.__nyankofaceOperationalDefaultBranch === 'string'
+    ? raw.__nyankofaceOperationalDefaultBranch.trim()
+    : typeof repo.default_branch === 'string'
+      ? repo.default_branch.trim()
+      : '';
   const ownerLogin = repo.owner?.login || repo.full_name.split('/')[0];
   const safeOwner = {
     login: ownerLogin,
@@ -373,5 +378,13 @@ export function sanitizePublicRepo(repo: Repo): Repo {
   if (safeSpaceUrl) safe.space_url = safeSpaceUrl;
   else delete safe.space_url;
   safe.html_url = `/git/${ownerLogin}/${repo.name}`;
+  if (operationalDefaultBranch) {
+    Object.defineProperty(safe, '__nyankofaceOperationalDefaultBranch', {
+      configurable: true,
+      enumerable: false,
+      value: operationalDefaultBranch,
+      writable: false,
+    });
+  }
   return safe as Repo;
 }

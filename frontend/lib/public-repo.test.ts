@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { safePublicUrl, sanitizePublicRepo } from './public-repo';
+import { repoDefaultBranch } from './forgejo';
 import type { Repo } from './forgejo';
 
 test('sanitizes upstream repository URLs at the public boundary', () => {
@@ -63,6 +64,23 @@ test('keeps public relative avatar paths usable', () => {
   } as Repo;
 
   assert.equal(sanitizePublicRepo(repo).owner.avatar_url, '/git/avatars/alice.png');
+});
+
+test('keeps an operational default branch separate from public metadata', () => {
+  const repo = {
+    id: 13,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+    default_branch: 'http://forgejo:3000/main',
+  } as unknown as Repo;
+
+  const sanitized = sanitizePublicRepo(repo);
+  assert.equal(sanitized.default_branch, '[internal URL omitted]');
+  assert.equal(repoDefaultBranch(sanitized), 'http://forgejo:3000/main');
+  assert.doesNotMatch(JSON.stringify(sanitized), /forgejo:3000/);
 });
 
 test('rejects protocol-relative avatar URLs that could target an internal host', () => {

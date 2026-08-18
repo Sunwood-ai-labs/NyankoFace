@@ -1,4 +1,4 @@
-import { ContentEntry, getContents, getTextFile, Repo } from './forgejo';
+import { ContentEntry, getContents, getTextFile, Repo, repoDefaultBranch } from './forgejo';
 
 export interface PuruPuruProfile {
   settingsPath: string;
@@ -113,7 +113,7 @@ function petCatalogNames(raw: string | null) {
 
 export async function inspectCharacterRepository(repo: Repo): Promise<CharacterRepositoryProfile> {
   const owner = repo.owner?.login || repo.full_name.split('/')[0];
-  const ref = repo.default_branch || 'main';
+  const ref = repoDefaultBranch(repo);
 
   const [avatar, directionRoots, hasSettings, hasMotionPatch, petRoots, sheetRoots, hasCharacterCatalog, thumbnailRoots] = await Promise.all([
     directory(owner, repo.name, 'avatar', ref),

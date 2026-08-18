@@ -17,6 +17,7 @@ import {
   nonTypeTopics,
   repoPromptVersion,
   repoKind,
+  repoDefaultBranch,
   ContentEntry,
   RepoKind,
 } from '@/lib/forgejo';
@@ -121,6 +122,7 @@ export default async function RepoDetailPage({
   }
 
   const kind = repoKind(repoInfo.topics);
+  const defaultBranch = repoDefaultBranch(repoInfo);
   if (kind === 'space' && tab === 'card' && repoInfo.space_url) {
     redirect(repoInfo.space_url);
   }
@@ -262,7 +264,7 @@ export default async function RepoDetailPage({
               owner={owner}
               repo={repo}
               kind={kind}
-              defaultBranch={repoInfo.default_branch || 'main'}
+              defaultBranch={defaultBranch}
               revision={selectedRevision}
               skillRepo={kind === 'skill' ? repoInfo : null}
               skillCatalog={skillCatalog?.data || []}
@@ -273,7 +275,7 @@ export default async function RepoDetailPage({
             <PipelinePanel
               owner={owner}
               repo={repo}
-              defaultBranch={repoInfo.default_branch || 'main'}
+              defaultBranch={defaultBranch}
               locale={locale}
             />
           ) : (
@@ -281,7 +283,7 @@ export default async function RepoDetailPage({
               owner={owner}
               repo={repo}
               path={path}
-               defaultBranch={repoInfo.default_branch || 'main'}
+               defaultBranch={defaultBranch}
                updatedAt={repoInfo.updated_at}
                requestOrigin={requestOrigin}
                locale={locale}

@@ -64,6 +64,30 @@ export interface Repo {
   private?: boolean;
 }
 
+const OPERATIONAL_DEFAULT_BRANCH = '__nyankofaceOperationalDefaultBranch';
+type RepoWithOperationalDefaultBranch = Repo & {
+  [key: string]: unknown;
+};
+
+function attachOperationalDefaultBranch(repo: Repo, branch: unknown): Repo {
+  if (typeof branch !== 'string' || !branch.trim()) return repo;
+  Object.defineProperty(repo, OPERATIONAL_DEFAULT_BRANCH, {
+    configurable: true,
+    enumerable: false,
+    value: branch.trim(),
+    writable: false,
+  });
+  return repo;
+}
+
+export function repoDefaultBranch(repo: Pick<Repo, 'default_branch'> | null | undefined): string {
+  if (!repo) return 'main';
+  const operational = (repo as RepoWithOperationalDefaultBranch)[OPERATIONAL_DEFAULT_BRANCH];
+  if (typeof operational === 'string' && operational) return operational;
+  const visible = repo.default_branch?.trim();
+  return visible && visible !== '[internal URL omitted]' ? visible : 'main';
+}
+
 export type SkillDependencyType = 'required' | 'recommended';
 
 export interface SkillDependency {
@@ -782,6 +806,7 @@ function inferredSpaceEmoji(repo: Repo): string {
 async function enrichSpaceMetadata(repos: Repo[]): Promise<Repo[]> {
   return Promise.all(repos.map(async (repo) => {
     const owner = repo.owner?.login ?? repo.full_name.split('/')[0];
+    const branch = repoDefaultBranch(repo);
     const readme = await getReadme(owner, repo.name);
     let configuredEmoji: string | undefined;
     let configuredExternalUrl: string | undefined;
@@ -795,11 +820,11 @@ async function enrichSpaceMetadata(repos: Repo[]): Promise<Repo[]> {
         configuredExternalUrl = undefined;
       }
     }
-    return {
+    return attachOperationalDefaultBranch({
       ...repo,
       space_emoji: configuredEmoji || inferredSpaceEmoji(repo),
       ...(configuredExternalUrl ? { space_url: configuredExternalUrl } : {}),
-    };
+    }, branch);
   }));
 }
 
@@ -890,7 +915,10 @@ async function enrichSkillMetadata(repos: Repo[], maxAdmitted = Number.POSITIVE_
     if (rootStatus === 'unavailable') return { repo: null, unavailable: true };
     if (rootStatus !== 'valid') return { repo: null, unavailable: false };
     return {
-      repo: { ...repo, skill_relationships: await getSkillRelationships(owner, repo.name) },
+      repo: attachOperationalDefaultBranch({
+        ...repo,
+        skill_relationships: await getSkillRelationships(owner, repo.name),
+      }, repoDefaultBranch(repo)),
       unavailable: false,
     };
   };

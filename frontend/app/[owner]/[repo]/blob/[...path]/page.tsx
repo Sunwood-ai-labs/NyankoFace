@@ -7,6 +7,7 @@ import {
   getContents,
   getRawFile,
   getRepo,
+  repoDefaultBranch,
   isLfsPointer,
   nyankofaceDownloadUrl,
 } from '@/lib/forgejo';
@@ -53,7 +54,7 @@ export default async function FileViewPage({
   const locale = await getLocale();
   const path = pathSegments.map(decodeURIComponent).join('/');
   const repoInfo = await getRepo(owner, repo);
-  const branch = repoInfo?.default_branch || 'main';
+  const branch = repoDefaultBranch(repoInfo);
 
   const contentsRes = await getContents(owner, repo, path, branch);
   if (!contentsRes.ok || !contentsRes.data || Array.isArray(contentsRes.data)) {
