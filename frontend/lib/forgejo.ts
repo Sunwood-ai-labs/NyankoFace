@@ -11,6 +11,9 @@ const README_CACHE_TTL_MS = Math.max(
   60,
   Number.parseInt(process.env.README_CACHE_TTL_SECONDS || '300', 10) || 300,
 ) * 1000;
+export const SKILL_MAX_BYTES = 256 * 1024;
+const SKILL_ROOT_PATH = 'SKILL.md';
+const SKILL_ROOT_MAX_BYTES = 256 * 1024;
 export const PUBLIC_BASE_URL =
   process.env.PUBLIC_BASE_URL || 'http://localhost:8090';
 
@@ -93,6 +96,13 @@ export interface ContentEntry {
 export interface GetContentsResult {
   ok: boolean;
   data: ContentEntry[] | ContentEntry | null;
+}
+
+type SkillRootStatus = 'valid' | 'invalid' | 'unavailable';
+
+interface SkillEnrichmentResult {
+  repos: Repo[];
+  unavailable: boolean;
 }
 
 export interface PagesInspectionCheck {
@@ -231,15 +241,25 @@ export async function searchRepos(params: SearchReposParams): Promise<SearchRepo
   // metadata. Never let that privileged token turn private Forgejo assets into
   // public NyankoFace catalog entries.
   const data = (Array.isArray(res.json.data) ? res.json.data as Repo[] : []).filter((repo) => !repo.private);
-  const enrichedData = topic === 'space'
-    ? await enrichSpaceMetadata(data)
-    : topic === 'skill'
-      ? await enrichSkillMetadata(data)
-      : data;
+  let enrichedData = data;
+  if (topic === 'space') {
+    enrichedData = await enrichSpaceMetadata(data);
+  } else if (topic === 'skill') {
+    const skillResult = await enrichSkillMetadata(data);
+    // A failed root-content read is an upstream availability failure, not
+    // evidence that every candidate was deleted. Preserve the existing
+    // SearchReposResult unavailable contract instead of returning a partial
+    // catalog that could be mistaken for a complete deletion.
+    if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
+    enrichedData = skillResult.repos;
+  }
   const headerTotal = Number.parseInt(res.headers?.get('x-total-count') || '', 10);
   return {
     ok: true,
     data: enrichedData,
+    // Keep Forgejo's raw total for page traversal. The all-topic catalog
+    // performs its final admitted-item count after it has scanned every raw
+    // page; using the filtered page length here would stop that scan early.
     total_count: Number.isFinite(headerTotal) ? headerTotal : data.length,
   };
 }
@@ -321,7 +341,10 @@ export async function getRepo(owner: string, repo: string): Promise<Repo | null>
   const repoInfo = res.json as Repo;
   const kind = repoKind(repoInfo.topics);
   if (kind === 'space') return (await enrichSpaceMetadata([repoInfo]))[0];
-  if (kind === 'skill') return (await enrichSkillMetadata([repoInfo]))[0];
+  if (kind === 'skill') {
+    const skillResult = await enrichSkillMetadata([repoInfo]);
+    return skillResult.unavailable ? null : skillResult.repos[0] || null;
+  }
   return repoInfo;
 }
 
@@ -664,11 +687,86 @@ async function enrichSpaceMetadata(repos: Repo[]): Promise<Repo[]> {
   }));
 }
 
-async function enrichSkillMetadata(repos: Repo[]): Promise<Repo[]> {
-  return Promise.all(repos.map(async (repo) => {
+function isSkillRootUnavailable(status: number): boolean {
+  return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500;
+}
+
+function decodeSkillRootContent(entry: unknown): string | null {
+  if (
+    !entry
+    || typeof entry !== 'object'
+    || Array.isArray(entry)
+  ) {
+    return null;
+  }
+  const candidate = entry as Partial<ContentEntry>;
+  const size = candidate.size;
+  if (
+    candidate.name !== SKILL_ROOT_PATH
+    || candidate.path !== SKILL_ROOT_PATH
+    || candidate.type !== 'file'
+    || typeof size !== 'number'
+    || !Number.isSafeInteger(size)
+    || size <= 0
+    || size > SKILL_ROOT_MAX_BYTES
+    || typeof candidate.content !== 'string'
+    || !candidate.content
+    || typeof candidate.encoding !== 'string'
+    || candidate.encoding.toLowerCase() !== 'base64'
+  ) {
+    return null;
+  }
+
+  const encoded = candidate.content.replace(/\s+/g, '');
+  if (
+    !encoded
+    || encoded.length % 4 !== 0
+    || encoded.length > Math.ceil(SKILL_MAX_BYTES / 3) * 4
+    || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)
+  ) {
+    return null;
+  }
+
+  const bytes = Buffer.from(encoded, 'base64');
+  if (
+    bytes.byteLength !== size
+    || bytes.byteLength > SKILL_ROOT_MAX_BYTES
+    || bytes.toString('base64') !== encoded
+  ) {
+    return null;
+  }
+
+  try {
+    const content = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    return content.trim() ? content : null;
+  } catch {
+    return null;
+  }
+}
+
+async function getSkillRootStatus(owner: string, repo: string): Promise<SkillRootStatus> {
+  const res = await apiFetch(
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${SKILL_ROOT_PATH}`,
+  );
+  if (!res.ok) return isSkillRootUnavailable(res.status) ? 'unavailable' : 'invalid';
+  return decodeSkillRootContent(res.json as ContentEntry) ? 'valid' : 'invalid';
+}
+
+async function enrichSkillMetadata(repos: Repo[]): Promise<SkillEnrichmentResult> {
+  const results = await Promise.all(repos.map(async (repo) => {
     const owner = repo.owner?.login ?? repo.full_name.split('/')[0];
-    return { ...repo, skill_relationships: await getSkillRelationships(owner, repo.name) };
+    const rootStatus = await getSkillRootStatus(owner, repo.name);
+    if (rootStatus === 'unavailable') return { repo: null, unavailable: true };
+    if (rootStatus !== 'valid') return { repo: null, unavailable: false };
+    return {
+      repo: { ...repo, skill_relationships: await getSkillRelationships(owner, repo.name) },
+      unavailable: false,
+    };
   }));
+  return {
+    repos: results.flatMap((result) => result.repo ? [result.repo] : []),
+    unavailable: results.some((result) => result.unavailable),
+  };
 }
 
 // ---------------------------------------------------------------------------
