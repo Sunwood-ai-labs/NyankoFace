@@ -421,3 +421,19 @@ test('classifies username-less SCP targets nested in public URLs', () => {
     undefined,
   );
 });
+
+test('classifies non-ASCII SCP host aliases instead of ignoring them', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/?clone=git@フォージョ:repo.git'),
+    undefined,
+  );
+  const sanitized = sanitizePublicRepo({
+    id: 15,
+    name: 'unicode-host',
+    full_name: 'alice/unicode-host',
+    description: 'Internal git@フォージョ:repo.git and フォージョ:org/repo.git',
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo).description || '';
+  assert.doesNotMatch(sanitized, /フォージョ/);
+});

@@ -11,13 +11,13 @@ const UPSTREAM_URL_FIELDS = [
 ] as const;
 
 const NESTED_URL_PATTERNS = [
-  /(?<=[?&#=\s([{<])(?=((?:[a-z0-9_.-]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
+  /(?<=[?&#=\s([{<])(?=((?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
   /(?<![a-z0-9+.-])(?=([a-z][a-z0-9+.-]*:[\\/]{1,3}[^\s<>"'`&]+))/gi,
   /(?<![a-z0-9+.-])(?=(https?:(?![\\/])[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=([a-z][a-z0-9+.-]*:[^\s<>"'`&]+))/gi,
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
-  /(?=(\b[^\s<>"'`&@]+@(?:[a-z0-9_.-]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`&]+))/gi,
-  /(?<=[?&#=\s([{<])(?=((?:[a-z0-9_.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`&]+\/[^\s<>"'`]+))/gi,
+  /(?=(\b[^\s<>"'`&@]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`&]+))/gi,
+  /(?<=[?&#=\s([{<])(?=((?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'&]+\/[^\s<>"'`]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:\[[^\]\s<>"'`]+\]):[^\s<>"'`]+))/gi,
 ];
 const EXTERNAL_TARGET_PARAMETER_PATTERN = /(?:^|[?&#])((?:next|url|uri|redirect|redirect_url|redirect_uri|return|return_to|return_url|target|destination|dest|link|href|clone|repository|repo|callback|continue))\s*=\s*$/i;
@@ -117,7 +117,7 @@ function isEstablishedPrivateEndpointHost(hostname: string, port?: string, allow
 }
 
 function parseScpTarget(value: string): { host: string; hasUser: boolean } | undefined {
-  const match = value.match(/^(?:([^@\s<>"'`&]+)@)?(\[[^\]\s<>"'`&]+\]|[a-z0-9_.-]+):[^\s<>"'`&]+$/i);
+  const match = value.match(/^(?:([^@\s<>"'`&]+)@)?(\[[^\]\s<>"'`&]+\]|[^\s<>"'`&@:/?]+):[^\s<>"'`&]+$/i);
   if (!match) return undefined;
   const host = match[2];
   if (/^[a-z][a-z0-9+.-]*:/i.test(value) && !host.startsWith('[') && !host.includes('.')) return undefined;
@@ -327,11 +327,11 @@ function sanitizePublicRepoTextOnce(value: string): string {
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
-    .replace(/\b[^\s<>"'`&@]+@(?:[a-z0-9_.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
-    .replace(/(?<![a-z0-9_.-])(?:[a-z0-9_.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
-    .replace(/(?<![a-z0-9_.-])(?:[a-z0-9_.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
+    .replace(/\b[^\s<>"'`&@]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+/gi, scrub)
+    .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
+    .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(\[[^\]\s<>"'`]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
-    .replace(/(?<![a-z0-9_.-])(?:[a-z0-9_.-]+|\[[^\]\s<>"'`]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint);
+    .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint);
 }
 
 function decodeSafePercentSequences(value: string): string {
