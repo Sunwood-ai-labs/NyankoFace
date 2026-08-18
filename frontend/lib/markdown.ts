@@ -174,8 +174,8 @@ const RAW_HTML_BLOCK_TAGS = new Set([
 const RAW_HTML_TAGS_WITH_EXPLICIT_END = new Set(['pre', 'script', 'style', 'textarea']);
 
 type RawHtmlBlockBoundary =
-  | { kind: 'blank' }
-  | { kind: 'closing'; pattern: RegExp };
+  | { kind: 'blank'; interruptsParagraph: boolean }
+  | { kind: 'closing'; pattern: RegExp; interruptsParagraph: boolean };
 
 type ZennBoundary = { start: number; end: number };
 
@@ -240,20 +240,25 @@ function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: Zen
 
 function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   const trimmed = line.replace(/^[ \t]{0,3}/, '');
-  if (trimmed.startsWith('<!--')) return trimmed.includes('-->') ? null : { kind: 'closing', pattern: /-->/ };
-  if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/ };
-  if (/^<!\[CDATA\[/i.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/ };
-  if (/^<![A-Z]/.test(trimmed)) return trimmed.endsWith('>') ? null : { kind: 'closing', pattern: />/ };
-  if (/^<\/[A-Za-z][A-Za-z0-9-]*\s*>\s*$/.test(trimmed)) return { kind: 'blank' };
+  if (trimmed.startsWith('<!--')) return trimmed.includes('-->') ? null : { kind: 'closing', pattern: /-->/, interruptsParagraph: true };
+  if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/, interruptsParagraph: true };
+  if (/^<!\[CDATA\[/i.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/, interruptsParagraph: true };
+  if (/^<![A-Z]/.test(trimmed)) return trimmed.endsWith('>') ? null : { kind: 'closing', pattern: />/, interruptsParagraph: true };
+  if (/^<\/[A-Za-z][A-Za-z0-9-]*\s*>\s*$/.test(trimmed)) return { kind: 'blank', interruptsParagraph: true };
   const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?>/);
-  if (!opening || /\/\s*>$/.test(opening[0])) return null;
+  if (!opening) return null;
   const tagName = opening[1].toLowerCase();
+  const isBlockTag = RAW_HTML_BLOCK_TAGS.has(tagName);
+  const isSelfClosing = /\/\s*>$/.test(opening[0]);
+  if (isSelfClosing) return { kind: 'blank', interruptsParagraph: isBlockTag };
   const closing = new RegExp(`</${tagName}\\s*>`, 'i');
   if (RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) {
-    return closing.test(trimmed.slice(opening[0].length)) ? null : { kind: 'closing', pattern: closing };
+    return closing.test(trimmed.slice(opening[0].length))
+      ? null
+      : { kind: 'closing', pattern: closing, interruptsParagraph: true };
   }
-  if (!RAW_HTML_BLOCK_TAGS.has(tagName) && trimmed.slice(opening[0].length).trim() !== '') return null;
-  return { kind: 'blank' };
+  if (!isBlockTag && trimmed.slice(opening[0].length).trim() !== '') return null;
+  return { kind: 'blank', interruptsParagraph: isBlockTag };
 }
 
 function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
@@ -264,6 +269,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   let fenceLength = 0;
   let fenceContainer: ZennFenceContainer | undefined;
   let htmlBlockEnd: RawHtmlBlockBoundary | null = null;
+  let paragraphActive = false;
 
   while (offset < source.length) {
     const newlineIndex = source.indexOf('\n', offset);
@@ -275,12 +281,22 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         const endsAtBoundary = htmlBlockEnd.kind === 'blank'
           ? line.trim() === ''
           : htmlBlockEnd.pattern.test(line);
-        if (endsAtBoundary) htmlBlockEnd = null;
+        if (endsAtBoundary) {
+          htmlBlockEnd = null;
+          paragraphActive = false;
+        }
         offset = end;
         continue;
       }
-      htmlBlockEnd = rawHtmlBlockEnd(line);
-      if (htmlBlockEnd || /^\s*(?:<!--|<\?|<![A-Z])/.test(line)) {
+      const rawHtml = rawHtmlBlockEnd(line);
+      if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph)) {
+        htmlBlockEnd = rawHtml;
+        paragraphActive = false;
+        offset = end;
+        continue;
+      }
+      if (!rawHtml && /^\s*(?:<!--|<\?|<![A-Z])/.test(line)) {
+        paragraphActive = false;
         offset = end;
         continue;
       }
@@ -306,6 +322,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         fenceChar = null;
         fenceLength = 0;
         fenceContainer = undefined;
+        paragraphActive = false;
       }
     } else if (fence) {
       const suffix = line.slice(fence.end);
@@ -313,15 +330,22 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         fenceChar = fence.token[0] as '`' | '~';
         fenceLength = fence.token.length;
         fenceContainer = fence.container;
+        paragraphActive = false;
       }
     } else if (parseZennOpeningLine(stripZennContainerPrefix(line))) {
       const listPrefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
       openings.push({ offset, listContentIndent: listPrefix?.[0].length });
+      paragraphActive = false;
     } else if (isZennClosingLine(line, openings.at(-1)?.listContentIndent)) {
       const opening = openings.pop();
       if (opening !== undefined) {
         boundaries.set(opening.offset, { start: offset, end });
       }
+      paragraphActive = false;
+    } else if (line.trim() === '') {
+      paragraphActive = false;
+    } else {
+      paragraphActive = true;
     }
     offset = end;
   }
@@ -385,7 +409,7 @@ function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryInde
     ? context.sourceStart + context.sourceLength - source.length
     : rootBoundaryIndex.sourceLength - source.length;
   let absoluteClosing = boundaryIndex.boundaries.get(sourceOffset);
-  if (!absoluteClosing && context) {
+  if (!absoluteClosing) {
     const localBoundaryIndex = buildZennBoundaryIndex(source);
     const localOffset = localBoundaryIndex.boundaries.keys().next().value;
     if (localOffset !== undefined) {
