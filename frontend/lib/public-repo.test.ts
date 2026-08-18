@@ -393,6 +393,26 @@ test('rejects the configured Forgejo origin even when its hostname is public-loo
   }
 });
 
+test('scrubs private bare host paths while preserving public host paths', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    const sanitized = sanitizePublicRepo({
+      id: 17,
+      name: 'bare-host-paths',
+      full_name: 'alice/bare-host-paths',
+      description: 'Private forgejo.ops.example.com/alice/demo and docs.internal/wiki; public github.com/alice/demo remains.',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo);
+    assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com\/alice\/demo|docs\.internal\/wiki/);
+    assert.match(sanitized.description || '', /github\.com\/alice\/demo/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
 test('rejects nested URLs with quoted userinfo before an internal host', () => {
   assert.equal(
     safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%27%40forgejo%3A3000%2Fapp'),

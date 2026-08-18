@@ -328,6 +328,17 @@ function sanitizePublicRepoTextOnce(value: string): string {
       ? '[internal URL omitted]'
       : candidate;
   };
+  const scrubBareHostPath = (candidate: string): string => {
+    const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
+    const hostPath = trailing ? candidate.slice(0, -trailing.length) : candidate;
+    const match = hostPath.match(/^([a-z0-9][a-z0-9_.-]*|\[[^\]\s<>'"`&]+\])\/[^\s<>'"`&]+$/i);
+    if (!match) return candidate;
+    const host = normalizedHostnameForClassification(match[1]);
+    if (!match[1].includes('.') && !match[1].startsWith('[') && configuredForgejoHostname() !== host) return candidate;
+    return isPrivateHostname(match[1])
+      ? `[internal URL omitted]${trailing}`
+      : candidate;
+  };
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
@@ -335,7 +346,8 @@ function sanitizePublicRepoTextOnce(value: string): string {
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(\[[^\]\s<>"'`]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
-    .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint);
+    .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint)
+    .replace(/(?<![a-z0-9_.-])(?:[a-z0-9][a-z0-9_.-]*|\[[^\]\s<>"'`&]+\])\/[^\s<>"'`&]+/gi, scrubBareHostPath);
 }
 
 function decodeSafePercentSequences(value: string): string {
