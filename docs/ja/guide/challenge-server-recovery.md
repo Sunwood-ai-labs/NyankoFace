@@ -233,8 +233,8 @@ stable-name routeは、別serverの成功応答やHTML error pageではなく、
 Bashのcommand substitutionでNULなどのbyteが失われないようbodyをfileへ保存し、正確なbyte列を比較します。
 
 body contractの候補は互換性のためカンマ区切りです。値そのものにカンマを含める場合は
-`\\,`、バックスラッシュ自体は`\\\\`とescapeします。例えば
-`READY\\, v1,OK`は、完全一致させる2候補`READY, v1`と`OK`を表します。
+`\,`、バックスラッシュ自体は`\\`とescapeします。例えば
+`READY\, v1,OK`は、完全一致させる2候補`READY, v1`と`OK`を表します。
 
 ~~~bash
 content_type_matches() {

@@ -242,8 +242,8 @@ the body in a file so the exact byte sequence is compared without Bash
 command-substitution loss.
 
 Body-contract lists remain comma-separated for compatibility. Escape a literal
-comma as `\\,` (and a literal backslash as `\\\\`); for example,
-`READY\\, v1,OK` means the two exact alternatives `READY, v1` and `OK`.
+comma as `\,` (and a literal backslash as `\\`); for example,
+`READY\, v1,OK` means the two exact alternatives `READY, v1` and `OK`.
 
 ~~~bash
 content_type_matches() {
