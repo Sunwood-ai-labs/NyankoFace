@@ -337,6 +337,21 @@ test('does not treat trailing text after a custom self-closing tag as an HTML bl
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps quoted angle brackets inside custom HTML attributes', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<my-widget title="a>b">',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not let a type-7 HTML tag interrupt a paragraph', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -512,6 +527,27 @@ test('resets paragraph state after GFM table delimiters', () => {
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<table>/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not reset paragraph state for orphan or mismatched GFM delimiters', () => {
+  for (const lines of [
+    ['plain paragraph', '| --- | --- |'],
+    ['| header |', '| --- | --- |'],
+  ]) {
+    const { bodyHtml } = parseReadme([
+      ':::message',
+      ...lines,
+      '<my-widget>',
+      ':::',
+      '',
+      ':::',
+      '',
+      '# After',
+    ].join('\n'));
+
+    assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+    assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+  }
 });
 
 test('does not borrow a later closer for an unmatched Zenn opener', () => {

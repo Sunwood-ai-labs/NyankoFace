@@ -273,19 +273,30 @@ function continuesZennFenceContainer(line: string, container: ZennFenceContainer
   return leadingIndentColumns(line) >= container.contentIndent;
 }
 
-function isGfmTableDelimiter(line: string): boolean {
+function gfmTableCells(line: string | undefined): string[] | undefined {
+  if (line === undefined) return undefined;
   const trimmed = line.trim();
-  if (!trimmed.includes('|')) return false;
-  const cells = trimmed.replace(/^\|/, '').replace(/\|$/, '').split('|');
-  return cells.length >= 1 && cells.every((cell) => /^:?-+:?$/.test(cell.trim()));
+  if (!trimmed.includes('|')) return undefined;
+  return trimmed.replace(/^\|/, '').replace(/\|$/, '').split('|');
 }
 
-function startsMarkdownBlock(line: string, paragraphActive = false): boolean {
+function isGfmTableDelimiter(line: string, headerLine?: string): boolean {
+  const cells = gfmTableCells(line);
+  const headerCells = gfmTableCells(headerLine);
+  return Boolean(
+    cells
+    && headerCells
+    && cells.length === headerCells.length
+    && cells.every((cell) => /^:?-+:?$/.test(cell.trim())),
+  );
+}
+
+function startsMarkdownBlock(line: string, paragraphActive = false, previousLine?: string): boolean {
   if (leadingIndentColumns(line) >= 4) return !paragraphActive;
   const content = line.replace(/^ {0,3}/, '');
   const orderedList = content.match(/^(\d{1,9})[.)][ \t]+/);
   if (orderedList) return !paragraphActive || Number.parseInt(orderedList[1], 10) === 1;
-  return isGfmTableDelimiter(content)
+  return isGfmTableDelimiter(content, previousLine)
     || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){1,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
 
@@ -294,6 +305,26 @@ function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: Zen
   if (left.kind !== right.kind) return false;
   if (left.kind === 'blockquote' || right.kind === 'blockquote') return true;
   return left.contentIndent === right.contentIndent;
+}
+
+function matchRawHtmlOpening(line: string): { tagName: string; raw: string } | undefined {
+  const tag = line.match(/^<([A-Za-z][A-Za-z0-9-]*)/);
+  if (!tag) return undefined;
+  let quote: '"' | "'" | undefined;
+  for (let index = tag[0].length; index < line.length; index += 1) {
+    const character = line[index];
+    if (quote) {
+      if (character === quote) quote = undefined;
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      quote = character;
+      continue;
+    }
+    if (character === '<') return undefined;
+    if (character === '>') return { tagName: tag[1], raw: line.slice(0, index + 1) };
+  }
+  return undefined;
 }
 
 function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
@@ -309,7 +340,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
       interruptsParagraph: RAW_HTML_BLOCK_TAGS.has(closingTag[1].toLowerCase()),
     };
   }
-  const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?\/?>/);
+  const opening = matchRawHtmlOpening(trimmed);
   if (!opening) {
     const partialExplicitOpening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?=\s|$)/);
     if (partialExplicitOpening && RAW_HTML_TAGS_WITH_EXPLICIT_END.has(partialExplicitOpening[1].toLowerCase())) {
@@ -321,20 +352,20 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
     }
     return null;
   }
-  const tagName = opening[1].toLowerCase();
+  const tagName = opening.tagName.toLowerCase();
   const isBlockTag = RAW_HTML_BLOCK_TAGS.has(tagName);
-  const isSelfClosing = /\/\s*>$/.test(opening[0]);
+  const isSelfClosing = /\/\s*>$/.test(opening.raw);
   if (isSelfClosing) {
-    if (!isBlockTag && trimmed.slice(opening[0].length).trim() !== '') return null;
+    if (!isBlockTag && trimmed.slice(opening.raw.length).trim() !== '') return null;
     return { kind: 'blank', interruptsParagraph: isBlockTag };
   }
   const closing = new RegExp(`</${tagName}\\s*>`, 'i');
   if (RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) {
-    return closing.test(trimmed.slice(opening[0].length))
+    return closing.test(trimmed.slice(opening.raw.length))
       ? null
       : { kind: 'closing', pattern: closing, interruptsParagraph: true };
   }
-  if (!isBlockTag && trimmed.slice(opening[0].length).trim() !== '') return null;
+  if (!isBlockTag && trimmed.slice(opening.raw.length).trim() !== '') return null;
   return { kind: 'blank', interruptsParagraph: isBlockTag };
 }
 
@@ -347,6 +378,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   let fenceContainer: ZennFenceContainer | undefined;
   let htmlBlockEnd: RawHtmlBlockState | null = null;
   let paragraphActive = false;
+  let previousLine: string | undefined;
 
   while (offset < source.length) {
     const newlineIndex = source.indexOf('\n', offset);
@@ -370,6 +402,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
             htmlBlockEnd = null;
             paragraphActive = false;
           }
+          previousLine = line;
           offset = end;
           continue;
         }
@@ -382,11 +415,13 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
           listContentIndent: listPrefix?.[0].length,
         };
         paragraphActive = false;
+        previousLine = line;
         offset = end;
         continue;
       }
       if (!rawHtml && /^\s*(?:<!--|<\?|<![A-Z])/.test(line)) {
         paragraphActive = false;
+        previousLine = line;
         offset = end;
         continue;
       }
@@ -435,6 +470,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         openings.pop();
       }
       if (openings.length === 0) {
+        previousLine = line;
         offset = end;
         continue;
       }
@@ -446,8 +482,9 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     } else if (line.trim() === '') {
       paragraphActive = false;
     } else {
-      paragraphActive = !startsMarkdownBlock(line, paragraphActive);
+      paragraphActive = !startsMarkdownBlock(line, paragraphActive, previousLine);
     }
+    previousLine = line;
     offset = end;
   }
   return { source, sourceLength: source.length, boundaries };
