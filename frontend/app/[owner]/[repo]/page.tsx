@@ -97,10 +97,11 @@ type RepositoryReadmeResult =
 
 const repositoryReadmeCache = new Map<string, { value: RepositoryReadmeResult; expiresAt: number }>();
 
-function pruneRepositoryReadmeCache(now = Date.now()): void {
+function pruneRepositoryReadmeCache(now = Date.now(), makeRoom = false): void {
   for (const [key, entry] of repositoryReadmeCache) {
     if (entry.expiresAt <= now) repositoryReadmeCache.delete(key);
   }
+  if (!makeRoom) return;
   while (repositoryReadmeCache.size >= MAX_REPOSITORY_README_CACHE_ENTRIES) {
     const oldestKey = repositoryReadmeCache.keys().next().value;
     if (oldestKey === undefined) break;
@@ -141,7 +142,7 @@ async function loadRepositoryReadme(owner: string, repo: string, ref: string): P
     return cached.value;
   }
   const remember = (value: RepositoryReadmeResult): RepositoryReadmeResult => {
-    pruneRepositoryReadmeCache();
+    pruneRepositoryReadmeCache(Date.now(), true);
     repositoryReadmeCache.set(cacheKey, { value, expiresAt: Date.now() + REPOSITORY_README_CACHE_TTL_MS });
     return value;
   };

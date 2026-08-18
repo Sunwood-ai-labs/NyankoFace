@@ -302,6 +302,19 @@ test('does not let a type-7 HTML tag interrupt a paragraph', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('does not parse tab-indented Zenn directives', () => {
+  const { bodyHtml } = parseReadme([
+    '\t:::message',
+    '\tbody',
+    '\t:::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.doesNotMatch(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps a type-7 closing tag inside an active paragraph', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -416,6 +429,24 @@ test('keeps multiline explicit-end HTML open until its closing tag', () => {
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /:::/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps multiline type-6 HTML open until a blank line', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'paragraph',
+    '<div',
+    'class="x">',
+    ':::',
+    '',
+    'inside',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"[\s\S]*inside[\s\S]*<h1[^>]*>After<\/h1>/);
 });
 
 test('keeps same-line explicit-end HTML inside a Zenn block', () => {

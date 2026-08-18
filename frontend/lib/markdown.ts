@@ -139,7 +139,7 @@ function parseZennOpeningLine(line: string): {
   messageVariant?: 'default' | 'alert';
   title?: string;
 } | null {
-  const match = line.match(/^[ \t]{0,3}:::(message(?:[ \t]+alert)?|details(?:[ \t]+([^\r\n]*))?)[ \t]*$/i);
+  const match = line.match(/^ {0,3}:::(message(?:[ \t]+alert)?|details(?:[ \t]+([^\r\n]*))?)[ \t]*$/i);
   if (!match) return null;
   const directive = match[1].toLowerCase().replace(/\s+/g, ' ').trim();
   if (directive === 'message' || directive === 'message alert') {
@@ -226,7 +226,7 @@ function stripZennContainerPrefix(line: string): string {
 }
 
 function isZennClosingLine(line: string, listContentIndent?: number): boolean {
-  if (/^[ \t]{0,3}:::[ \t]*$/.test(line)) return true;
+  if (/^ {0,3}:::[ \t]*$/.test(line)) return true;
   if (listContentIndent === undefined) return false;
   const prefix = line.slice(0, listContentIndent);
   return /^[ \t]+$/.test(prefix) && /^:::[ \t]*$/.test(line.slice(listContentIndent));
@@ -269,6 +269,9 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
     if (partialExplicitOpening && RAW_HTML_TAGS_WITH_EXPLICIT_END.has(partialExplicitOpening[1].toLowerCase())) {
       const tagName = partialExplicitOpening[1].toLowerCase();
       return { kind: 'closing', pattern: new RegExp(`</${tagName}\\s*>`, 'i'), interruptsParagraph: true };
+    }
+    if (partialExplicitOpening && RAW_HTML_BLOCK_TAGS.has(partialExplicitOpening[1].toLowerCase())) {
+      return { kind: 'blank', interruptsParagraph: true };
     }
     return null;
   }
