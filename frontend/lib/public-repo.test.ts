@@ -109,6 +109,10 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
   assert.equal(safePublicUrl('https://[2001:4:112::1]/avatar.png'), 'https://[2001:4:112::1]/avatar.png');
   assert.equal(safePublicUrl('https://cdn.example.com//avatar.png'), 'https://cdn.example.com//avatar.png');
   assert.equal(safePublicUrl('https://cdn.example.com///avatar.png'), 'https://cdn.example.com///avatar.png');
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=//cdn.example.com/app'),
+    'https://public.example/redirect?next=//cdn.example.com/app',
+  );
   assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[3fff::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[64:ff9b:1::1]/avatar.png'), undefined);
@@ -387,6 +391,13 @@ test('rejects the configured Forgejo origin even when its hostname is public-loo
     if (original === undefined) delete process.env.FORGEJO_API;
     else process.env.FORGEJO_API = original;
   }
+});
+
+test('rejects nested URLs with quoted userinfo before an internal host', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%27%40forgejo%3A3000%2Fapp'),
+    undefined,
+  );
 });
 
 test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
