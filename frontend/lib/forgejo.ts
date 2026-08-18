@@ -88,6 +88,10 @@ export function repoDefaultBranch(repo: Pick<Repo, 'default_branch'> | null | un
   return visible && visible !== '[internal URL omitted]' ? visible : 'main';
 }
 
+export function copyOperationalDefaultBranch<T extends Repo>(source: Pick<Repo, 'default_branch'>, target: T): T {
+  return attachOperationalDefaultBranch(target, repoDefaultBranch(source)) as T;
+}
+
 export type SkillDependencyType = 'required' | 'recommended';
 
 export interface SkillDependency {

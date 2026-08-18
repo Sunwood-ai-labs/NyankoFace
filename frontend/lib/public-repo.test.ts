@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { safePublicUrl, sanitizePublicRepo } from './public-repo';
-import { repoDefaultBranch } from './forgejo';
+import { copyOperationalDefaultBranch, repoDefaultBranch } from './forgejo';
 import type { Repo } from './forgejo';
 
 test('sanitizes upstream repository URLs at the public boundary', () => {
@@ -80,6 +80,8 @@ test('keeps an operational default branch separate from public metadata', () => 
   const sanitized = sanitizePublicRepo(repo);
   assert.equal(sanitized.default_branch, '[internal URL omitted]');
   assert.equal(repoDefaultBranch(sanitized), 'http://forgejo:3000/main');
+  const ranked = copyOperationalDefaultBranch(sanitized, { ...sanitized });
+  assert.equal(repoDefaultBranch(ranked), 'http://forgejo:3000/main');
   assert.doesNotMatch(JSON.stringify(sanitized), /forgejo:3000/);
 });
 
