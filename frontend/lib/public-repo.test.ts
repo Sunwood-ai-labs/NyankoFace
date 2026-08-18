@@ -118,6 +118,10 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
     'https://github.com/search?q=//foo',
   );
   assert.equal(
+    safePublicUrl('https://github.com/search?q=@types:node'),
+    'https://github.com/search?q=@types:node',
+  );
+  assert.equal(
     safePublicUrl('https://public.example/redirect?next=//forgejo:3000/app'),
     undefined,
   );

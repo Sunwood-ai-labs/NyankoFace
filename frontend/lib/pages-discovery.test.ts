@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   fillRecentPagesReservation,
+  hasUninspectedSearchRows,
   mergeHomePagesRepositories,
   resolveHomePagesState,
   selectPublishedPages,
@@ -222,6 +223,17 @@ test('home state distinguishes empty data from upstream failure', () => {
     candidate(2, 'error', '2026-07-01T00:00:00Z'),
   ], []), 'unavailable');
   assert.equal(resolveHomePagesState(true, [candidate(1, 'missing', '2026-07-01T00:00:00Z')], [], true), 'unavailable');
+});
+
+test('does not call filtered private rows an incomplete Pages scan', () => {
+  assert.equal(
+    hasUninspectedSearchRows({ total_count: 2, upstream_total_count: 5, upstream_inspected_count: 5 }, 2),
+    false,
+  );
+  assert.equal(
+    hasUninspectedSearchRows({ total_count: 2, upstream_total_count: 5, upstream_inspected_count: 4 }, 2),
+    true,
+  );
 });
 
 test('home Pages discovery keeps browse, publish, public-site, and accessible navigation contracts distinct', () => {

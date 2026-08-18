@@ -208,6 +208,11 @@ function containsUnsafeNestedUrl(value: string): boolean {
         ) continue;
         const scpTarget = parseScpTarget(candidate);
         if (scpTarget) {
+          // A suffix such as `@types:node` in an ordinary query is not a Git
+          // remote. Only classify SCP syntax when it is carried by an
+          // explicitly recognized target parameter; retained text is scrubbed
+          // separately by sanitizePublicRepoTextOnce.
+          if (!targetParameter) continue;
           if (isUnsafeScpHost(scpTarget)) return true;
           continue;
         }
