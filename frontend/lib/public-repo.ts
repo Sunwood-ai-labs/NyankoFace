@@ -144,6 +144,13 @@ function externalTargetParameter(source: string, candidateStart: number): string
   return source.slice(0, candidateStart).match(EXTERNAL_TARGET_PARAMETER_PATTERN)?.[1].toLowerCase();
 }
 
+function normalizeFormStyleTargetPrefixes(source: string): string {
+  return source.replace(
+    /((?:^|[?&#])(?:next|url|uri|redirect|redirect_url|redirect_uri|return|return_to|return_url|target|destination|dest|link|href|clone|repository|repo|callback|continue)\s*=\s*)(\++)/gi,
+    (_match, prefix: string, pluses: string) => `${prefix}${' '.repeat(pluses.length)}`,
+  );
+}
+
 function decodePercentEscapesBestEffort(value: string): string {
   let result = '';
   let index = 0;
@@ -190,15 +197,17 @@ function decodePercentEscapesBestEffort(value: string): string {
 function containsUnsafeNestedUrl(value: string): boolean {
   let current = value;
   for (let pass = 0; pass <= MAX_URL_DECODE_PASSES; pass += 1) {
+    const inspectionValue = normalizeFormStyleTargetPrefixes(current);
     // Percent decoding can reveal controls that were not present in the
     // original public-looking URL. Reject them before WHATWG URL parsing can
     // normalize them away.
     if (current.includes('\\') || /[\u0000-\u001f\u007f]/.test(current)) return true;
-    if (/(?:^|[?&#=\s([{<])https?:[\\/]{1,3}[^/&#?]*@/i.test(current)) return true;
+    if (/(?:^|[?&#=\s([{<])https?:[\\/]{1,3}[^/&#?]*@/i.test(inspectionValue)) return true;
     for (const pattern of NESTED_URL_PATTERNS) {
-      for (const match of current.matchAll(pattern)) {
+      for (const match of inspectionValue.matchAll(pattern)) {
         const candidate = (match[1] || '').replace(/[),.;!?]+$/, '');
-        const targetParameter = externalTargetParameter(current, match.index ?? 0);
+        const targetParameter = externalTargetParameter(inspectionValue, match.index ?? 0);
+        if (/^[a-z]:[\\/]/i.test(candidate)) continue;
         const isSlashlessNonHttpScheme = /^[a-z][a-z0-9+.-]*:(?![\\/])/i.test(candidate)
           && !/^https?:/i.test(candidate);
         if (isSlashlessNonHttpScheme && !targetParameter) continue;
@@ -214,7 +223,7 @@ function containsUnsafeNestedUrl(value: string): boolean {
         if (
           candidate.startsWith('//') &&
           match.index > 0 &&
-          !/[?&#=\s([{<]/.test(current[match.index - 1])
+          !/[?&#=\s([{<]/.test(inspectionValue[match.index - 1])
         ) continue;
         const scpTarget = parseScpTarget(candidate);
         if (scpTarget) {
