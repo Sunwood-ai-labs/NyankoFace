@@ -46,6 +46,10 @@ HEALTH_JSON_CONTENT_TYPES="${HEALTH_JSON_CONTENT_TYPES:-application/json}"
 HEALTH_TEXT_CONTENT_TYPES="${HEALTH_TEXT_CONTENT_TYPES:-text/plain}"
 HEALTH_JSON_STATUS_FIELD="${HEALTH_JSON_STATUS_FIELD:-status}"
 HEALTH_BODY_CONTRACTS="${HEALTH_BODY_CONTRACTS:-ok,healthy,OK}"
+HEALTH_TEXT_BODY_CONTRACTS="${HEALTH_TEXT_BODY_CONTRACTS:-OK}"
+STAGE_1_URL="${STAGE_1_URL:?stage-1のresponse URLを指定}"
+STAGE_2_URL="${STAGE_2_URL:?stage-2のresponse URLを指定}"
+STAGE_3_URL="${STAGE_3_URL:?stage-3のresponse URLを指定}"
 FAILURE_URL="${FAILURE_URL:?stable nameのfailure URLを指定}"
 FAILURE_STATUS="${FAILURE_STATUS:?停止状態で期待するHTTP statusを指定}"
 FAILURE_CONTENT_TYPE="${FAILURE_CONTENT_TYPE:?停止状態で期待するcontent typeを指定}"
@@ -59,7 +63,9 @@ mkdir -p "$(dirname "$PID_FILE")"
 text/plainのbodyが正確な`OK`であることを受け入れます。別のchallengeでは、
 proofを実行する前に`HEALTH_CONTENT_TYPES`、`HEALTH_JSON_CONTENT_TYPES`、
 `HEALTH_TEXT_CONTENT_TYPES`、`HEALTH_JSON_STATUS_FIELD`、カンマ区切りの
-`HEALTH_BODY_CONTRACTS`を設定してください。
+`HEALTH_BODY_CONTRACTS`を設定してください。exact text responseは
+`HEALTH_TEXT_BODY_CONTRACTS`で別に設定し、proof前に各stageが実際に叩く
+response endpointを`STAGE_1_URL`、`STAGE_2_URL`、`STAGE_3_URL`へ設定します。
 
 stable nameはchallengeごとに一意にします。任意の「最新Python」のPID、
 shared process-managerのparent、別challengeにも一致するsubstringでprocessを選ばないでください。
@@ -215,9 +221,12 @@ import pathlib
 import sys
 
 try:
-    value = json.loads(pathlib.Path(sys.argv[1]).read_bytes())
+    def reject_constant(value):
+        raise ValueError(f'non-standard JSON constant: {value}')
+
+    value = json.loads(pathlib.Path(sys.argv[1]).read_bytes(), parse_constant=reject_constant)
 except (OSError, UnicodeError, ValueError):
-    print('invalid-json')
+    print('invalid:json')
 else:
     status = value.get(sys.argv[2]) if isinstance(value, dict) else None
     expected = {item.strip() for item in sys.argv[3].split(',') if item.strip()}
@@ -228,7 +237,7 @@ PY
   if content_type_in_list "$content_type" "$HEALTH_TEXT_CONTENT_TYPES"; then
     local expected_body
     local -a expected_bodies
-    IFS=',' read -r -a expected_bodies <<< "$HEALTH_BODY_CONTRACTS"
+    IFS=',' read -r -a expected_bodies <<< "$HEALTH_TEXT_BODY_CONTRACTS"
     for expected_body in "${expected_bodies[@]}"; do
       if printf '%s' "$expected_body" | cmp -s "$body_file" -; then
         printf 'valid:%s\n' "$expected_body"
@@ -323,12 +332,13 @@ challengeの3段階を順番に実行し、各exit codeとstable-name response�
 ~~~bash
 record_stable_response() {
   local name="$1"
+  local response_url="$2"
   local body_file metadata content_type body_contract http_status
   body_file="$(mktemp)"
   metadata="$(curl --silent --show-error --max-time 3 \
     --header "Accept: $HEALTH_CONTENT_TYPES" \
     --output "$body_file" \
-    --write-out $'%{http_code}\n%{content_type}' "$HEALTH_URL")" || { rm -f "$body_file"; return 1; }
+    --write-out $'%{http_code}\n%{content_type}' "$response_url")" || { rm -f "$body_file"; return 1; }
   http_status="${metadata%%$'\n'*}"
   content_type="${metadata#*$'\n'}"
   body_contract="$(read_health_body_contract "$body_file" "$content_type")"
@@ -341,24 +351,25 @@ record_stable_response() {
 
 run_stage() {
   local name="$1"
+  local response_url="$2"
   local stage_status=0
-  shift
+  shift 2
   echo "== $name =="
   set +e
   "$@"
   stage_status=$?
   set -e
   printf 'stage=%s exit=%s\n' "$name" "$stage_status"
-  if ! record_stable_response "$name"; then
+  if ! record_stable_response "$name" "$response_url"; then
     return 1
   fi
   return "$stage_status"
 }
 
 matrix_status=0
-if ! run_stage stage-1 "$VENV/bin/python" scripts/stage1.py; then matrix_status=1; fi
-if ! run_stage stage-2 "$VENV/bin/python" scripts/stage2.py; then matrix_status=1; fi
-if ! run_stage stage-3 "$VENV/bin/python" scripts/stage3.py; then matrix_status=1; fi
+if ! run_stage stage-1 "$STAGE_1_URL" "$VENV/bin/python" scripts/stage1.py; then matrix_status=1; fi
+if ! run_stage stage-2 "$STAGE_2_URL" "$VENV/bin/python" scripts/stage2.py; then matrix_status=1; fi
+if ! run_stage stage-3 "$STAGE_3_URL" "$VENV/bin/python" scripts/stage3.py; then matrix_status=1; fi
 if (( matrix_status != 0 )); then exit 1; fi
 ~~~
 
