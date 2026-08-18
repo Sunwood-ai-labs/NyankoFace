@@ -64,6 +64,10 @@ test('encodes slash-bearing branch and tag names in Forgejo navigation URLs', ()
     forgejoCommitsUrl('owner', 'repo', '', ref, 'tag'),
     '/git/owner/repo/commits/tag/release%2Fcandidate%201%232%3Ffinal',
   );
+  assert.equal(
+    forgejoCommitsUrl('owner', 'repo', 'docs#v1/README.md'),
+    '/git/owner/repo/commits/branch/main/docs%23v1/README.md',
+  );
 });
 
 test('encodes reserved characters in Forgejo repository paths by segment', () => {

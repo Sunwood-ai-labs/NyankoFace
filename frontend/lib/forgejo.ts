@@ -983,7 +983,7 @@ export function nyankofaceDownloadUrl(
 }
 
 export function forgejoCommitsUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = encodeRepositoryPath(path);
   return `${forgejoRepoUrl(owner, repo)}/commits/${refKind}/${encodeURIComponent(branch)}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 

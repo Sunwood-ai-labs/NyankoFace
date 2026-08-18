@@ -234,7 +234,7 @@ function continuesZennFenceContainer(line: string, container: ZennFenceContainer
 
 function startsMarkdownBlock(line: string): boolean {
   const content = line.replace(/^[ \t]{0,3}/, '');
-  return /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$)/.test(content);
+  return /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|(?:[*+-]|\d{1,9}[.)])[ \t]+|>[ \t]?)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
