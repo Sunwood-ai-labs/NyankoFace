@@ -224,11 +224,13 @@ command-substitution loss.
 content_type_matches() {
   local actual="${1,,}"
   local expected="${2,,}"
-  actual="${actual%%;*}"
-  expected="${expected%%;*}"
   actual="$(printf '%s' "$actual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   expected="$(printf '%s' "$expected" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
-  [[ "$actual" == "$expected" ]]
+  if [[ "$expected" == *';'* ]]; then
+    [[ "$actual" == "$expected" ]]
+  else
+    [[ "${actual%%;*}" == "$expected" ]]
+  fi
 }
 
 content_type_in_list() {
