@@ -314,7 +314,10 @@ function sanitizePublicRepoTextOnce(value: string): string {
     const host = candidate.startsWith('[')
       ? candidate.slice(0, candidate.indexOf(']') + 1)
       : candidate.slice(0, candidate.indexOf(':'));
-    return isEstablishedPrivateEndpointHost(host, undefined, true) ? '[internal URL omitted]' : candidate;
+    const isGitRepositoryTarget = /\.git(?:[/?#]|[),.;!?]|$)/i.test(candidate);
+    return (isGitRepositoryTarget ? isPrivateHostname(host) : isEstablishedPrivateEndpointHost(host, undefined, true))
+      ? '[internal URL omitted]'
+      : candidate;
   };
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)

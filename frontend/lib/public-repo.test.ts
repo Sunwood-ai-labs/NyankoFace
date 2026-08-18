@@ -391,13 +391,15 @@ test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
     id: 13,
     name: 'demo',
     full_name: 'alice/demo',
-    description: 'Public git@github.com:org/repo.git; private git@forgejo:org/repo.git, git@buildbox:org/repo.git, deploy!@forgejo:repo.git, and [fc00::1]:repo',
+    description: 'Public git@github.com:org/repo.git and github.com:org/repo.git; private buildbox:org/repo.git, git@forgejo:org/repo.git, git@buildbox:org/repo.git, deploy!@forgejo:repo.git, and [fc00::1]:repo',
     owner: { login: 'alice' },
     updated_at: '2026-08-16T00:00:00Z',
   } as Repo;
 
   const description = sanitizePublicRepo(repo).description || '';
   assert.match(description, /git@github\.com:org\/repo\.git/);
+  assert.match(description, /github\.com:org\/repo\.git/);
+  assert.doesNotMatch(description, /buildbox:org\/repo\.git/);
   assert.doesNotMatch(description, /git@forgejo:org\/repo\.git/);
   assert.doesNotMatch(description, /git@buildbox:org\/repo\.git/);
   assert.doesNotMatch(description, /deploy!@forgejo:repo\.git/);
