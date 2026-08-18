@@ -89,6 +89,8 @@ export function isPrivateHostname(hostname: string): boolean {
   if (
     host === 'localhost' ||
     host.endsWith('.localhost') ||
+    host === 'localhost.localdomain' ||
+    host.endsWith('.localdomain') ||
     host.endsWith('.local') ||
     host.endsWith('.internal') ||
     host.endsWith('.lan') ||

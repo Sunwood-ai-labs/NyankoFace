@@ -29,6 +29,8 @@ test('keeps public absolute URLs and relative paths usable', () => {
 
 test('normalizes canonical private host forms before allowing absolute URLs', () => {
   assert.equal(sanitizePublicUrl('https://localhost./pages/site/'), '/pages/site/');
+  assert.equal(sanitizePublicUrl('https://localhost.localdomain:3000/pages/site/'), '/pages/site/');
+  assert.equal(sanitizePublicUrl('https://service.localdomain/pages/site/'), '/pages/site/');
   assert.equal(sanitizePublicUrl('https://forgejo./api/v1'), '/api/v1');
   assert.equal(sanitizePublicUrl('https://[::ffff:192.168.1.22]:8443/pages/site/'), '/pages/site/');
   assert.equal(sanitizePublicUrl('https://[::ffff:c0a8:116]:8443/pages/site/'), '/pages/site/');
