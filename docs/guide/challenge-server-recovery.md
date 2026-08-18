@@ -173,6 +173,25 @@ assert_pid_owner() {
   grep -Fqx -- "NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER" <<<"$process_env"
 }
 
+signal_owned_pid() {
+  local pid="$1"
+  local signal="$2"
+  local owner_status=0
+  local probe_status=0
+  assert_pid_owner "$pid" || owner_status=$?
+  if (( owner_status != 0 )); then
+    probe_pid "$pid" || probe_status=$?
+    [[ "$probe_status" -eq 1 ]] && return 0
+    return 1
+  fi
+  if kill "-$signal" "$pid"; then
+    sleep 1
+    return 0
+  fi
+  probe_pid "$pid" || probe_status=$?
+  [[ "$probe_status" -eq 1 ]]
+}
+
 pid_probe_status=0
 probe_pid "$old_pid" || pid_probe_status=$?
 if [[ "$pid_probe_status" -eq 2 ]]; then
@@ -180,9 +199,10 @@ if [[ "$pid_probe_status" -eq 2 ]]; then
   exit 1
 fi
 if [[ "$pid_probe_status" -eq 0 ]]; then
-  assert_pid_owner "$old_pid"
-  kill -TERM "$old_pid"
-  sleep 1
+  if ! signal_owned_pid "$old_pid" TERM; then
+    echo "could not stop the owned old PID after a bounded race check: $old_pid" >&2
+    exit 1
+  fi
 fi
 
 pid_probe_status=0
@@ -192,9 +212,10 @@ if [[ "$pid_probe_status" -eq 2 ]]; then
   exit 1
 fi
 if [[ "$pid_probe_status" -eq 0 ]]; then
-  assert_pid_owner "$old_pid"
-  kill -KILL "$old_pid"
-  sleep 1
+  if ! signal_owned_pid "$old_pid" KILL; then
+    echo "could not force-stop the owned old PID after a bounded race check: $old_pid" >&2
+    exit 1
+  fi
 fi
 
 pid_probe_status=0
@@ -400,18 +421,13 @@ record_stage_probe() {
   local expected_json_status_field="${10}"
   local expected_body_contracts="${11}"
   local expected_text_body_contracts="${12}"
-  local body_file metadata content_type body_contract body_contract_status http_status header
-  local -a curl_args configured_headers
+  local body_file metadata content_type body_contract body_contract_status http_status
+  local -a curl_args
   body_file="$(mktemp)"
   curl_args=(--silent --show-error --max-time 3 --request "$probe_method")
   if [[ -n "$probe_headers_file" ]]; then
     [[ -f "$probe_headers_file" ]] || { rm -f "$body_file"; return 1; }
-    mapfile -t configured_headers < "$probe_headers_file"
-    for header in "${configured_headers[@]}"; do
-      header="${header%$'\r'}"
-      [[ -n "${header//[[:space:]]/}" ]] || continue
-      curl_args+=(--header "$header")
-    done
+    curl_args+=(--header "@$probe_headers_file")
   else
     curl_args+=(--header "Accept: $expected_content_types")
   fi
