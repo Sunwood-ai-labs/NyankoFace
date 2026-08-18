@@ -274,8 +274,7 @@ async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposR
     if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
     admitted.push(...skillResult.repos);
 
-    const rawPageExhausted = rawFetched >= rawTotal;
-    if (admitted.length >= firstAdmittedIndex + limit || rawPageExhausted) {
+    if (rawFetched >= rawTotal) {
       rawExhausted = true;
       break;
     }
@@ -286,7 +285,7 @@ async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposR
   return {
     ok: true,
     data: admitted.slice(firstAdmittedIndex, firstAdmittedIndex + limit),
-    total_count: rawTotal,
+    total_count: admitted.length,
   };
 }
 

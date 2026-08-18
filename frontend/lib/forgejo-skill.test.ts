@@ -284,3 +284,23 @@ test('fails closed when the bounded Skill page budget cannot exhaust raw results
   });
   assert.equal(pageRequests, 200);
 });
+
+test('does not return a partial paged Skill catalog when raw results exceed the budget', async () => {
+  const candidate = repo('valid-before-budget');
+  let pageRequests = 0;
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) {
+      pageRequests += 1;
+      return jsonResponse({ data: [candidate] }, 200, { 'x-total-count': '10001' });
+    }
+    if (url.pathname.endsWith('/contents/SKILL.md')) return jsonResponse(skillRootEntry());
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    assert.deepEqual(await searchRepos({ topic: 'skill', limit: 1 }), {
+      ok: false,
+      data: [],
+      total_count: 0,
+    });
+  });
+  assert.equal(pageRequests, 100);
+});
