@@ -85,7 +85,7 @@ export async function fillRecentPagesReservation(
   const indexedNames = new Set(indexed.map((repo) => repo.full_name));
   const repositories = [...firstPage.data];
   const repositoryNames = new Set(repositories.map((repo) => repo.full_name));
-  let totalCount = firstPage.total_count;
+  let totalCount = firstPage.upstream_total_count ?? firstPage.total_count;
   let nextPage = 2;
 
   const uniqueFallbackCount = () => repositories.reduce(
@@ -102,9 +102,9 @@ export async function fillRecentPagesReservation(
   ) {
     const result = await loadPage(nextPage);
     if (!result.ok) {
-      return { ok: false, data: repositories, total_count: totalCount };
+      return { ok: false, data: repositories, total_count: repositories.length, upstream_total_count: totalCount };
     }
-    totalCount = Math.max(totalCount, result.total_count);
+    totalCount = Math.max(totalCount, result.upstream_total_count ?? result.total_count);
     for (const repo of result.data) {
       if (!repositoryNames.has(repo.full_name)) {
         repositories.push(repo);
@@ -114,7 +114,7 @@ export async function fillRecentPagesReservation(
     nextPage += 1;
   }
 
-  return { ok: true, data: repositories, total_count: totalCount };
+  return { ok: true, data: repositories, total_count: repositories.length, upstream_total_count: totalCount };
 }
 
 function unavailableMetrics(owner: string, repo: string): RepoAgentMetrics {
@@ -216,9 +216,11 @@ async function loadHomePagesPreview(): Promise<HomePagesPreview> {
     ).size;
     const repositoriesToInspect = mergedRepositories;
     const repositorySearchOk = indexedRepositories.ok && recentRepositories.ok;
+    const indexedUpstreamTotal = indexedRepositories.upstream_total_count ?? indexedRepositories.total_count;
+    const recentUpstreamTotal = recentRepositories.upstream_total_count ?? recentRepositories.total_count;
     const scanTruncated = !repositorySearchOk
-      || indexedRepositories.total_count > availableIndexed.length
-      || recentRepositories.total_count > availableRecent.length
+      || indexedUpstreamTotal > availableIndexed.length
+      || recentUpstreamTotal > availableRecent.length
       || uniqueSearchCandidateCount > repositoriesToInspect.length;
     const candidates = await Promise.all(
       repositoriesToInspect.map(async (repo): Promise<InspectedPageCandidate> => {

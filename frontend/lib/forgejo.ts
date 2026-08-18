@@ -110,6 +110,9 @@ export interface SearchReposResult {
   ok: boolean;
   data: Repo[];
   total_count: number;
+  /** Public repositories returned after visibility filtering. */
+  /** Raw Forgejo count used only to decide whether another upstream page exists. */
+  upstream_total_count?: number;
   /** Number of raw repositories returned before private visibility filtering. */
   raw_page_size?: number;
 }
@@ -267,7 +270,7 @@ async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchRep
 
   const res = await apiFetch(`/repos/search?${qs.toString()}`, signal);
   if (!res.ok || !res.json) {
-    return { ok: false, data: [], total_count: 0 };
+    return { ok: false, data: [], total_count: 0, upstream_total_count: 0 };
   }
   // This server-side client uses the seed admin token to read repository
   // metadata. Never let that privileged token turn private Forgejo assets into
@@ -280,7 +283,8 @@ async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchRep
   return {
     ok: true,
     data,
-    total_count: Number.isFinite(headerTotal) ? headerTotal : rawData.length,
+    total_count: data.length,
+    upstream_total_count: Number.isFinite(headerTotal) ? headerTotal : rawData.length,
     raw_page_size: rawData.length,
   };
 }
@@ -305,7 +309,7 @@ async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposR
   for (let rawPage = 1; rawPage <= maxRawPages; rawPage += 1) {
     const result = await fetchRepoSearchPage({ ...params, limit, page: rawPage });
     if (!result.ok) return result;
-    rawTotal = result.total_count;
+    rawTotal = result.upstream_total_count ?? result.total_count;
     const rawPageSize = result.raw_page_size ?? result.data.length;
     if (rawPage === 1) maxRawPages = rawSearchPageBudget(rawTotal, rawPageSize);
     rawFetched += rawPageSize;
@@ -381,7 +385,7 @@ export async function searchAllReposByTopicAndQuery(
     const result = await searchRepos({ topic, q: topic ? undefined : q, sort: 'updated', limit: pageSize, page });
     if (!result.ok) return { ok: false, data: [], total_count: 0 };
     repos.push(...result.data);
-    expectedTotal = result.total_count;
+    expectedTotal = result.upstream_total_count ?? result.total_count;
     const rawPageSize = result.raw_page_size ?? result.data.length;
     if (page === 1) maxRawPages = rawSearchPageBudget(expectedTotal, rawPageSize);
     rawFetched += rawPageSize;
@@ -421,7 +425,7 @@ async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchRep
   for (let page = 1; page <= maxRawPages; page += 1) {
     const result = await fetchRepoSearchPage({ topic: 'skill', sort: 'updated', limit: pageSize, page });
     if (!result.ok) return result;
-    rawTotal = result.total_count;
+    rawTotal = result.upstream_total_count ?? result.total_count;
     const rawPageSize = result.raw_page_size ?? result.data.length;
     if (page === 1) maxRawPages = rawSearchPageBudget(rawTotal, rawPageSize);
     rawFetched += rawPageSize;
@@ -473,7 +477,12 @@ export async function searchReposByTopicAndQuery(
       (r.topics || []).some((repoTopic) => repoTopic.toLowerCase().includes(needle))
     );
   });
-  return { ok: res.ok, data: filtered, total_count: filtered.length };
+  return {
+    ok: res.ok,
+    data: filtered,
+    total_count: filtered.length,
+    upstream_total_count: res.upstream_total_count,
+  };
 }
 
 // ---------------------------------------------------------------------------
