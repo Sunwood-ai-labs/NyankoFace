@@ -11,6 +11,7 @@ const UPSTREAM_URL_FIELDS = [
 ] as const;
 
 const NESTED_URL_PATTERNS = [
+  /(?<![a-z0-9.-])(?=((?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
   /(?<![a-z0-9+.-])(?=([a-z][a-z0-9+.-]*:[\\/]{1,3}[^\s<>"'`&]+))/gi,
   /(?<![a-z0-9+.-])(?=(https?:(?![\\/])[^\s<>"'`&]+))/gi,
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
@@ -110,6 +111,12 @@ function isEstablishedPrivateEndpointHost(hostname: string, port?: string, allow
   return (host.includes('.') || host.includes(':')) && isPrivateHostname(host);
 }
 
+function parseScpTarget(value: string): { host: string } | undefined {
+  if (/^(?:https?|ssh|git):/i.test(value)) return undefined;
+  const match = value.match(/^(?:[\w.-]+@)?(\[[^\]\s<>"'&]+\]|[a-z0-9.-]+):[^\s<>"'&]+$/i);
+  return match ? { host: match[1] } : undefined;
+}
+
 function containsUnsafeNestedUrl(value: string): boolean {
   let current = value;
   for (let pass = 0; pass <= MAX_URL_DECODE_PASSES; pass += 1) {
@@ -121,6 +128,11 @@ function containsUnsafeNestedUrl(value: string): boolean {
           match.index > 0 &&
           !/[?&#=\s([{<]/.test(current[match.index - 1])
         ) continue;
+        const scpTarget = parseScpTarget(candidate);
+        if (scpTarget) {
+          if (isEstablishedPrivateEndpointHost(scpTarget.host, undefined, true)) return true;
+          continue;
+        }
         try {
           const nested = new URL(candidate);
           const slashlessHttpTarget = /^https?:[^\\/]/i.test(candidate);
@@ -197,6 +209,12 @@ function sanitizePublicRepoTextOnce(value: string): string {
   const scrub = (candidate: string): string => {
     const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
     const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
+    const scpTarget = parseScpTarget(url);
+    if (scpTarget) {
+      return isEstablishedPrivateEndpointHost(scpTarget.host, undefined, true)
+        ? '[internal URL omitted]' + trailing
+        : candidate;
+    }
     const safe = safePublicUrl(url);
     return `${safe || '[internal URL omitted]'}${trailing}`;
   };

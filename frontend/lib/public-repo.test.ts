@@ -281,3 +281,29 @@ test('rejects the configured Forgejo origin even when its hostname is public-loo
     else process.env.FORGEJO_API = original;
   }
 });
+
+test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
+  const repo = {
+    id: 13,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: 'Public git@github.com:org/repo.git; private git@forgejo:org/repo.git',
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo;
+
+  const description = sanitizePublicRepo(repo).description || '';
+  assert.match(description, /git@github\.com:org\/repo\.git/);
+  assert.doesNotMatch(description, /git@forgejo:org\/repo\.git/);
+});
+
+test('classifies username-less SCP targets nested in public URLs', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=forgejo:demo.git'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=github.com:org/repo.git'),
+    'https://public.example/redirect?clone=github.com:org/repo.git',
+  );
+});
