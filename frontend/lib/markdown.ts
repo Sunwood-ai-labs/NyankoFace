@@ -164,6 +164,14 @@ type ZennFenceMatch = {
   container?: ZennFenceContainer;
 };
 
+const RAW_HTML_BLOCK_TAGS = new Set([
+  'address', 'article', 'aside', 'base', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup',
+  'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer',
+  'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'iframe', 'legend',
+  'li', 'link', 'main', 'menu', 'menuitem', 'nav', 'ol', 'p', 'pre', 'script', 'section', 'summary',
+  'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'title', 'tr', 'track', 'ul', 'style',
+]);
+
 type ZennBoundary = { start: number; end: number };
 
 type ZennBoundaryIndex = {
@@ -211,6 +219,17 @@ function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: Zen
   return left.contentIndent === right.contentIndent;
 }
 
+function rawHtmlBlockEnd(line: string): RegExp | null {
+  const trimmed = line.replace(/^[ \t]{0,3}/, '');
+  if (trimmed.startsWith('<!--')) return trimmed.includes('-->') ? null : /-->/;
+  if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : /\?>/;
+  if (/^<![A-Z]/.test(trimmed)) return trimmed.endsWith('>') ? null : />/;
+  const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?>/);
+  if (!opening || !RAW_HTML_BLOCK_TAGS.has(opening[1].toLowerCase()) || /\/\s*>$/.test(opening[0])) return null;
+  const closing = new RegExp(`</${opening[1]}\\s*>`, 'i');
+  return closing.test(trimmed.slice(opening[0].length)) ? null : closing;
+}
+
 function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   const boundaries = new Map<number, ZennBoundary>();
   const openings: number[] = [];
@@ -218,11 +237,26 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   let fenceChar: '`' | '~' | null = null;
   let fenceLength = 0;
   let fenceContainer: ZennFenceContainer | undefined;
+  let htmlBlockEnd: RegExp | null = null;
 
   while (offset < source.length) {
     const newlineIndex = source.indexOf('\n', offset);
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
     const line = source.slice(offset, end).replace(/\r?\n$/, '');
+
+    if (!fenceChar) {
+      if (htmlBlockEnd) {
+        if (htmlBlockEnd.test(line)) htmlBlockEnd = null;
+        offset = end;
+        continue;
+      }
+      htmlBlockEnd = rawHtmlBlockEnd(line);
+      if (htmlBlockEnd || /^\s*(?:<!--|<\?|<![A-Z]|<[A-Za-z][A-Za-z0-9-]*\b)/.test(line)) {
+        offset = end;
+        continue;
+      }
+    }
+
     const fence = matchZennFence(line);
 
     if (fenceChar && fenceContainer && !continuesZennFenceContainer(line, fenceContainer)) {
@@ -280,7 +314,7 @@ function blockTokens(lexer: TokenizerThis['lexer'], source: string): Token[] {
 }
 
 function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlockToken | undefined {
-  const header = source.match(/^[ \t]{0,3}>[ \t]*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\r?\n|$)/i);
+  const header = source.match(/^[ \t]{0,3}>[ \t]?\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\r?\n|$)/i);
   if (!header) return undefined;
 
   let rawLength = header[0].length;
@@ -333,7 +367,7 @@ function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryInde
 
 function startMarkdownBlock(source: string): number | undefined {
   const starts = [
-    source.search(/(?:^|\n)(?=[ \t]{0,3}>[ \t]*\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\])/i),
+    source.search(/(?:^|\n)(?=[ \t]{0,3}>[ \t]?\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\])/i),
     source.search(/(?:^|\n)(?=[ \t]{0,3}:::(?:message(?:[ \t]+alert)?|details(?:[ \t]+[^\r\n]*)?)[ \t]*(?:\r?\n|$))/i),
   ].filter((index) => index >= 0);
   if (starts.length === 0) return undefined;

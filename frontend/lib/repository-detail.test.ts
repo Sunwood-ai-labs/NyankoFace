@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { forgejoCommitsUrl, forgejoRawUrl, forgejoTreeUrl } from './forgejo';
 
 const repoPageSource = readFileSync(
   new URL('../app/[owner]/[repo]/page.tsx', import.meta.url),
@@ -20,6 +21,8 @@ test('repository detail resolves a case-insensitive root README and distinguishe
   assert.match(repoPageSource, /status: 'unavailable'/);
   assert.match(repoPageSource, /status: 'too-large'/);
   assert.match(repoPageSource, /status: 'present'/);
+  assert.match(repoPageSource, /const rawBuffer = Buffer\.from/);
+  assert.match(repoPageSource, /rawBuffer\.byteLength >= MAX_README_PREVIEW_BYTES/);
   assert.match(repoPageSource, /readmeStatus = 'empty'/);
   assert.match(repoPageSource, /readmeStatus = 'parse'/);
   assert.match(repoPageSource, /README\.md is too large to preview/);
@@ -28,6 +31,23 @@ test('repository detail resolves a case-insensitive root README and distinguishe
   assert.match(repoPageSource, /tab=files&revision=\$\{encodeURIComponent\(revision\)\}/);
   assert.match(repoPageSource, /getContents\(owner, repo, path, ref\)/);
   assert.match(repoPageSource, /refKind = revision \? 'tag'/);
+});
+
+test('encodes slash-bearing branch and tag names in Forgejo navigation URLs', () => {
+  const ref = 'release/candidate 1';
+
+  assert.equal(
+    forgejoTreeUrl('owner', 'repo', 'docs/guide.md', ref),
+    '/git/owner/repo/src/branch/release%2Fcandidate%201/docs/guide.md',
+  );
+  assert.equal(
+    forgejoRawUrl('owner', 'repo', 'README.md', ref, 'tag'),
+    '/git/owner/repo/raw/tag/release%2Fcandidate%201/README.md',
+  );
+  assert.equal(
+    forgejoCommitsUrl('owner', 'repo', '', ref, 'tag'),
+    '/git/owner/repo/commits/tag/release%2Fcandidate%201',
+  );
 });
 
 test('untyped repositories keep repository labels and avoid model-only actions', () => {

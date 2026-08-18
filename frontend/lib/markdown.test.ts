@@ -123,6 +123,14 @@ test('renders every GitHub alert as a typed callout instead of a generic blockqu
   assert.doesNotMatch(bodyHtml, /<blockquote>/);
 });
 
+test('requires at most one padding space before a GitHub alert marker', () => {
+  const { bodyHtml } = parseReadme('>  [!NOTE]\n> This remains an ordinary blockquote.');
+
+  assert.doesNotMatch(bodyHtml, /data-markdown-block="github-alert"/);
+  assert.match(bodyHtml, /<blockquote>/);
+  assert.match(bodyHtml, /\[!NOTE\]/);
+});
+
 test('renders Zenn message and details blocks through the shared safe Markdown pipeline', () => {
   const source = [
     ':::message',
@@ -179,6 +187,24 @@ test('keeps Zenn block boundaries aligned when README input uses CRLF', () => {
   assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
   assert.match(bodyHtml, /CRLF body/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not parse Zenn delimiters inside raw HTML blocks', () => {
+  const { bodyHtml } = parseReadme([
+    '<div class="raw-content">',
+    ':::message',
+    'This is literal HTML content.',
+    ':::',
+    '</div>',
+    '',
+    ':::message',
+    'This is a Markdown message.',
+    ':::',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /:::message/);
+  assert.match(bodyHtml, /This is a Markdown message\./);
 });
 
 test('does not close a Zenn block on a fenced code line with language info', () => {
