@@ -168,8 +168,17 @@ test('renders Zenn message and details blocks through the shared safe Markdown p
   assert.match(bodyHtml, /<input checked disabled type="checkbox" \/>/);
   assert.match(bodyHtml, /<input disabled type="checkbox" \/>/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 3);
   assert.match(bodyHtml, /:::unsupported/);
   assert.doesNotMatch(bodyHtml, /<script|javascript:/i);
+});
+
+test('keeps Zenn block boundaries aligned when README input uses CRLF', () => {
+  const { bodyHtml } = parseReadme(':::message\r\nCRLF body\r\n:::\r\n\r\n# After\r\n');
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /CRLF body/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
 test('does not close a Zenn block on a fenced code line with language info', () => {

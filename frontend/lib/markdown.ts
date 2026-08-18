@@ -171,6 +171,11 @@ type ZennBoundaryIndex = {
   boundaries: Map<number, ZennBoundary>;
 };
 
+// Marked lexes block bodies by calling the same lexer with a new source string.
+// Keep a short-lived boundary stack per lexer so nested bodies use coordinates
+// relative to the source they are actually lexing instead of the outer README.
+const zennBoundaryStacks = new WeakMap<object, ZennBoundaryIndex[]>();
+
 function matchZennFence(line: string): ZennFenceMatch | null {
   const blockquote = line.match(/^[ \t]{0,3}>[ \t]?(`{3,}|~{3,})/);
   if (blockquote) {
@@ -252,12 +257,17 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
 }
 
 function blockTokens(lexer: TokenizerThis['lexer'], source: string): Token[] {
+  const stack = zennBoundaryStacks.get(lexer) || [];
+  stack.push(buildZennBoundaryIndex(source));
+  zennBoundaryStacks.set(lexer, stack);
   const previousTop = lexer.state.top;
   lexer.state.top = true;
   try {
     return lexer.blockTokens(source);
   } finally {
     lexer.state.top = previousTop;
+    stack.pop();
+    if (stack.length === 0) zennBoundaryStacks.delete(lexer);
   }
 }
 
@@ -285,13 +295,14 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   };
 }
 
-function tokenizeZennBlock(this: TokenizerThis, source: string, boundaryIndex: ZennBoundaryIndex): NyankofaceBlockToken | undefined {
+function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryIndex: ZennBoundaryIndex): NyankofaceBlockToken | undefined {
   const firstLineEnd = source.search(/\r?\n/);
   const firstLine = firstLineEnd === -1 ? source : source.slice(0, firstLineEnd);
   const opening = parseZennOpeningLine(firstLine);
   if (!opening || firstLineEnd === -1) return undefined;
 
   const openingLength = firstLineEnd + (source[firstLineEnd] === '\r' ? 2 : 1);
+  const boundaryIndex = zennBoundaryStacks.get(this.lexer)?.at(-1) || rootBoundaryIndex;
   const sourceOffset = boundaryIndex.sourceLength - source.length;
   const absoluteClosing = boundaryIndex.boundaries.get(sourceOffset);
   if (!absoluteClosing) return undefined;
@@ -387,13 +398,15 @@ function sanitizeRenderedMarkdown(html: string): string {
 
 function renderMarkdown(markdown: string, urls?: ReadmeRenderUrls): string {
   const locale = urls?.locale || 'en';
-  const boundaryIndex = buildZennBoundaryIndex(markdown);
+  // Marked parses LF-normalized input, so index the exact source it receives.
+  const normalizedMarkdown = markdown.replace(/\r\n?/g, '\n');
+  const boundaryIndex = buildZennBoundaryIndex(normalizedMarkdown);
   const parser = new Marked({
     gfm: true,
     breaks: false,
     ...createMarkdownExtensions(locale, boundaryIndex),
   });
-  const rendered = parser.parse(markdown, { async: false, renderer: createMarkdownRenderer(locale) }) as string;
+  const rendered = parser.parse(normalizedMarkdown, { async: false, renderer: createMarkdownRenderer(locale) }) as string;
   return sanitizeRenderedMarkdown(resolveRelativeRepositoryUrls(rendered, urls));
 }
 

@@ -327,10 +327,11 @@ export default async function RepoDetailPage({
               owner={owner}
               repo={repo}
               path={path}
-               defaultBranch={repoInfo.default_branch || 'main'}
-               updatedAt={repoInfo.updated_at}
-               requestOrigin={requestOrigin}
-               locale={locale}
+              defaultBranch={repoInfo.default_branch || 'main'}
+              revision={selectedRevision}
+              updatedAt={repoInfo.updated_at}
+              requestOrigin={requestOrigin}
+              locale={locale}
             />
           )}
         </div>
@@ -624,7 +625,10 @@ async function CardTabContent({
         <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
           <p>{readmeMessage}</p>
           {kind === 'skill' ? <p className="mt-2">{ui(locale, 'スキル連携情報は', 'Skill relationships remain available from')} <code>skill.json</code>{ui(locale, 'で確認できます。', '.')}</p> : null}
-          <a href={`/${owner}/${repo}?tab=files`} className="mt-3 inline-block text-accent-dark hover:underline">
+          <a
+            href={revision ? `/${owner}/${repo}?tab=files&revision=${encodeURIComponent(revision)}` : `/${owner}/${repo}?tab=files`}
+            className="mt-3 inline-block text-accent-dark hover:underline"
+          >
             {ui(locale, 'ファイル一覧を開く', 'Browse repository files')}
           </a>
         </div>
@@ -645,6 +649,7 @@ async function FilesTabContent({
   repo,
   path,
   defaultBranch,
+  revision,
   updatedAt,
   requestOrigin,
   locale,
@@ -653,13 +658,16 @@ async function FilesTabContent({
   repo: string;
   path: string;
   defaultBranch: string;
+  revision?: string | null;
   updatedAt: string;
   requestOrigin?: string;
   locale: Locale;
 }) {
+  const ref = revision || defaultBranch;
+  const refKind = revision ? 'tag' as const : 'branch' as const;
   const [res, commits] = await Promise.all([
-    getContents(owner, repo, path),
-    getCommits(owner, repo, path, 8),
+    getContents(owner, repo, path, ref),
+    getCommits(owner, repo, path, 8, ref),
   ]);
 
   if (!res.ok || !res.data) {
@@ -678,11 +686,13 @@ async function FilesTabContent({
       repo={repo}
       currentPath={path}
       entries={entries}
-      branch={defaultBranch}
+      branch={ref}
       commits={commits}
       updatedAt={updatedAt}
-      forgejoUrl={forgejoTreeUrl(owner, repo, path, defaultBranch)}
+      forgejoUrl={forgejoTreeUrl(owner, repo, path, ref, refKind)}
       cloneUrl={cloneUrl(owner, repo, requestOrigin)}
+      refKind={refKind}
+      revision={revision}
       locale={locale}
     />
   );
