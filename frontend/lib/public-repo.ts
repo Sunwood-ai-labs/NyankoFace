@@ -11,16 +11,17 @@ const UPSTREAM_URL_FIELDS = [
 ] as const;
 
 const NESTED_URL_PATTERNS = [
-  /(?<=[?&#=\s([{<])(?=((?:[a-z0-9_.-]+|\[[0-9a-f:.]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
+  /(?<=[?&#=\s([{<])(?=((?:[a-z0-9_.-]+|\[[0-9a-f:.%]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
   /(?<![a-z0-9+.-])(?=([a-z][a-z0-9+.-]*:[\\/]{1,3}[^\s<>"'`&]+))/gi,
   /(?<![a-z0-9+.-])(?=(https?:(?![\\/])[^\s<>"'`&]+))/gi,
-  /(?<=[?&#=\s([{<])(?=([a-z][a-z0-9+_-]*:[^\s<>"'`&]+))/gi,
+  /(?<=[?&#=\s([{<])(?=([a-z][a-z0-9+.-]*:[^\s<>"'`&]+))/gi,
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
-  /(?=(\b[^\s<>"'`&@]+@(?:[a-z0-9_.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
+  /(?=(\b[^\s<>"'`&@]+@(?:[a-z0-9_.-]+|\[[0-9a-f:.%]+\]):[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:[a-z0-9_.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`&]+\/[^\s<>"'`]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:\[[^\]\s<>"'`]+\]):[^\s<>"'`]+))/gi,
 ];
-const EXTERNAL_TARGET_PARAMETER_PATTERN = /(?:^|[?&#])(?:next|url|uri|redirect|redirect_url|redirect_uri|return|return_to|return_url|target|destination|dest|link|href|clone|repository|repo|callback|continue)\s*=\s*$/i;
+const EXTERNAL_TARGET_PARAMETER_PATTERN = /(?:^|[?&#])((?:next|url|uri|redirect|redirect_url|redirect_uri|return|return_to|return_url|target|destination|dest|link|href|clone|repository|repo|callback|continue))\s*=\s*$/i;
+const GIT_REMOTE_TARGET_PARAMETERS = new Set(['clone', 'repository', 'repo']);
 const MAX_URL_DECODE_PASSES = 8;
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
 const PRIVATE_BARE_HOSTS = new Set([
@@ -129,8 +130,8 @@ function isUnsafeScpHost(target: { host: string; hasUser: boolean }): boolean {
     : isEstablishedPrivateEndpointHost(target.host, undefined, true);
 }
 
-function hasExternalTargetParameter(source: string, candidateStart: number): boolean {
-  return EXTERNAL_TARGET_PARAMETER_PATTERN.test(source.slice(0, candidateStart));
+function externalTargetParameter(source: string, candidateStart: number): string | undefined {
+  return source.slice(0, candidateStart).match(EXTERNAL_TARGET_PARAMETER_PATTERN)?.[1].toLowerCase();
 }
 
 function containsUnsafeNestedUrl(value: string): boolean {
@@ -143,9 +144,15 @@ function containsUnsafeNestedUrl(value: string): boolean {
     for (const pattern of NESTED_URL_PATTERNS) {
       for (const match of current.matchAll(pattern)) {
         const candidate = (match[1] || '').replace(/[),.;!?]+$/, '');
-        const isSlashlessNonHttpScheme = /^[a-z][a-z0-9+_-]*:(?![\\/])/i.test(candidate)
+        const targetParameter = externalTargetParameter(current, match.index ?? 0);
+        const isSlashlessNonHttpScheme = /^[a-z][a-z0-9+.-]*:(?![\\/])/i.test(candidate)
           && !/^https?:/i.test(candidate);
-        if (isSlashlessNonHttpScheme && !hasExternalTargetParameter(current, match.index ?? 0)) continue;
+        if (isSlashlessNonHttpScheme && !targetParameter) continue;
+        if (
+          isSlashlessNonHttpScheme
+          && targetParameter
+          && !GIT_REMOTE_TARGET_PARAMETERS.has(targetParameter)
+        ) return true;
         if (
           candidate.startsWith('//') &&
           match.index > 0 &&
