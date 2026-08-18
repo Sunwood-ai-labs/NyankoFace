@@ -726,6 +726,29 @@ export async function getRawFile(
   }
 }
 
+export async function getRawFileSize(
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string,
+): Promise<number | null> {
+  const token = getToken();
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `token ${token}`;
+  const cleanPath = encodeRepositoryPath(path);
+  const url = `${FORGEJO_API}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
+    repo
+  )}/raw/${cleanPath}${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`;
+  try {
+    const res = await fetch(url, { method: 'HEAD', headers, cache: 'no-store' });
+    if (!res.ok) return null;
+    const size = Number.parseInt(res.headers.get('content-length') || '', 10);
+    return Number.isSafeInteger(size) && size >= 0 ? size : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getTextFile(
   owner: string,
   repo: string,

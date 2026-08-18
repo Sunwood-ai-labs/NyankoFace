@@ -533,6 +533,22 @@ test('preserves paragraph continuation before a type-7 HTML tag', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps deeply indented HTML-like lines inside an active paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'paragraph',
+    '    <!-- closed -->',
+    '<my-widget>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /paragraph/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps non-one ordered markers inside an active paragraph', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -548,6 +564,20 @@ test('keeps non-one ordered markers inside an active paragraph', () => {
 
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /continuation/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not parse a non-one ordered directive inside an active paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'paragraph',
+    '2. :::details Inner',
+    '   :::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
@@ -816,6 +846,40 @@ test('keeps same-line explicit-end HTML inside a Zenn block', () => {
 
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /text/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps explicit-end self-closing tags open until their exact closing tag', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre />',
+    ':::',
+    '</pre>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<pre/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('resets paragraph state after a same-line explicit HTML block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre></pre>',
+    '<my-widget>',
+    ':::',
+    '</my-widget>',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<pre><\/pre>[\s\S]*:::/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
