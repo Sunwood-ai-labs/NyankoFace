@@ -448,6 +448,26 @@ test('scrubs private bare host paths while preserving public host paths', () => 
   }
 });
 
+test('scrubs private bare hostname tokens while preserving public host tokens', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    const sanitized = sanitizePublicRepo({
+      id: 19,
+      name: 'bare-hostnames',
+      full_name: 'alice/bare-hostnames',
+      description: 'Hosted on forgejo.ops.example.com; see docs.internal. Public: github.com and example.com.',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo).description || '';
+    assert.doesNotMatch(sanitized, /forgejo\.ops\.example\.com|docs\.internal/);
+    assert.match(sanitized, /github\.com|example\.com/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
 test('scrubs Unicode configured hosts in bare host paths', () => {
   const original = process.env.FORGEJO_API;
   try {

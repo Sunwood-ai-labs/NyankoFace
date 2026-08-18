@@ -367,7 +367,20 @@ function sanitizePublicRepoTextOnce(value: string): string {
       ? `[internal URL omitted]${trailing}`
       : candidate;
   };
+  const scrubBareHostname = (candidate: string): string => {
+    const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
+    const hostname = trailing ? candidate.slice(0, -trailing.length) : candidate;
+    const normalizedHost = normalizedHostnameForClassification(hostname);
+    const hasHostnameShape = normalizedHost.includes('.')
+      || normalizedHost.includes(':')
+      || hostname.startsWith('[')
+      || configuredForgejoHostname() === normalizedHost;
+    return hasHostnameShape && isPrivateHostname(hostname)
+      ? `[internal URL omitted]${trailing}`
+      : candidate;
+  };
   return value
+    .replace(/(?<![\p{L}\p{N}_.:@\/\\-])(?:[\p{L}\p{N}][\p{L}\p{N}_.-]*|\[[^\]\s<>"'`&]+\])(?=$|[^\p{L}\p{N}_.:@\/\\-])/giu, scrubBareHostname)
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
     .replace(/\b[^\s<>"'`&]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+/gi, scrub)
