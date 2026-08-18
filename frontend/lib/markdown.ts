@@ -169,9 +169,9 @@ const RAW_HTML_BLOCK_TAGS = new Set([
   'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer',
   'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'iframe', 'legend',
   'li', 'link', 'main', 'menu', 'menuitem', 'nav', 'ol', 'p', 'pre', 'script', 'section', 'summary',
-  'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'title', 'tr', 'track', 'ul', 'style',
+  'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'textarea', 'title', 'tr', 'track', 'ul', 'style',
 ]);
-const RAW_HTML_TAGS_WITH_EXPLICIT_END = new Set(['pre', 'script', 'style']);
+const RAW_HTML_TAGS_WITH_EXPLICIT_END = new Set(['pre', 'script', 'style', 'textarea']);
 
 type RawHtmlBlockBoundary =
   | { kind: 'blank' }
