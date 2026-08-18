@@ -183,7 +183,7 @@ function containsUnsafeNestedUrl(value: string): boolean {
     // Percent decoding can reveal controls that were not present in the
     // original public-looking URL. Reject them before WHATWG URL parsing can
     // normalize them away.
-    if (/[\u0000-\u001f\u007f]/.test(current)) return true;
+    if (current.includes('\\') || /[\u0000-\u001f\u007f]/.test(current)) return true;
     for (const pattern of NESTED_URL_PATTERNS) {
       for (const match of current.matchAll(pattern)) {
         const candidate = (match[1] || '').replace(/[),.;!?]+$/, '');
@@ -289,7 +289,12 @@ function sanitizePublicRepoTextOnce(value: string): string {
     const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
     try {
       const parsed = new URL(url);
-      return parsed.username || parsed.password || isEstablishedPrivateEndpointHost(parsed.hostname, parsed.port || undefined)
+      const slashlessHttpTarget = /^https?:[^\\/]/i.test(url);
+      const singleLabelPort = slashlessHttpTarget
+        && Boolean(parsed.port)
+        && !parsed.hostname.includes('.')
+        && !parsed.hostname.includes(':');
+      return parsed.username || parsed.password || singleLabelPort || isEstablishedPrivateEndpointHost(parsed.hostname, parsed.port || undefined)
         ? `[internal URL omitted]${trailing}`
         : candidate;
     } catch {
