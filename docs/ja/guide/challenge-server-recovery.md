@@ -234,15 +234,53 @@ Bashのcommand substitutionでNULなどのbyteが失われないようbodyをfil
 
 ~~~bash
 content_type_matches() {
-  local actual="${1,,}"
-  local expected="${2,,}"
-  actual="$(printf '%s' "$actual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
-  expected="$(printf '%s' "$expected" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  local actual="$1"
+  local expected="$2"
+  local actual_normalized
+  local expected_normalized
   if [[ "$expected" == *';'* ]]; then
-    [[ "$actual" == "$expected" ]]
+    actual_normalized="$(content_type_normalize "$actual")"
+    expected_normalized="$(content_type_normalize "$expected")"
   else
-    [[ "${actual%%;*}" == "$expected" ]]
+    actual_normalized="$(content_type_normalize "${actual%%;*}")"
+    expected_normalized="$(content_type_normalize "$expected")"
   fi
+  [[ "$actual_normalized" == "$expected_normalized" ]]
+}
+
+content_type_trim() {
+  local value="$1"
+  value="$(printf '%s' "$value" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  printf '%s' "$value"
+}
+
+content_type_normalize() {
+  local value="$1"
+  local media_type="${value%%;*}"
+  local normalized
+  local parameter
+  local parameter_name
+  local parameter_value
+  local -a parameters
+  media_type="$(content_type_trim "$media_type")"
+  normalized="${media_type,,}"
+  if [[ "$value" != *';'* ]]; then
+    printf '%s' "$normalized"
+    return
+  fi
+  IFS=';' read -r -a parameters <<< "${value#*;}"
+  for parameter in "${parameters[@]}"; do
+    parameter="$(content_type_trim "$parameter")"
+    [[ -z "$parameter" ]] && continue
+    if [[ "$parameter" == *=* ]]; then
+      parameter_name="$(content_type_trim "${parameter%%=*}")"
+      parameter_value="$(content_type_trim "${parameter#*=}")"
+      normalized+=";${parameter_name,,}=${parameter_value}"
+    else
+      normalized+=";${parameter,,}"
+    fi
+  done
+  printf '%s' "$normalized"
 }
 
 content_type_in_list() {
