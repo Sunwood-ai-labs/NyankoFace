@@ -437,3 +437,19 @@ test('classifies non-ASCII SCP host aliases instead of ignoring them', () => {
   } as Repo).description || '';
   assert.doesNotMatch(sanitized, /フォージョ/);
 });
+
+test('classifies SCP hosts after the final at-sign', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/?clone=git@@forgejo:repo.git'),
+    undefined,
+  );
+  const sanitized = sanitizePublicRepo({
+    id: 16,
+    name: 'double-at-host',
+    full_name: 'alice/double-at-host',
+    description: 'Internal git@@forgejo:repo.git',
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo).description || '';
+  assert.doesNotMatch(sanitized, /git@@forgejo/);
+});

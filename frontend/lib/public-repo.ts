@@ -16,7 +16,7 @@ const NESTED_URL_PATTERNS = [
   /(?<![a-z0-9+.-])(?=(https?:(?![\\/])[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=([a-z][a-z0-9+.-]*:[^\s<>"'`&]+))/gi,
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
-  /(?=(\b[^\s<>"'`&@]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`&]+))/gi,
+  /(?=(\b[^\s<>"'`&]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'&]+\/[^\s<>"'`]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:\[[^\]\s<>"'`]+\]):[^\s<>"'`]+))/gi,
 ];
@@ -117,7 +117,7 @@ function isEstablishedPrivateEndpointHost(hostname: string, port?: string, allow
 }
 
 function parseScpTarget(value: string): { host: string; hasUser: boolean } | undefined {
-  const match = value.match(/^(?:([^@\s<>"'`&]+)@)?(\[[^\]\s<>"'`&]+\]|[^\s<>"'`&@:/?]+):[^\s<>"'`&]+$/i);
+  const match = value.match(/^(?:([^\s<>"'`&]+)@)?(\[[^\]\s<>"'`&]+\]|[^\s<>"'`&@:/?]+):[^\s<>"'`&]+$/i);
   if (!match) return undefined;
   const host = match[2];
   if (/^[a-z][a-z0-9+.-]*:/i.test(value) && !host.startsWith('[') && !host.includes('.')) return undefined;
@@ -327,7 +327,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
-    .replace(/\b[^\s<>"'`&@]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+/gi, scrub)
+    .replace(/\b[^\s<>"'`&]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(\[[^\]\s<>"'`]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
