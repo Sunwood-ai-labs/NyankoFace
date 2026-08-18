@@ -154,34 +154,77 @@ function parseZennOpeningLine(line: string): {
   };
 }
 
+type ZennFenceContainer =
+  | { kind: 'blockquote' }
+  | { kind: 'list'; contentIndent: number };
+
+type ZennFenceMatch = {
+  token: string;
+  end: number;
+  container?: ZennFenceContainer;
+};
+
+function matchZennFence(line: string): ZennFenceMatch | null {
+  const blockquote = line.match(/^[ \t]{0,3}>[ \t]?(`{3,}|~{3,})/);
+  if (blockquote) {
+    return { token: blockquote[1], end: blockquote[0].length, container: { kind: 'blockquote' } };
+  }
+  const list = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+(`{3,}|~{3,})/);
+  if (list) {
+    return {
+      token: list[1],
+      end: list[0].length,
+      container: { kind: 'list', contentIndent: list[0].length - list[1].length },
+    };
+  }
+  const plain = line.match(/^[ \t]{0,3}(`{3,}|~{3,})/);
+  return plain ? { token: plain[1], end: plain[0].length } : null;
+}
+
+function continuesZennFenceContainer(line: string, container: ZennFenceContainer): boolean {
+  if (!line.trim()) return true;
+  if (container.kind === 'blockquote') return /^[ \t]{0,3}>[ \t]?/.test(line);
+  return (line.match(/^[ \t]*/)![0].length >= container.contentIndent);
+}
+
 function findZennClosingLine(source: string): { start: number; end: number } | null {
   let offset = 0;
   let nestedBlocks = 0;
   let fenceChar: '`' | '~' | null = null;
   let fenceLength = 0;
+  let fenceContainer: ZennFenceContainer | undefined;
 
   while (offset < source.length) {
     const newlineIndex = source.indexOf('\n', offset);
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
     const line = source.slice(offset, end).replace(/\r?\n$/, '');
-    const fence = line.match(
-      /^(?:(?:[ \t]{0,3}>[ \t]?)|(?:[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+))?[ \t]{0,3}(`{3,}|~{3,})/,
-    );
+    const fence = matchZennFence(line);
+
+    if (fenceChar && fenceContainer && !continuesZennFenceContainer(line, fenceContainer)) {
+      fenceChar = null;
+      fenceLength = 0;
+      fenceContainer = undefined;
+    }
 
     if (fenceChar) {
       const closesFence = Boolean(
         fence
-        && fence[1][0] === fenceChar
-        && fence[1].length >= fenceLength
-        && line.slice(fence[0].length).trim() === '',
+        && fence.token[0] === fenceChar
+        && fence.token.length >= fenceLength
+        && line.slice(fence.end).trim() === '',
       );
       if (closesFence) {
         fenceChar = null;
         fenceLength = 0;
+        fenceContainer = undefined;
       }
     } else if (fence) {
-      fenceChar = fence[1][0] as '`' | '~';
-      fenceLength = fence[1].length;
+      const suffix = line.slice(fence.end);
+      if (fence.token[0] !== '`' || !suffix.includes('`')) {
+        fenceChar = fence.token[0] as '`' | '~';
+        fenceLength = fence.token.length;
+        fenceContainer = fence.container;
+      }
     } else if (parseZennOpeningLine(line)) {
       nestedBlocks += 1;
     } else if (/^[ \t]{0,3}:::[ \t]*$/.test(line)) {

@@ -579,33 +579,15 @@ async function CardTabContent({
     readmeStatus = 'empty';
   }
 
-  if (readmeStatus !== 'present') {
-    const message = readmeStatus === 'absent'
-      ? ui(locale, 'README.mdがありません。ファイル一覧からリポジトリの内容を確認できます。', 'No README.md was found. Browse the repository files to inspect its contents.')
-      : readmeStatus === 'too-large'
-        ? ui(locale, 'README.mdが大きすぎるためプレビューできません。ファイル一覧から原文を開けます。', 'README.md is too large to preview. Open the raw file from the repository files.')
-        : readmeStatus === 'parse'
-          ? ui(locale, 'README.mdをMarkdownとして解析できませんでした。ファイル一覧から原文を確認できます。', 'README.md could not be parsed as Markdown. Open the raw file from the repository files.')
-          : readmeStatus === 'empty'
-            ? ui(locale, 'README.mdは空か、表示できるMarkdown本文がありません。', 'README.md is empty or has no renderable Markdown body.')
-            : ui(locale, 'README.mdを取得できませんでした。権限またはForgejoの接続状態を確認してください。', 'README.md could not be loaded. Check repository access or Forgejo availability.');
-    return (
-      <div>
-        {kind === 'skill' && skillRepo ? (
-          <div className="mb-7 lg:hidden">
-            <SkillRelationshipMap repo={skillRepo} catalog={skillCatalog} placement="mobile" locale={locale} />
-          </div>
-        ) : null}
-        <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          <p>{message}</p>
-          {kind === 'skill' ? <p className="mt-2">{ui(locale, 'スキル連携情報は', 'Skill relationships remain available from')} <code>skill.json</code>{ui(locale, 'で確認できます。', '.')}</p> : null}
-          <a href={`/${owner}/${repo}?tab=files`} className="mt-3 inline-block text-accent-dark hover:underline">
-            {ui(locale, 'ファイル一覧を開く', 'Browse repository files')}
-          </a>
-        </div>
-      </div>
-    );
-  }
+  const readmeMessage = readmeStatus === 'absent'
+    ? ui(locale, 'README.mdがありません。ファイル一覧からリポジトリの内容を確認できます。', 'No README.md was found. Browse the repository files to inspect its contents.')
+    : readmeStatus === 'too-large'
+      ? ui(locale, 'README.mdが大きすぎるためプレビューできません。ファイル一覧から原文を開けます。', 'README.md is too large to preview. Open the raw file from the repository files.')
+      : readmeStatus === 'parse'
+        ? ui(locale, 'README.mdをMarkdownとして解析できませんでした。ファイル一覧から原文を確認できます。', 'README.md could not be parsed as Markdown. Open the raw file from the repository files.')
+        : readmeStatus === 'empty'
+          ? ui(locale, 'README.mdは空か、表示できるMarkdown本文がありません。', 'README.md is empty or has no renderable Markdown body.')
+          : ui(locale, 'README.mdを取得できませんでした。権限またはForgejoの接続状態を確認してください。', 'README.md could not be loaded. Check repository access or Forgejo availability.');
 
   return (
     <div>
@@ -634,12 +616,22 @@ async function CardTabContent({
           <SkillRelationshipMap repo={skillRepo} catalog={skillCatalog} placement="mobile" locale={locale} />
         </div>
       ) : null}
-      <MarkdownBody
-        className={kind === 'skill' || kind === 'prompt' || kind === 'doc'
-          ? 'github-markdown-body prose-nyankoface min-w-0 bg-white dark:bg-zinc-900'
-          : 'prose-nyankoface min-w-0 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900'}
-        html={bodyHtml}
-      />
+      {readmeStatus !== 'present' ? (
+        <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+          <p>{readmeMessage}</p>
+          {kind === 'skill' ? <p className="mt-2">{ui(locale, 'スキル連携情報は', 'Skill relationships remain available from')} <code>skill.json</code>{ui(locale, 'で確認できます。', '.')}</p> : null}
+          <a href={`/${owner}/${repo}?tab=files`} className="mt-3 inline-block text-accent-dark hover:underline">
+            {ui(locale, 'ファイル一覧を開く', 'Browse repository files')}
+          </a>
+        </div>
+      ) : (
+        <MarkdownBody
+          className={kind === 'skill' || kind === 'prompt' || kind === 'doc'
+            ? 'github-markdown-body prose-nyankoface min-w-0 bg-white dark:bg-zinc-900'
+            : 'prose-nyankoface min-w-0 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900'}
+          html={bodyHtml}
+        />
+      )}
     </div>
   );
 }
