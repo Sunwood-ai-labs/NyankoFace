@@ -184,10 +184,17 @@ type ZennBoundaryIndex = {
   boundaries: Map<number, ZennBoundary>;
 };
 
+type ZennBoundaryContext = {
+  boundaryIndex: ZennBoundaryIndex;
+  sourceStart: number;
+  sourceLength: number;
+};
+
 // Marked lexes block bodies by calling the same lexer with a new source string.
-// Keep a short-lived boundary stack per lexer so nested bodies use coordinates
-// relative to the source they are actually lexing instead of the outer README.
-const zennBoundaryStacks = new WeakMap<object, ZennBoundaryIndex[]>();
+// Keep a short-lived context stack per lexer so nested bodies reuse the one
+// root boundary index with adjusted source offsets instead of rescanning the
+// remaining README for every recursive block.
+const zennBoundaryStacks = new WeakMap<object, ZennBoundaryContext[]>();
 
 function matchZennFence(line: string): ZennFenceMatch | null {
   const blockquote = line.match(/^[ \t]{0,3}>[ \t]?(`{3,}|~{3,})/);
@@ -208,7 +215,9 @@ function matchZennFence(line: string): ZennFenceMatch | null {
 
 function stripZennContainerPrefix(line: string): string {
   const prefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
-  return prefix ? line.slice(prefix[0].length) : line;
+  if (prefix) return line.slice(prefix[0].length);
+  const listContinuation = line.match(/^[ \t]{4}/);
+  return listContinuation ? line.slice(listContinuation[0].length) : line;
 }
 
 function continuesZennFenceContainer(line: string, container: ZennFenceContainer): boolean {
@@ -230,13 +239,15 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/ };
   if (/^<!\[CDATA\[/i.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/ };
   if (/^<![A-Z]/.test(trimmed)) return trimmed.endsWith('>') ? null : { kind: 'closing', pattern: />/ };
+  if (/^<\/[A-Za-z][A-Za-z0-9-]*\s*>/.test(trimmed)) return { kind: 'blank' };
   const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?>/);
-  if (!opening || !RAW_HTML_BLOCK_TAGS.has(opening[1].toLowerCase()) || /\/\s*>$/.test(opening[0])) return null;
+  if (!opening || /\/\s*>$/.test(opening[0])) return null;
   const tagName = opening[1].toLowerCase();
   const closing = new RegExp(`</${tagName}\\s*>`, 'i');
-  return RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)
-    ? { kind: 'closing', pattern: closing }
-    : { kind: 'blank' };
+  if (RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) {
+    return closing.test(trimmed.slice(opening[0].length)) ? null : { kind: 'closing', pattern: closing };
+  }
+  return { kind: 'blank' };
 }
 
 function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
@@ -299,7 +310,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
       }
     } else if (parseZennOpeningLine(stripZennContainerPrefix(line))) {
       openings.push(offset);
-    } else if (/^[ \t]{0,3}:::[ \t]*$/.test(line)) {
+    } else if (/^[ \t]{0,3}:::[ \t]*$/.test(stripZennContainerPrefix(line))) {
       const opening = openings.pop();
       if (opening !== undefined) {
         boundaries.set(opening, { start: offset, end });
@@ -310,9 +321,14 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   return { sourceLength: source.length, boundaries };
 }
 
-function blockTokens(lexer: TokenizerThis['lexer'], source: string): Token[] {
+function blockTokens(
+  lexer: TokenizerThis['lexer'],
+  source: string,
+  boundaryIndex = buildZennBoundaryIndex(source),
+  sourceStart = 0,
+): Token[] {
   const stack = zennBoundaryStacks.get(lexer) || [];
-  stack.push(buildZennBoundaryIndex(source));
+  stack.push({ boundaryIndex, sourceStart, sourceLength: source.length });
   zennBoundaryStacks.set(lexer, stack);
   const previousTop = lexer.state.top;
   lexer.state.top = true;
@@ -356,9 +372,24 @@ function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryInde
   if (!opening || firstLineEnd === -1) return undefined;
 
   const openingLength = firstLineEnd + (source[firstLineEnd] === '\r' ? 2 : 1);
-  const boundaryIndex = zennBoundaryStacks.get(this.lexer)?.at(-1) || rootBoundaryIndex;
-  const sourceOffset = boundaryIndex.sourceLength - source.length;
-  const absoluteClosing = boundaryIndex.boundaries.get(sourceOffset);
+  const context = zennBoundaryStacks.get(this.lexer)?.at(-1);
+  let boundaryIndex = context?.boundaryIndex || rootBoundaryIndex;
+  let sourceOffset = context
+    ? context.sourceStart + context.sourceLength - source.length
+    : rootBoundaryIndex.sourceLength - source.length;
+  let absoluteClosing = boundaryIndex.boundaries.get(sourceOffset);
+  if (!absoluteClosing && context) {
+    const localBoundaryIndex = buildZennBoundaryIndex(source);
+    const localOffset = localBoundaryIndex.boundaries.keys().next().value;
+    if (localOffset !== undefined) {
+      const localClosing = localBoundaryIndex.boundaries.get(localOffset);
+      if (localClosing) {
+        boundaryIndex = localBoundaryIndex;
+        sourceOffset = localOffset;
+        absoluteClosing = localClosing;
+      }
+    }
+  }
   if (!absoluteClosing) return undefined;
   const closing = {
     start: absoluteClosing.start - sourceOffset,
@@ -373,7 +404,7 @@ function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryInde
     type: 'nyankoface-block',
     ...opening,
     raw,
-    tokens: blockTokens(this.lexer, bodyMarkdown),
+    tokens: blockTokens(this.lexer, bodyMarkdown, boundaryIndex, sourceOffset + openingLength),
   };
 }
 

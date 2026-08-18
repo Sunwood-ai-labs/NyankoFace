@@ -255,6 +255,22 @@ test('keeps type-6 HTML blocks open until a blank line', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps type-7 custom HTML blocks open until a blank line', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<my-widget>',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /:::/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends block HTML boundaries at a blank line', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -330,6 +346,38 @@ test('tracks Zenn blocks nested immediately after a list marker', () => {
   ].join('\n'));
 
   assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('tracks nested Zenn closers after four-space list indentation', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '-   :::details Nested',
+    '    Nested body',
+    '    :::',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<details/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('reuses one boundary index for deeply nested Zenn blocks', () => {
+  const depth = 60;
+  const source = [
+    ...Array.from({ length: depth }, (_, index) => index % 2 === 0 ? ':::message' : ':::details Nested'),
+    'Nested body',
+    ...Array.from({ length: depth }, () => ':::'),
+    '',
+    '# After',
+  ].join('\n');
+
+  const { bodyHtml } = parseReadme(source);
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<details/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
