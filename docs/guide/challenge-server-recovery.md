@@ -42,6 +42,7 @@ SERVICE_MARKER="${SERVICE_MARKER:-nyankoface:$SERVICE_NAME}"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:?set the challenge port}"
 HEALTH_URL="${HEALTH_URL:?set the stable-name health URL}"
+HEALTH_STATUS="${HEALTH_STATUS:?set the expected health HTTP status}"
 FAILURE_URL="${FAILURE_URL:?set the stable-name failure URL}"
 FAILURE_STATUS="${FAILURE_STATUS:?set the expected stopped-state HTTP status}"
 FAILURE_CONTENT_TYPE="${FAILURE_CONTENT_TYPE:?set the expected stopped-state content type}"
@@ -159,12 +160,15 @@ proof of the right service.
 
 ~~~bash
 check_health() {
-  local response content_type body status
-  response="$(curl --silent --show-error --fail --max-time 3 \
+  local response content_type body status status_and_body http_status
+  response="$(curl --silent --show-error --max-time 3 \
     --header 'Accept: application/json, text/plain' \
-    --write-out $'\n%{content_type}' "$HEALTH_URL")" || return 1
+    --write-out $'\n%{http_code}\n%{content_type}' "$HEALTH_URL")" || return 1
   content_type="${response##*$'\n'}"
-  body="${response%$'\n'*}"
+  status_and_body="${response%$'\n'*}"
+  http_status="${status_and_body##*$'\n'}"
+  body="${status_and_body%$'\n'*}"
+  [[ "$http_status" == "$HEALTH_STATUS" ]] || return 1
   case "$content_type" in
     application/json*)
       status="$(printf '%s' "$body" | "$VENV/bin/python" -c 'import json, sys; value = json.load(sys.stdin); status = value.get("status") if isinstance(value, dict) else None; print(status if isinstance(status, str) else "")')" || return 1
@@ -197,11 +201,45 @@ stable-name response. The exact command names belong to the challenge; the
 shape of the proof does not.
 
 ~~~bash
+record_stable_response() {
+  local name="$1"
+  local response content_type body status_and_body http_status body_contract
+  response="$(curl --silent --show-error --max-time 3 \
+    --header 'Accept: application/json, text/plain' \
+    --write-out $'\n%{http_code}\n%{content_type}' "$HEALTH_URL")" || return 1
+  content_type="${response##*$'\n'}"
+  status_and_body="${response%$'\n'*}"
+  http_status="${status_and_body##*$'\n'}"
+  body="${status_and_body%$'\n'*}"
+  body_contract='unexpected'
+  case "$content_type" in
+    application/json*)
+      body_contract="$(printf '%s' "$body" | "$VENV/bin/python" -c 'import json, sys; value = json.load(sys.stdin); status = value.get("status") if isinstance(value, dict) else None; print(status if isinstance(status, str) else "")')" || body_contract='invalid-json'
+      ;;
+    text/plain*)
+      [[ "$body" == 'OK' ]] && body_contract='OK'
+      ;;
+  esac
+  printf 'stage=%s stable-name http_status=%s content_type=%s body_contract=%s\n' \
+    "$name" "$http_status" "$content_type" "$body_contract"
+  [[ "$http_status" == "$HEALTH_STATUS" \
+    && ( "$body_contract" == 'ok' || "$body_contract" == 'healthy' || "$body_contract" == 'OK' ) ]]
+}
+
 run_stage() {
   local name="$1"
+  local stage_status=0
   shift
   echo "== $name =="
+  set +e
   "$@"
+  stage_status=$?
+  set -e
+  printf 'stage=%s exit=%s\n' "$name" "$stage_status"
+  if ! record_stable_response "$name"; then
+    return 1
+  fi
+  return "$stage_status"
 }
 
 run_stage stage-1 "$VENV/bin/python" scripts/stage1.py
