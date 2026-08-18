@@ -167,15 +167,21 @@ type ZennFenceMatch = {
 const RAW_HTML_BLOCK_TAGS = new Set([
   'address', 'article', 'aside', 'base', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup',
   'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer',
-  'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'iframe', 'legend',
-  'li', 'link', 'main', 'menu', 'menuitem', 'nav', 'ol', 'p', 'pre', 'script', 'section', 'summary',
-  'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'textarea', 'title', 'tr', 'track', 'ul', 'style',
+  'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html',
+  'iframe', 'legend', 'li', 'link', 'main', 'menu', 'menuitem', 'nav', 'ol', 'optgroup', 'option',
+  'p', 'param', 'pre', 'script', 'section', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead',
+  'textarea', 'title', 'tr', 'track', 'ul', 'style',
 ]);
 const RAW_HTML_TAGS_WITH_EXPLICIT_END = new Set(['pre', 'script', 'style', 'textarea']);
 
 type RawHtmlBlockBoundary =
   | { kind: 'blank'; interruptsParagraph: boolean }
   | { kind: 'closing'; pattern: RegExp; interruptsParagraph: boolean };
+
+type RawHtmlBlockState = {
+  boundary: RawHtmlBlockBoundary;
+  listContentIndent?: number;
+};
 
 type ZennBoundary = { start: number; end: number };
 
@@ -287,7 +293,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   let fenceChar: '`' | '~' | null = null;
   let fenceLength = 0;
   let fenceContainer: ZennFenceContainer | undefined;
-  let htmlBlockEnd: RawHtmlBlockBoundary | null = null;
+  let htmlBlockEnd: RawHtmlBlockState | null = null;
   let paragraphActive = false;
 
   while (offset < source.length) {
@@ -297,19 +303,32 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
 
     if (!fenceChar) {
       if (htmlBlockEnd) {
-        const endsAtBoundary = htmlBlockEnd.kind === 'blank'
-          ? line.trim() === ''
-          : htmlBlockEnd.pattern.test(line);
-        if (endsAtBoundary) {
+        const indentation = line.match(/^[ \t]*/)?.[0].length || 0;
+        const endsListContainer = htmlBlockEnd.listContentIndent !== undefined
+          && line.trim() !== ''
+          && indentation < htmlBlockEnd.listContentIndent;
+        if (endsListContainer) {
           htmlBlockEnd = null;
           paragraphActive = false;
+        } else {
+          const endsAtBoundary = htmlBlockEnd.boundary.kind === 'blank'
+            ? line.trim() === ''
+            : htmlBlockEnd.boundary.pattern.test(line);
+          if (endsAtBoundary) {
+            htmlBlockEnd = null;
+            paragraphActive = false;
+          }
+          offset = end;
+          continue;
         }
-        offset = end;
-        continue;
       }
       const rawHtml = rawHtmlBlockEnd(stripZennContainerPrefix(line));
       if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph)) {
-        htmlBlockEnd = rawHtml;
+        const listPrefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
+        htmlBlockEnd = {
+          boundary: rawHtml,
+          listContentIndent: listPrefix?.[0].length,
+        };
         paragraphActive = false;
         offset = end;
         continue;

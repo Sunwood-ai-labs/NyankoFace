@@ -89,12 +89,24 @@ const REPOSITORY_README_CACHE_TTL_MS = Math.max(
   60,
   Number.parseInt(process.env.README_CACHE_TTL_SECONDS || '300', 10) || 300,
 ) * 1000;
+const MAX_REPOSITORY_README_CACHE_ENTRIES = 64;
 
 type RepositoryReadmeResult =
   | { status: 'present'; raw: string; path: string; size: number }
   | { status: 'absent' | 'unavailable' | 'too-large'; path?: string; size?: number };
 
 const repositoryReadmeCache = new Map<string, { value: RepositoryReadmeResult; expiresAt: number }>();
+
+function pruneRepositoryReadmeCache(now = Date.now()): void {
+  for (const [key, entry] of repositoryReadmeCache) {
+    if (entry.expiresAt <= now) repositoryReadmeCache.delete(key);
+  }
+  while (repositoryReadmeCache.size >= MAX_REPOSITORY_README_CACHE_ENTRIES) {
+    const oldestKey = repositoryReadmeCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    repositoryReadmeCache.delete(oldestKey);
+  }
+}
 
 function normalizeRepositoryPath(value: string): string | undefined {
   const trimmed = value.trim();
@@ -121,9 +133,15 @@ function resolveRepositorySymlinkPath(entryPath: string, target: string): string
 
 async function loadRepositoryReadme(owner: string, repo: string, ref: string): Promise<RepositoryReadmeResult> {
   const cacheKey = `${owner}/${repo}@${ref}`;
+  pruneRepositoryReadmeCache();
   const cached = repositoryReadmeCache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  if (cached) {
+    repositoryReadmeCache.delete(cacheKey);
+    repositoryReadmeCache.set(cacheKey, cached);
+    return cached.value;
+  }
   const remember = (value: RepositoryReadmeResult): RepositoryReadmeResult => {
+    pruneRepositoryReadmeCache();
     repositoryReadmeCache.set(cacheKey, { value, expiresAt: Date.now() + REPOSITORY_README_CACHE_TTL_MS });
     return value;
   };

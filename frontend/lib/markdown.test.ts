@@ -449,6 +449,41 @@ test('recognizes list-nested raw HTML before Zenn closers', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends list-nested raw HTML when a Zenn closer deindents', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- <div>',
+    '  list HTML',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /list HTML/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps omitted type-6 HTML tags inside a Zenn block', () => {
+  for (const tagName of ['option', 'optgroup', 'param', 'frame', 'frameset']) {
+    const { bodyHtml } = parseReadme([
+      ':::message',
+      'paragraph',
+      '<' + tagName + '>',
+      ':::',
+      '</' + tagName + '>',
+      '',
+      'inside',
+      ':::',
+      '',
+      '# After',
+    ].join('\n'));
+
+    assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1, tagName);
+    assert.match(bodyHtml, /data-markdown-block="zenn-message"[\s\S]*<p>inside<\/p>[\s\S]*<h1[^>]*>After<\/h1>/, tagName);
+  }
+});
+
 test('closes declaration HTML at its first angle bracket', () => {
   const { bodyHtml } = parseReadme([
     ':::message',

@@ -18,7 +18,9 @@ test('repository detail resolves a case-insensitive root README and distinguishe
   assert.match(repoPageSource, /resolveRepositorySymlinkPath\(entry\.path, entry\.target\)/);
   assert.match(repoPageSource, /normalizeRepositoryPath/);
   assert.match(repoPageSource, /REPOSITORY_README_CACHE_TTL_MS/);
+  assert.match(repoPageSource, /MAX_REPOSITORY_README_CACHE_ENTRIES/);
   assert.match(repoPageSource, /repositoryReadmeCache/);
+  assert.match(repoPageSource, /pruneRepositoryReadmeCache/);
   assert.match(repoPageSource, /candidate\.name\.toLowerCase\(\) === 'readme\.md'/);
   assert.match(repoPageSource, /status: 'absent'/);
   assert.match(repoPageSource, /status: 'unavailable'/);
