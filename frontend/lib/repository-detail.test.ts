@@ -34,19 +34,19 @@ test('repository detail resolves a case-insensitive root README and distinguishe
 });
 
 test('encodes slash-bearing branch and tag names in Forgejo navigation URLs', () => {
-  const ref = 'release/candidate 1';
+  const ref = 'release/candidate 1#2?final';
 
   assert.equal(
     forgejoTreeUrl('owner', 'repo', 'docs/guide.md', ref),
-    '/git/owner/repo/src/branch/release%2Fcandidate%201/docs/guide.md',
+    '/git/owner/repo/src/branch/release%2Fcandidate%201%232%3Ffinal/docs/guide.md',
   );
   assert.equal(
     forgejoRawUrl('owner', 'repo', 'README.md', ref, 'tag'),
-    '/git/owner/repo/raw/tag/release%2Fcandidate%201/README.md',
+    '/git/owner/repo/raw/tag/release%2Fcandidate%201%232%3Ffinal/README.md',
   );
   assert.equal(
     forgejoCommitsUrl('owner', 'repo', '', ref, 'tag'),
-    '/git/owner/repo/commits/tag/release%2Fcandidate%201',
+    '/git/owner/repo/commits/tag/release%2Fcandidate%201%232%3Ffinal',
   );
 });
 
