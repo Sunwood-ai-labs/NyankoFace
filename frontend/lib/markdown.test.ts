@@ -639,6 +639,20 @@ test('does not treat an orphan short setext line as a block', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('does not treat an orphan equals setext line as a block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '===',
+    '<my-widget>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('resets paragraph state after GFM table delimiters', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -850,6 +864,37 @@ test('does not treat custom closing tags with trailing text as raw HTML blocks',
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<p> trailing<\/p>/);
   assert.doesNotMatch(bodyHtml, /my-widget/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('carries list indentation into continued raw HTML', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- item',
+    '',
+    '  <my-widget>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('carries list indentation into continued nested directives', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- item',
+    '',
+    '  :::details Inner',
+    '  body',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 

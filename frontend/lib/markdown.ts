@@ -355,9 +355,11 @@ function startsMarkdownBlock(line: string, paragraphActive = false, previousLine
   const orderedList = content.match(/^(\d{1,9})[.)][ \t]+/);
   if (orderedList) return !paragraphActive || Number.parseInt(orderedList[1], 10) === 1;
   const shortSetextUnderline = /^(?:-[ \t]*){1,2}$/.test(content);
+  const equalsSetextUnderline = /^={1,}[ \t]*$/.test(content);
   return isGfmTableDelimiter(content, previousLine)
     || (shortSetextUnderline && paragraphActive)
-    || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-][ \t]+|>[ \t]?)/.test(content);
+    || (equalsSetextUnderline && paragraphActive)
+    || /^(?:#{1,6}(?:[ \t]+|$)|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
@@ -506,7 +508,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         const listPrefix = line.match(LIST_CONTAINER_PREFIX);
         htmlBlockEnd = {
           boundary: rawHtml,
-          listContentIndent: listPrefix ? textColumns(listPrefix[0]) : undefined,
+          listContentIndent: listPrefix ? textColumns(listPrefix[0]) : listContentIndents.at(-1),
         };
         paragraphActive = false;
         previousLine = line;
@@ -553,7 +555,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
       }
     } else if (parseZennOpeningLine(stripZennContainerPrefix(line))) {
       const listPrefix = line.match(LIST_CONTAINER_PREFIX);
-      openings.push({ offset, listContentIndent: listPrefix ? textColumns(listPrefix[0]) : undefined });
+      openings.push({ offset, listContentIndent: listPrefix ? textColumns(listPrefix[0]) : listContentIndents.at(-1) });
       paragraphActive = false;
     } else if (isZennClosingLine(line, openings.at(-1)?.listContentIndent)) {
       while (
