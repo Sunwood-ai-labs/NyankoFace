@@ -27,6 +27,7 @@ const MAX_URL_DECODE_PASSES = 8;
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
 const PRIVATE_BARE_HOSTS = new Set([
   'backend',
+  'buildbox',
   'dependency-stub',
   'forgejo',
   'forgejo-actions-dind',
@@ -50,6 +51,7 @@ const PRIVATE_BARE_HOSTS = new Set([
   'seed',
   'spaces-runner',
 ]);
+const BARE_TEXT_LABEL_HOSTS = new Set(['backend', 'frontend', 'git']);
 
 function configuredForgejoHostname(): string | undefined {
   const configured = process.env.FORGEJO_API;
@@ -381,6 +383,15 @@ function sanitizePublicRepoTextOnce(value: string): string {
       ? '[internal URL omitted]'
       : candidate;
   };
+  const scrubSingleLabelScpEndpoint = (candidate: string): string => {
+    const clock = candidate.match(/^(\d{1,3}):(\d{2})(?=$|[\s/?#])/);
+    if (clock && Number.parseInt(clock[1], 10) <= 23 && Number.parseInt(clock[2], 10) <= 59) return candidate;
+    const host = candidate.slice(0, candidate.indexOf(':'));
+    const normalizedHost = normalizedHostnameForClassification(host);
+    return !BARE_TEXT_LABEL_HOSTS.has(normalizedHost) && isEstablishedPrivateEndpointHost(host, undefined, true)
+      ? '[internal URL omitted]'
+      : candidate;
+  };
   const scrubBareHostPath = (candidate: string): string => {
     const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
     const hostPath = trailing ? candidate.slice(0, -trailing.length) : candidate;
@@ -415,6 +426,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(\[[^\]\s<>"'`]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![\p{L}\p{N}_.-])[\p{L}\p{N}][\p{L}\p{N}_.-]*\.[\p{L}\p{N}_.-]+:[^\s]+/giu, scrubUsernameLessScpEndpoint)
+    .replace(/(?<![\p{L}\p{N}_.-])[\p{L}\p{N}][\p{L}\p{N}_.-]*:[^\s<>"'`&]+/giu, scrubSingleLabelScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint)
     .replace(/(?<![\p{L}\p{N}_.-])(?:[\p{L}\p{N}][\p{L}\p{N}_.-]*|\[[^\]\s<>"'`&]+\])\/[^\s<>"'`&]+/giu, scrubBareHostPath);
 }
