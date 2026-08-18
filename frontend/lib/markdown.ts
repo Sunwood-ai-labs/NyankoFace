@@ -204,6 +204,13 @@ function continuesZennFenceContainer(line: string, container: ZennFenceContainer
   return (line.match(/^[ \t]*/)![0].length >= container.contentIndent);
 }
 
+function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
+  if (!left || !right) return left === right;
+  if (left.kind !== right.kind) return false;
+  if (left.kind === 'blockquote' || right.kind === 'blockquote') return true;
+  return left.contentIndent === right.contentIndent;
+}
+
 function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   const boundaries = new Map<number, ZennBoundary>();
   const openings: number[] = [];
@@ -229,6 +236,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         fence
         && fence.token[0] === fenceChar
         && fence.token.length >= fenceLength
+        && sameZennFenceContainer(fence.container, fenceContainer)
         && line.slice(fence.end).trim() === '',
       );
       if (closesFence) {

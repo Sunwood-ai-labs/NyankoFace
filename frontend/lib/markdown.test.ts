@@ -196,6 +196,23 @@ test('does not close a Zenn block on a fenced code line with language info', () 
   assert.doesNotMatch(bodyHtml, /data-markdown-block="zenn-details"/);
 });
 
+test('keeps container-prefixed fence-like lines inside a plain fenced block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '```',
+    '> ```',
+    ':::',
+    '```',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /&gt; ```/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('tracks fenced code nested under a list marker inside a Zenn block', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
