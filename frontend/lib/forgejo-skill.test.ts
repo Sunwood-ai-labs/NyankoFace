@@ -86,6 +86,44 @@ test('admits a public Skill with a readable root SKILL.md and keeps detail enric
   assert.equal(rootRequests.length, 2);
 });
 
+test('sanitizes Skill relationships after paged and complete enrichment', async () => {
+  const candidate = repo('relationship-sanitize-skill');
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) return jsonResponse({ data: [candidate] }, 200, { 'x-total-count': '1' });
+    if (url.pathname.endsWith('/contents/SKILL.md')) return jsonResponse(skillRootEntry());
+    if (url.pathname.endsWith('/contents/skill.json')) {
+      const content = JSON.stringify({
+        schemaVersion: 2,
+        dependencies: [
+          { repo: 'http://forgejo:3000/team/tool', type: 'required', reason: 'Private endpoint.' },
+          { repo: 'owner/docs.internal', type: 'recommended' },
+        ],
+      });
+      return jsonResponse({
+        name: 'skill.json',
+        path: 'skill.json',
+        type: 'file',
+        size: Buffer.byteLength(content),
+        sha: 'b'.repeat(40),
+        encoding: 'base64',
+        content: Buffer.from(content, 'utf-8').toString('base64'),
+      });
+    }
+    if (url.pathname.endsWith('/repos/owner/relationship-sanitize-skill')) return jsonResponse(candidate);
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    const paged = await searchRepos({ topic: 'skill', limit: 10 });
+    const complete = await searchAllReposByTopicAndQuery('skill');
+
+    for (const result of [paged, complete]) {
+      assert.equal(result.ok, true);
+      const dependencies = result.data[0]?.skill_relationships?.dependencies || [];
+      assert.equal(dependencies[0]?.repo, '[internal URL omitted]');
+      assert.equal(dependencies[1]?.repo, 'owner/docs.internal');
+    }
+  });
+});
+
 test('rejects a Skill whose root SKILL.md is missing from both catalog and detail', async () => {
   const candidate = repo('missing-root');
   await withFetch(async (url) => {

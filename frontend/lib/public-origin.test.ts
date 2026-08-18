@@ -21,12 +21,16 @@ test('converts private absolute URLs to same-origin paths', () => {
 test('keeps public absolute URLs and relative paths usable', () => {
   assert.equal(sanitizePublicUrl('https://pages.example/site/'), 'https://pages.example/site/');
   assert.equal(sanitizePublicUrl('/pages/owner/site/'), '/pages/owner/site/');
+  assert.equal(sanitizePublicUrl('https://[2001:20::1]/pages/site/'), 'https://[2001:20::1]/pages/site/');
+  assert.equal(sanitizePublicUrl('https://[2001:2f::1]/pages/site/'), 'https://[2001:2f::1]/pages/site/');
   assert.equal(sanitizePublicUrl('https://198.18.0.1/pages/site/'), '/pages/site/');
   assert.equal(sanitizePublicUrl('https://192.0.2.1/pages/site/'), '/pages/site/');
 });
 
 test('normalizes canonical private host forms before allowing absolute URLs', () => {
   assert.equal(sanitizePublicUrl('https://localhost./pages/site/'), '/pages/site/');
+  assert.equal(sanitizePublicUrl('https://localhost.localdomain:3000/pages/site/'), '/pages/site/');
+  assert.equal(sanitizePublicUrl('https://service.localdomain/pages/site/'), '/pages/site/');
   assert.equal(sanitizePublicUrl('https://forgejo./api/v1'), '/api/v1');
   assert.equal(sanitizePublicUrl('https://[::ffff:192.168.1.22]:8443/pages/site/'), '/pages/site/');
   assert.equal(sanitizePublicUrl('https://[::ffff:c0a8:116]:8443/pages/site/'), '/pages/site/');
@@ -48,6 +52,7 @@ test('prefers a safe request origin when configuration points at a LAN host', ()
     'https://madesk.tail8be30.ts.net',
   );
   assert.equal(resolvePublicOrigin('https://localhost:8443', undefined), undefined);
+  assert.equal(resolvePublicOrigin('https://home.arpa', undefined), undefined);
 });
 
 test('sanitizes Pages JSON responses before they reach browser HTML or scripts', () => {

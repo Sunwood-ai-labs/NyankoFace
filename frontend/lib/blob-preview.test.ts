@@ -9,7 +9,7 @@ const blobPage = readFileSync(
 
 test('uses the repository default branch for every blob preview reference', () => {
   assert.match(blobPage, /getRepo,/);
-  assert.match(blobPage, /const repoInfo = await getRepo\(owner, repo\);\s+const branch = repoInfo\?\.default_branch \|\| 'main';/);
+  assert.match(blobPage, /const repoInfo = await getRepo\(owner, repo\);\s+const branch = repoDefaultBranch\(repoInfo\);/);
   assert.doesNotMatch(blobPage, /const branch = 'main'/);
 
   for (const expression of [

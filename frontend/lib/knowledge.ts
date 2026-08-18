@@ -1,4 +1,4 @@
-import { getContents, getRepo, getTextFile, Repo, searchReposByTopicAndQuery, SortOption } from './forgejo';
+import { getContents, getRepo, getTextFile, Repo, repoDefaultBranch, searchReposByTopicAndQuery, SortOption } from './forgejo';
 import { parseReadme } from './markdown';
 
 export interface KnowledgeArticle {
@@ -94,12 +94,13 @@ function readingMinutes(markdown: string): number {
 
 async function loadPublication(repo: Repo): Promise<KnowledgeArticle[]> {
   const owner = repo.owner?.login || repo.full_name.split('/')[0];
-  const result = await getContents(owner, repo.name, articleDirectory, repo.default_branch);
+  const branch = repoDefaultBranch(repo);
+  const result = await getContents(owner, repo.name, articleDirectory, branch);
   const markdownFiles = result.ok && Array.isArray(result.data)
     ? result.data.filter((entry) => entry.type === 'file' && /\.md$/i.test(entry.name))
     : [];
   const loaded = await Promise.all(markdownFiles.map(async (entry) => {
-    const raw = await getTextFile(owner, repo.name, entry.path, repo.default_branch);
+    const raw = await getTextFile(owner, repo.name, entry.path, branch);
     if (!raw) return null;
     const parsed = parseReadme(raw);
     if (parsed.frontmatter.published === false) return null;
@@ -121,7 +122,7 @@ async function loadPublication(repo: Repo): Promise<KnowledgeArticle[]> {
       ownerAvatarUrl: repo.owner?.avatar_url,
       repository: repo.name,
       repositoryId: repo.id,
-      branch: repo.default_branch || 'main',
+      branch,
       path: entry.path,
       updatedAt: typeof parsed.frontmatter.updated === 'string' ? parsed.frontmatter.updated : repo.updated_at,
       createdAt: repo.created_at || repo.updated_at,

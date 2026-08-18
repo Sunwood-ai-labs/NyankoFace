@@ -85,7 +85,8 @@ export async function fillRecentPagesReservation(
   const indexedNames = new Set(indexed.map((repo) => repo.full_name));
   const repositories = [...firstPage.data];
   const repositoryNames = new Set(repositories.map((repo) => repo.full_name));
-  let totalCount = firstPage.total_count;
+  let totalCount = firstPage.upstream_total_count ?? firstPage.total_count;
+  let inspectedCount = firstPage.upstream_inspected_count ?? firstPage.data.length;
   let nextPage = 2;
 
   const uniqueFallbackCount = () => repositories.reduce(
@@ -102,9 +103,16 @@ export async function fillRecentPagesReservation(
   ) {
     const result = await loadPage(nextPage);
     if (!result.ok) {
-      return { ok: false, data: repositories, total_count: totalCount };
+      return {
+        ok: false,
+        data: repositories,
+        total_count: repositories.length,
+        upstream_total_count: totalCount,
+        upstream_inspected_count: inspectedCount,
+      };
     }
-    totalCount = Math.max(totalCount, result.total_count);
+    totalCount = Math.max(totalCount, result.upstream_total_count ?? result.total_count);
+    inspectedCount += result.upstream_inspected_count ?? result.data.length;
     for (const repo of result.data) {
       if (!repositoryNames.has(repo.full_name)) {
         repositories.push(repo);
@@ -114,7 +122,22 @@ export async function fillRecentPagesReservation(
     nextPage += 1;
   }
 
-  return { ok: true, data: repositories, total_count: totalCount };
+  return {
+    ok: true,
+    data: repositories,
+    total_count: repositories.length,
+    upstream_total_count: totalCount,
+    upstream_inspected_count: inspectedCount,
+  };
+}
+
+export function hasUninspectedSearchRows(
+  result: Pick<SearchReposResult, 'total_count' | 'upstream_total_count' | 'upstream_inspected_count'>,
+  publicRowCount: number,
+): boolean {
+  const upstreamTotal = result.upstream_total_count ?? result.total_count;
+  const inspectedCount = result.upstream_inspected_count ?? publicRowCount;
+  return upstreamTotal > inspectedCount;
 }
 
 function unavailableMetrics(owner: string, repo: string): RepoAgentMetrics {
@@ -217,8 +240,8 @@ async function loadHomePagesPreview(): Promise<HomePagesPreview> {
     const repositoriesToInspect = mergedRepositories;
     const repositorySearchOk = indexedRepositories.ok && recentRepositories.ok;
     const scanTruncated = !repositorySearchOk
-      || indexedRepositories.total_count > availableIndexed.length
-      || recentRepositories.total_count > availableRecent.length
+      || hasUninspectedSearchRows(indexedRepositories, availableIndexed.length)
+      || hasUninspectedSearchRows(recentRepositories, availableRecent.length)
       || uniqueSearchCandidateCount > repositoriesToInspect.length;
     const candidates = await Promise.all(
       repositoriesToInspect.map(async (repo): Promise<InspectedPageCandidate> => {
