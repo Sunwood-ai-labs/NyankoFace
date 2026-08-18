@@ -447,7 +447,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
 
     if (!fenceChar) {
       if (htmlBlockEnd) {
-        const indentation = line.match(/^[ \t]*/)?.[0].length || 0;
+        const indentation = leadingIndentColumns(line);
         const endsListContainer = htmlBlockEnd.listContentIndent !== undefined
           && line.trim() !== ''
           && indentation < htmlBlockEnd.listContentIndent;
@@ -472,7 +472,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         const listPrefix = line.match(LIST_CONTAINER_PREFIX);
         htmlBlockEnd = {
           boundary: rawHtml,
-          listContentIndent: listPrefix?.[0].length,
+          listContentIndent: listPrefix ? textColumns(listPrefix[0]) : undefined,
         };
         paragraphActive = false;
         previousLine = line;
@@ -519,7 +519,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
       }
     } else if (parseZennOpeningLine(stripZennContainerPrefix(line))) {
       const listPrefix = line.match(LIST_CONTAINER_PREFIX);
-      openings.push({ offset, listContentIndent: listPrefix?.[0].length });
+      openings.push({ offset, listContentIndent: listPrefix ? textColumns(listPrefix[0]) : undefined });
       paragraphActive = false;
     } else if (isZennClosingLine(line, openings.at(-1)?.listContentIndent)) {
       while (
