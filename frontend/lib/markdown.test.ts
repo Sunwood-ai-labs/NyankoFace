@@ -152,6 +152,23 @@ test('keeps non-one ordered lazy continuations inside GitHub alerts', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps empty list markers inside an active GitHub alert paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    '*',
+    '<my-widget>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /paragraph/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends a GitHub alert before an unquoted fenced code block', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
@@ -645,6 +662,7 @@ test('does not reset paragraph state for orphan or mismatched GFM delimiters', (
   for (const lines of [
     ['plain paragraph', '| --- | --- |'],
     ['| header |', '| --- | --- |'],
+    ['| header |', '| - |'],
   ]) {
     const { bodyHtml } = parseReadme([
       ':::message',
@@ -835,6 +853,22 @@ test('does not treat custom closing tags with trailing text as raw HTML blocks',
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('recognizes whitespace before custom closing tag brackets', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '</my-widget >',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /:::/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps omitted type-6 HTML tags inside a Zenn block', () => {
   for (const tagName of ['option', 'optgroup', 'param', 'frame', 'frameset']) {
     const { bodyHtml } = parseReadme([
@@ -971,6 +1005,22 @@ test('tracks fenced code nested under a list marker inside a Zenn block', () => 
   ].join('\n'));
 
   assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('tracks list fences beyond the preceding marker line', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- item',
+    '  paragraph',
+    '  ```',
+    '  code',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
