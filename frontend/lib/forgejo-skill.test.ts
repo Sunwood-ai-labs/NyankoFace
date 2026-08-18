@@ -217,23 +217,47 @@ test('continues across raw pages that contain only private Skills', async () => 
   assert.deepEqual(requestedPages, [1, 2]);
 });
 
+test('continues when Forgejo returns fewer raw items than the requested page size', async () => {
+  const firstPage = Array.from({ length: 50 }, (_, index) => repo(`partial-first-${index}`));
+  const secondPage = Array.from({ length: 25 }, (_, index) => repo(`partial-second-${index}`));
+  const requestedPages: number[] = [];
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) {
+      const page = Number(url.searchParams.get('page'));
+      requestedPages.push(page);
+      return jsonResponse({ data: page === 1 ? firstPage : secondPage }, 200, { 'x-total-count': '75' });
+    }
+    if (url.pathname.endsWith('/contents/SKILL.md')) return jsonResponse(skillRootEntry());
+    if (url.pathname.endsWith('/contents/skill.json')) return jsonResponse({}, 404);
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    const listing = await searchRepos({ topic: 'skill', limit: 100 });
+    assert.equal(listing.ok, true);
+    assert.equal(listing.data.length, 75);
+  });
+  assert.deepEqual(requestedPages, [1, 2]);
+});
+
 test('scans the all-Skill catalog once instead of rescanning earlier raw pages', async () => {
-  const first = repo('first');
-  const second = repo('second');
+  const firstPage = Array.from({ length: 100 }, (_, index) => repo(`first-${index}`));
+  const secondPage = [repo('second')];
   const requestedPages: number[] = [];
   await withFetch(async (url) => {
     if (url.pathname.endsWith('/repos/search')) {
       const page = Number(url.searchParams.get('page'));
       requestedPages.push(page);
       return page === 1
-        ? jsonResponse({ data: [first] }, 200, { 'x-total-count': '101' })
-        : jsonResponse({ data: [second] }, 200, { 'x-total-count': '101' });
+        ? jsonResponse({ data: firstPage }, 200, { 'x-total-count': '101' })
+        : jsonResponse({ data: secondPage }, 200, { 'x-total-count': '101' });
     }
     if (url.pathname.endsWith('/contents/SKILL.md')) return jsonResponse(skillRootEntry());
+    if (url.pathname.endsWith('/contents/skill.json')) return jsonResponse({}, 404);
     throw new Error(`Unexpected Forgejo request: ${url}`);
   }, async () => {
     const listing = await searchAllReposByTopicAndQuery('skill');
-    assert.deepEqual(listing.data.map((item) => item.full_name), ['owner/first', 'owner/second']);
+    assert.equal(listing.data.length, 101);
+    assert.equal(listing.data[0].full_name, 'owner/first-0');
+    assert.equal(listing.data[100].full_name, 'owner/second');
   });
   assert.deepEqual(requestedPages, [1, 2]);
 });

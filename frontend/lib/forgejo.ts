@@ -80,6 +80,8 @@ export interface SearchReposResult {
   ok: boolean;
   data: Repo[];
   total_count: number;
+  /** Number of raw repositories returned before private visibility filtering. */
+  raw_page_size?: number;
 }
 
 export interface ContentEntry {
@@ -240,12 +242,14 @@ async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchRep
   // This server-side client uses the seed admin token to read repository
   // metadata. Never let that privileged token turn private Forgejo assets into
   // public NyankoFace catalog entries.
-  const data = (Array.isArray(res.json.data) ? res.json.data as Repo[] : []).filter((repo) => !repo.private);
+  const rawData = Array.isArray(res.json.data) ? res.json.data as Repo[] : [];
+  const data = rawData.filter((repo) => !repo.private);
   const headerTotal = Number.parseInt(res.headers?.get('x-total-count') || '', 10);
   return {
     ok: true,
     data,
-    total_count: Number.isFinite(headerTotal) ? headerTotal : data.length,
+    total_count: Number.isFinite(headerTotal) ? headerTotal : rawData.length,
+    raw_page_size: rawData.length,
   };
 }
 
@@ -257,18 +261,20 @@ async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposR
   const firstAdmittedIndex = (requestedPage - 1) * limit;
   const admitted: Repo[] = [];
   let rawTotal = 0;
+  let rawFetched = 0;
   let rawExhausted = false;
 
   for (let rawPage = 1; rawPage <= MAX_SKILL_SEARCH_PAGES; rawPage += 1) {
     const result = await fetchRepoSearchPage({ ...params, limit, page: rawPage });
     if (!result.ok) return result;
     rawTotal = result.total_count;
+    rawFetched += result.raw_page_size ?? result.data.length;
 
     const skillResult = await enrichSkillMetadata(result.data);
     if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
     admitted.push(...skillResult.repos);
 
-    const rawPageExhausted = rawPage * limit >= rawTotal;
+    const rawPageExhausted = rawFetched >= rawTotal;
     if (admitted.length >= firstAdmittedIndex + limit || rawPageExhausted) {
       rawExhausted = true;
       break;
@@ -316,6 +322,7 @@ export async function searchAllReposByTopicAndQuery(
   const pageSize = 100;
   let page = 1;
   let expectedTotal = Number.POSITIVE_INFINITY;
+  let rawFetched = 0;
   const repos: Repo[] = [];
 
   while ((page - 1) * pageSize < expectedTotal) {
@@ -323,11 +330,12 @@ export async function searchAllReposByTopicAndQuery(
     if (!result.ok) return { ok: false, data: [], total_count: 0 };
     repos.push(...result.data);
     expectedTotal = result.total_count;
+    rawFetched += result.raw_page_size ?? result.data.length;
     // `data` excludes private repositories, while Forgejo's total still
     // describes the raw result set. Do not stop just because a page became
     // shorter after that safety filter; otherwise a later public page could
     // be omitted from the global metric ranking.
-    if (page * pageSize >= expectedTotal || result.data.length === 0 && expectedTotal === 0) break;
+    if (rawFetched >= expectedTotal) break;
     page += 1;
   }
 
@@ -347,16 +355,18 @@ async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchRep
   const pageSize = 100;
   const repos: Repo[] = [];
   let rawTotal = Number.POSITIVE_INFINITY;
+  let rawFetched = 0;
   let rawExhausted = false;
 
   for (let page = 1; page <= MAX_SKILL_SEARCH_PAGES; page += 1) {
     const result = await fetchRepoSearchPage({ topic: 'skill', sort: 'updated', limit: pageSize, page });
     if (!result.ok) return result;
     rawTotal = result.total_count;
+    rawFetched += result.raw_page_size ?? result.data.length;
     const skillResult = await enrichSkillMetadata(result.data);
     if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
     repos.push(...skillResult.repos);
-    if (page * pageSize >= rawTotal) {
+    if (rawFetched >= rawTotal) {
       rawExhausted = true;
       break;
     }
