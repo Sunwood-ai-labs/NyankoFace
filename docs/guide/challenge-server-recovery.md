@@ -38,6 +38,7 @@ set -euo pipefail
 CHALLENGE_DIR="${CHALLENGE_DIR:?set this to the challenge checkout}"
 SERVICE_NAME="${SERVICE_NAME:?set the stable challenge service name}"
 APP_MODULE="${APP_MODULE:?set the Flask app module}"
+SERVICE_MARKER="${SERVICE_MARKER:-$APP_MODULE}"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:?set the challenge port}"
 HEALTH_URL="${HEALTH_URL:?set the stable-name health URL}"
@@ -54,20 +55,37 @@ substring that could match another challenge.
 
 ## Kill and verify the old process
 
-Read the PID file, validate that it contains only digits, and signal only that
-PID. A second bounded check is enough to distinguish a clean stop from a
-stuck process.
+Read the PID file, validate that it contains only digits, and prove the
+process identity before every signal. The proof checks the challenge checkout,
+the rebuilt interpreter, and the app/service marker. A second bounded check is
+enough to distinguish a clean stop from a stuck process.
 
 ~~~bash
 old_pid="$(tr -d '[:space:]' < "$PID_FILE")"
 [[ "$old_pid" =~ ^[0-9]+$ && "$old_pid" -gt 1 ]]
 
+assert_pid_owner() {
+  local pid="$1"
+  local expected_dir expected_python resolved_python process_dir command_line
+  expected_dir="$(readlink -f "$CHALLENGE_DIR")"
+  expected_python="$VENV/bin/python"
+  resolved_python="$(readlink -f "$expected_python")"
+  [[ -r "/proc/$pid/cwd" && -r "/proc/$pid/cmdline" ]]
+  process_dir="$(readlink -f "/proc/$pid/cwd")"
+  command_line="$(tr '\0' ' ' < "/proc/$pid/cmdline")"
+  [[ "$process_dir" == "$expected_dir" || "$process_dir" == "$expected_dir/"* ]]
+  [[ "$command_line" == *"$expected_python"* || "$command_line" == *"$resolved_python"* ]]
+  [[ "$command_line" == *"$APP_MODULE"* || "$command_line" == *"$SERVICE_MARKER"* ]]
+}
+
 if kill -0 "$old_pid" 2>/dev/null; then
+  assert_pid_owner "$old_pid"
   kill -TERM "$old_pid"
   sleep 1
 fi
 
 if kill -0 "$old_pid" 2>/dev/null; then
+  assert_pid_owner "$old_pid"
   kill -KILL "$old_pid"
   sleep 1
 fi
@@ -91,7 +109,7 @@ the response body in memory and compare the exact marker.
 ~~~bash
 failure_body="$(curl --silent --show-error --max-time 3 \
   --header 'Accept: text/plain' "$FAILURE_URL")"
-if ! grep -Fxq '000FAIL' <<<"$failure_body"; then
+if [[ "$failure_body" != '000FAIL' ]]; then
   echo "stable name did not return the expected 000FAIL marker" >&2
   exit 1
 fi
@@ -127,11 +145,30 @@ response must be the expected JSON or text contract; an HTTP 200 alone is not
 proof of the right service.
 
 ~~~bash
+check_health() {
+  local response content_type body status
+  response="$(curl --silent --show-error --fail --max-time 3 \
+    --header 'Accept: application/json, text/plain' \
+    --write-out $'\n%{content_type}' "$HEALTH_URL")" || return 1
+  content_type="${response##*$'\n'}"
+  body="${response%$'\n'*}"
+  case "$content_type" in
+    application/json*)
+      status="$(printf '%s' "$body" | "$VENV/bin/python" -c 'import json, sys; value = json.load(sys.stdin); status = value.get("status") if isinstance(value, dict) else None; print(status if isinstance(status, str) else "")')" || return 1
+      [[ "$status" == 'ok' || "$status" == 'healthy' ]]
+      ;;
+    text/plain*)
+      [[ "$body" == 'OK' ]]
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 healthy=0
 for attempt in 1 2 3 4 5 6 7 8 9 10; do
-  if kill -0 "$new_pid" 2>/dev/null \
-    && curl --silent --show-error --fail --max-time 3 "$HEALTH_URL" \
-    | grep -Eq '"status"[[:space:]]*:[[:space:]]*"(ok|healthy)"|^OK$'; then
+  if kill -0 "$new_pid" 2>/dev/null && check_health; then
     healthy=1
     break
   fi
@@ -154,9 +191,9 @@ run_stage() {
   "$@"
 }
 
-run_stage stage-1 python scripts/stage1.py
-run_stage stage-2 python scripts/stage2.py
-run_stage stage-3 python scripts/stage3.py
+run_stage stage-1 "$VENV/bin/python" scripts/stage1.py
+run_stage stage-2 "$VENV/bin/python" scripts/stage2.py
+run_stage stage-3 "$VENV/bin/python" scripts/stage3.py
 ~~~
 
 Then run negative cases that must fail closed:

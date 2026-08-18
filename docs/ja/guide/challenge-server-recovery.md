@@ -36,6 +36,7 @@ set -euo pipefail
 CHALLENGE_DIR="${CHALLENGE_DIR:?challenge checkoutを指定}"
 SERVICE_NAME="${SERVICE_NAME:?stableなchallenge service名を指定}"
 APP_MODULE="${APP_MODULE:?Flask app moduleを指定}"
+SERVICE_MARKER="${SERVICE_MARKER:-$APP_MODULE}"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:?challenge portを指定}"
 HEALTH_URL="${HEALTH_URL:?stable nameのhealth URLを指定}"
@@ -51,19 +52,36 @@ shared process-managerのparent、別challengeにも一致するsubstringでproc
 
 ## 旧processをkillして確認する
 
-PID fileを読み、数字だけであることを確認して、そのPIDだけへsignalを送ります。
+PID fileを読み、数字だけであることを確認します。signalを送る前に、
+challenge checkout、再構築したinterpreter、app/service markerを使ってprocess identityを確認します。
 2回目までのbounded checkで正常停止か、停止不能かを判定します。
 
 ~~~bash
 old_pid="$(tr -d '[:space:]' < "$PID_FILE")"
 [[ "$old_pid" =~ ^[0-9]+$ && "$old_pid" -gt 1 ]]
 
+assert_pid_owner() {
+  local pid="$1"
+  local expected_dir expected_python resolved_python process_dir command_line
+  expected_dir="$(readlink -f "$CHALLENGE_DIR")"
+  expected_python="$VENV/bin/python"
+  resolved_python="$(readlink -f "$expected_python")"
+  [[ -r "/proc/$pid/cwd" && -r "/proc/$pid/cmdline" ]]
+  process_dir="$(readlink -f "/proc/$pid/cwd")"
+  command_line="$(tr '\0' ' ' < "/proc/$pid/cmdline")"
+  [[ "$process_dir" == "$expected_dir" || "$process_dir" == "$expected_dir/"* ]]
+  [[ "$command_line" == *"$expected_python"* || "$command_line" == *"$resolved_python"* ]]
+  [[ "$command_line" == *"$APP_MODULE"* || "$command_line" == *"$SERVICE_MARKER"* ]]
+}
+
 if kill -0 "$old_pid" 2>/dev/null; then
+  assert_pid_owner "$old_pid"
   kill -TERM "$old_pid"
   sleep 1
 fi
 
 if kill -0 "$old_pid" 2>/dev/null; then
+  assert_pid_owner "$old_pid"
   kill -KILL "$old_pid"
   sleep 1
 fi
@@ -85,7 +103,7 @@ bodyをmemory上で扱い、markerを完全一致させます。
 ~~~bash
 failure_body="$(curl --silent --show-error --max-time 3 \
   --header 'Accept: text/plain' "$FAILURE_URL")"
-if ! grep -Fxq '000FAIL' <<<"$failure_body"; then
+if [[ "$failure_body" != '000FAIL' ]]; then
   echo "stable nameが期待する000FAIL markerを返しません" >&2
   exit 1
 fi
@@ -117,11 +135,30 @@ health URLは最大10回だけ確認します。processが生きていること�
 HTTP 200だけでは正しいserviceの証明になりません。
 
 ~~~bash
+check_health() {
+  local response content_type body status
+  response="$(curl --silent --show-error --fail --max-time 3 \
+    --header 'Accept: application/json, text/plain' \
+    --write-out $'\n%{content_type}' "$HEALTH_URL")" || return 1
+  content_type="${response##*$'\n'}"
+  body="${response%$'\n'*}"
+  case "$content_type" in
+    application/json*)
+      status="$(printf '%s' "$body" | "$VENV/bin/python" -c 'import json, sys; value = json.load(sys.stdin); status = value.get("status") if isinstance(value, dict) else None; print(status if isinstance(status, str) else "")')" || return 1
+      [[ "$status" == 'ok' || "$status" == 'healthy' ]]
+      ;;
+    text/plain*)
+      [[ "$body" == 'OK' ]]
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 healthy=0
 for attempt in 1 2 3 4 5 6 7 8 9 10; do
-  if kill -0 "$new_pid" 2>/dev/null \
-    && curl --silent --show-error --fail --max-time 3 "$HEALTH_URL" \
-    | grep -Eq '"status"[[:space:]]*:[[:space:]]*"(ok|healthy)"|^OK$'; then
+  if kill -0 "$new_pid" 2>/dev/null && check_health; then
     healthy=1
     break
   fi
@@ -142,9 +179,9 @@ run_stage() {
   "$@"
 }
 
-run_stage stage-1 python scripts/stage1.py
-run_stage stage-2 python scripts/stage2.py
-run_stage stage-3 python scripts/stage3.py
+run_stage stage-1 "$VENV/bin/python" scripts/stage1.py
+run_stage stage-2 "$VENV/bin/python" scripts/stage2.py
+run_stage stage-3 "$VENV/bin/python" scripts/stage3.py
 ~~~
 
 続けて、fail closedであるべきnegative caseを実行します。
