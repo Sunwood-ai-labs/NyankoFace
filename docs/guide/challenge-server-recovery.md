@@ -90,6 +90,17 @@ PY
 )"
 [[ "$old_pid" =~ ^[0-9]+$ && "$old_pid" -gt 1 ]]
 
+probe_pid() {
+  local pid="$1"
+  if kill -0 "$pid" 2>/dev/null; then
+    return 0
+  fi
+  if [[ -e "/proc/$pid" ]]; then
+    return 2
+  fi
+  return 1
+}
+
 assert_pid_owner() {
   local pid="$1"
   local expected_dir expected_python resolved_python process_dir command_line process_env
@@ -113,19 +124,37 @@ assert_pid_owner() {
   grep -Fqx -- "NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER" <<<"$process_env"
 }
 
-if kill -0 "$old_pid" 2>/dev/null; then
+pid_probe_status=1
+probe_pid "$old_pid" || pid_probe_status=$?
+if [[ "$pid_probe_status" -eq 2 ]]; then
+  echo "cannot prove ownership of old PID: $old_pid" >&2
+  exit 1
+fi
+if [[ "$pid_probe_status" -eq 0 ]]; then
   assert_pid_owner "$old_pid"
   kill -TERM "$old_pid"
   sleep 1
 fi
 
-if kill -0 "$old_pid" 2>/dev/null; then
+pid_probe_status=1
+probe_pid "$old_pid" || pid_probe_status=$?
+if [[ "$pid_probe_status" -eq 2 ]]; then
+  echo "cannot probe old PID after TERM: $old_pid" >&2
+  exit 1
+fi
+if [[ "$pid_probe_status" -eq 0 ]]; then
   assert_pid_owner "$old_pid"
   kill -KILL "$old_pid"
   sleep 1
 fi
 
-if kill -0 "$old_pid" 2>/dev/null; then
+pid_probe_status=1
+probe_pid "$old_pid" || pid_probe_status=$?
+if [[ "$pid_probe_status" -eq 2 ]]; then
+  echo "cannot prove old PID stopped: $old_pid" >&2
+  exit 1
+fi
+if [[ "$pid_probe_status" -eq 0 ]]; then
   echo "old PID is still alive: $old_pid" >&2
   exit 1
 fi
