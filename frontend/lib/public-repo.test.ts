@@ -220,6 +220,10 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     undefined,
   );
   assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=deploy+@forgejo:repo.git'),
+    undefined,
+  );
+  assert.equal(
     safePublicUrl('https://public.example/redirect?clone=github.com:org/repo'),
     'https://public.example/redirect?clone=github.com:org/repo',
   );

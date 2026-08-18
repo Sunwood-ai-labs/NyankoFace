@@ -16,7 +16,7 @@ const NESTED_URL_PATTERNS = [
   /(?<![a-z0-9+.-])(?=(https?:(?![\\/])[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:about|blob|data|file|ftp|git|gopher|javascript|mailto|ssh|tel|vbscript|ws|wss):[^\s<>"'`&]+))/gi,
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
-  /(?=(\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
+  /(?=(\b[\w.+-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`&]+\/[^\s<>"'`]+))/gi,
 ];
 const MAX_URL_DECODE_PASSES = 8;
@@ -117,7 +117,7 @@ function parseScpTarget(value: string): { host: string } | undefined {
   if (/^(?:about|blob|data|file|ftp|git|gopher|https?|javascript|mailto|ssh|tel|vbscript|ws|wss):/i.test(value)) {
     return undefined;
   }
-  const match = value.match(/^(?:[\w.-]+@)?(\[[^\]\s<>"'&]+\]|[a-z0-9.-]+):[^\s<>"'&]+$/i);
+  const match = value.match(/^(?:[\w.+-]+@)?(\[[^\]\s<>"'&]+\]|[a-z0-9.-]+):[^\s<>"'&]+$/i);
   return match ? { host: match[1] } : undefined;
 }
 
@@ -261,7 +261,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
-    .replace(/\b[\w.-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
+    .replace(/\b[\w.+-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint);
