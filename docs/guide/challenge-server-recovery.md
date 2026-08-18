@@ -64,8 +64,19 @@ the rebuilt interpreter, and the app/service marker. A second bounded check is
 enough to distinguish a clean stop from a stuck process.
 
 ~~~bash
-old_pid="$(cat "$PID_FILE")"
-[[ "$(wc -l < "$PID_FILE")" -le 1 ]]
+old_pid="$(
+  python3 - "$PID_FILE" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+if data.endswith(b'\n'):
+    data = data[:-1]
+if not data or b'\x00' in data or b'\n' in data or any(byte < 48 or byte > 57 for byte in data):
+    raise SystemExit('invalid PID file')
+sys.stdout.write(data.decode('ascii'))
+PY
+)"
 [[ "$old_pid" =~ ^[0-9]+$ && "$old_pid" -gt 1 ]]
 
 assert_pid_owner() {
@@ -73,13 +84,20 @@ assert_pid_owner() {
   local expected_dir expected_python resolved_python process_dir command_line process_env
   expected_dir="$(readlink -f "$CHALLENGE_DIR")"
   expected_python="$VENV/bin/python"
-  resolved_python="$(readlink -f "$expected_python")"
+  resolved_python=''
+  if [[ -e "$expected_python" ]]; then
+    resolved_python="$(readlink -f "$expected_python" 2>/dev/null || true)"
+  fi
   [[ -r "/proc/$pid/cwd" && -r "/proc/$pid/cmdline" ]]
   process_dir="$(readlink -f "/proc/$pid/cwd")"
   command_line="$(tr '\0' ' ' < "/proc/$pid/cmdline")"
   process_env="$(tr '\0' '\n' < "/proc/$pid/environ")"
   [[ "$process_dir" == "$expected_dir" || "$process_dir" == "$expected_dir/"* ]]
-  [[ "$command_line" == *"$expected_python"* || "$command_line" == *"$resolved_python"* ]]
+  if [[ -n "$resolved_python" ]]; then
+    [[ "$command_line" == *"$expected_python"* || "$command_line" == *"$resolved_python"* ]]
+  else
+    [[ "$command_line" == *"$expected_python"* ]]
+  fi
   [[ "$command_line" == *"$APP_MODULE"* ]]
   grep -Fqx -- "NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER" <<<"$process_env"
 }
@@ -115,14 +133,14 @@ command-substitution loss.
 
 ~~~bash
 content_type_matches() {
-  local actual="$1"
-  local expected="$2"
+  local actual="${1,,}"
+  local expected="${2,,}"
   [[ "$actual" == "$expected" || "$actual" == "$expected;"* ]]
 }
 
 read_health_body_contract() {
   local body_file="$1"
-  local content_type="$2"
+  local content_type="${2,,}"
   case "$content_type" in
     application/json|'application/json;'*)
       "$VENV/bin/python" - "$body_file" <<'PY'
@@ -136,7 +154,8 @@ except (OSError, UnicodeError, ValueError):
     print('invalid-json')
 else:
     status = value.get('status') if isinstance(value, dict) else None
-    print(status if isinstance(status, str) else '')
+    allowed = {'ok', 'healthy', 'OK'}
+    print(status if isinstance(status, str) and status in allowed else 'unexpected')
 PY
       ;;
     text/plain|'text/plain;'*)
