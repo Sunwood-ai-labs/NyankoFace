@@ -339,7 +339,7 @@ body_contract_valid() {
 
 read_health_body_contract() {
   local body_file="$1"
-  local content_type="${2,,}"
+  local content_type="$2"
   local expected_content_types="${3:-$HEALTH_CONTENT_TYPES}"
   local expected_json_content_types="${4:-$HEALTH_JSON_CONTENT_TYPES}"
   local expected_text_content_types="${5:-$HEALTH_TEXT_CONTENT_TYPES}"
