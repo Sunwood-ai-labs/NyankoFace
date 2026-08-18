@@ -217,6 +217,18 @@ function leadingIndentColumns(line: string): number {
   return columns;
 }
 
+function textColumns(text: string): number {
+  let columns = 0;
+  for (const character of text) {
+    if (character === '\t') {
+      columns += 4 - (columns % 4);
+    } else {
+      columns += 1;
+    }
+  }
+  return columns;
+}
+
 function expandLeadingTabs(line: string): string {
   let columns = 0;
   let index = 0;
@@ -248,7 +260,10 @@ function matchZennFence(line: string): ZennFenceMatch | null {
     return {
       token: list[1],
       end: list[0].length,
-      container: { kind: 'list', contentIndent: list[0].length - list[1].length },
+      container: {
+        kind: 'list',
+        contentIndent: textColumns(list[0].slice(0, -list[1].length)),
+      },
     };
   }
   const plain = line.match(/^ {0,3}(`{3,}|~{3,})/);
@@ -560,7 +575,8 @@ function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryInde
     : rootBoundaryIndex.sourceLength - source.length;
   let absoluteClosing = boundaryIndex.boundaries.get(sourceOffset);
   const rootSourceMatches = rootBoundaryIndex.source.startsWith(firstLine, sourceOffset);
-  if (!absoluteClosing && (context || !rootSourceMatches)) {
+  const lineStart = rootBoundaryIndex.source.lastIndexOf('\n', Math.max(0, sourceOffset - 1)) + 1;
+  if (!absoluteClosing && (!rootSourceMatches || sourceOffset !== lineStart)) {
     const localBoundaryIndex = buildZennBoundaryIndex(source);
     const localOffset = localBoundaryIndex.boundaries.keys().next().value;
     if (localOffset === 0) {

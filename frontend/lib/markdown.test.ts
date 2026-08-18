@@ -797,6 +797,21 @@ test('tracks fenced code nested under a list marker inside a Zenn block', () => 
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('measures list-nested Zenn fences at tab-stop columns', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '-\t```',
+    '    list code',
+    '  :::',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('tracks Zenn blocks nested immediately after a list marker', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
