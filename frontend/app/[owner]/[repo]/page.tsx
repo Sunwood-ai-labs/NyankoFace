@@ -95,6 +95,29 @@ type RepositoryReadmeResult =
 
 const repositoryReadmeCache = new Map<string, { value: RepositoryReadmeResult; expiresAt: number }>();
 
+function normalizeRepositoryPath(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.startsWith('/') || trimmed.includes('\\') || /[\u0000-\u001f\u007f]/.test(trimmed)) {
+    return undefined;
+  }
+  const segments: string[] = [];
+  for (const segment of trimmed.split('/')) {
+    if (!segment || segment === '.') continue;
+    if (segment === '..') {
+      if (!segments.length) return undefined;
+      segments.pop();
+      continue;
+    }
+    segments.push(segment);
+  }
+  return segments.join('/') || undefined;
+}
+
+function resolveRepositorySymlinkPath(entryPath: string, target: string): string | undefined {
+  const basePath = entryPath.split('/').slice(0, -1).join('/');
+  return normalizeRepositoryPath([basePath, target].filter(Boolean).join('/'));
+}
+
 async function loadRepositoryReadme(owner: string, repo: string, ref: string): Promise<RepositoryReadmeResult> {
   const cacheKey = `${owner}/${repo}@${ref}`;
   const cached = repositoryReadmeCache.get(cacheKey);
@@ -109,16 +132,20 @@ async function loadRepositoryReadme(owner: string, repo: string, ref: string): P
     if (!root.ok || !Array.isArray(root.data)) return remember({ status: 'unavailable' });
 
     const entry = root.data.find((candidate) =>
-      candidate.type === 'file' && candidate.name.toLowerCase() === 'readme.md',
+      (candidate.type === 'file' || candidate.type === 'symlink') && candidate.name.toLowerCase() === 'readme.md',
     );
     if (!entry) return remember({ status: 'absent' });
-    if (entry.size >= MAX_README_PREVIEW_BYTES) {
-      return remember({ status: 'too-large', path: entry.path, size: entry.size });
+    const readmePath = entry.type === 'symlink'
+      ? typeof entry.target === 'string' ? resolveRepositorySymlinkPath(entry.path, entry.target) : undefined
+      : normalizeRepositoryPath(entry.path);
+    if (!readmePath) return remember({ status: 'unavailable', path: entry.path, size: entry.size });
+    if (entry.type === 'file' && entry.size >= MAX_README_PREVIEW_BYTES) {
+      return remember({ status: 'too-large', path: readmePath, size: entry.size });
     }
 
-    const file = await getContents(owner, repo, entry.path, ref);
+    const file = await getContents(owner, repo, readmePath, ref);
     if (!file.ok || !file.data || Array.isArray(file.data) || file.data.type !== 'file' || typeof file.data.content !== 'string') {
-      return remember({ status: 'unavailable', path: entry.path, size: entry.size });
+      return remember({ status: 'unavailable', path: readmePath, size: entry.size });
     }
     const rawBuffer = Buffer.from(
       file.data.content,
@@ -126,9 +153,9 @@ async function loadRepositoryReadme(owner: string, repo: string, ref: string): P
     );
     const fetchedSize = file.data.size ?? rawBuffer.byteLength;
     if (fetchedSize >= MAX_README_PREVIEW_BYTES || rawBuffer.byteLength >= MAX_README_PREVIEW_BYTES) {
-      return remember({ status: 'too-large', path: entry.path, size: fetchedSize });
+      return remember({ status: 'too-large', path: readmePath, size: fetchedSize });
     }
-    return remember({ status: 'present', raw: rawBuffer.toString('utf-8'), path: entry.path, size: fetchedSize });
+    return remember({ status: 'present', raw: rawBuffer.toString('utf-8'), path: readmePath, size: fetchedSize });
   } catch {
     return remember({ status: 'unavailable' });
   }

@@ -89,6 +89,7 @@ export interface ContentEntry {
   name: string;
   path: string;
   type: 'file' | 'dir' | 'symlink' | 'submodule';
+  target?: string | null;
   size: number;
   sha: string;
   download_url?: string | null;
