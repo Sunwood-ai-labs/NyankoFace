@@ -241,6 +241,10 @@ not an HTML error page or a successful response from a different server. Capture
 the body in a file so the exact byte sequence is compared without Bash
 command-substitution loss.
 
+Body-contract lists remain comma-separated for compatibility. Escape a literal
+comma as `\\,` (and a literal backslash as `\\\\`); for example,
+`READY\\, v1,OK` means the two exact alternatives `READY, v1` and `OK`.
+
 ~~~bash
 content_type_matches() {
   local actual="$1"
@@ -270,7 +274,9 @@ content_type_normalize() {
   local parameter
   local parameter_name
   local parameter_value
+  local normalized_parameter
   local -a parameters
+  local -a normalized_parameters
   media_type="$(content_type_trim "$media_type")"
   normalized="${media_type,,}"
   if [[ "$value" != *';'* ]]; then
@@ -284,11 +290,16 @@ content_type_normalize() {
     if [[ "$parameter" == *=* ]]; then
       parameter_name="$(content_type_trim "${parameter%%=*}")"
       parameter_value="$(content_type_trim "${parameter#*=}")"
-      normalized+=";${parameter_name,,}=${parameter_value}"
+      normalized_parameters+=("${parameter_name,,}=${parameter_value}")
     else
-      normalized+=";${parameter,,}"
+      normalized_parameters+=("${parameter,,}")
     fi
   done
+  if ((${#normalized_parameters[@]} > 0)); then
+    while IFS= read -r normalized_parameter; do
+      normalized+=";${normalized_parameter}"
+    done < <(printf '%s\n' "${normalized_parameters[@]}" | LC_ALL=C sort)
+  fi
   printf '%s' "$normalized"
 }
 
@@ -304,6 +315,31 @@ content_type_in_list() {
     fi
   done
   return 1
+}
+
+split_body_contracts() {
+  local value="$1"
+  local current=''
+  local char next
+  local index
+  for ((index = 0; index < ${#value}; index++)); do
+    char="${value:index:1}"
+    if [[ "$char" == "\\" && $((index + 1)) -lt ${#value} ]]; then
+      next="${value:index + 1:1}"
+      if [[ "$next" == ',' || "$next" == "\\" ]]; then
+        current+="$next"
+        index=$((index + 1))
+        continue
+      fi
+    fi
+    if [[ "$char" == ',' ]]; then
+      printf '%s\0' "$current"
+      current=''
+    else
+      current+="$char"
+    fi
+  done
+  printf '%s\0' "$current"
 }
 
 body_contract_valid() {
@@ -338,7 +374,26 @@ except (OSError, UnicodeError, ValueError):
     print('invalid:json')
 else:
     status = value.get(sys.argv[2]) if isinstance(value, dict) else None
-    expected = {item.strip() for item in sys.argv[3].split(',') if item.strip()}
+    def split_contracts(raw):
+        items = []
+        current = []
+        index = 0
+        while index < len(raw):
+            char = raw[index]
+            if char == '\\' and index + 1 < len(raw) and raw[index + 1] in ',\\':
+                current.append(raw[index + 1])
+                index += 2
+                continue
+            if char == ',':
+                items.append(''.join(current))
+                current = []
+            else:
+                current.append(char)
+            index += 1
+        items.append(''.join(current))
+        return items
+
+    expected = {item.strip() for item in split_contracts(sys.argv[3]) if item.strip()}
     print(f'valid:{status}' if isinstance(status, str) and status in expected else 'invalid:body')
 PY
     return
@@ -346,7 +401,9 @@ PY
   if content_type_in_list "$content_type" "$expected_text_content_types"; then
     local expected_body
     local -a expected_bodies
-    IFS=',' read -r -a expected_bodies <<< "$expected_text_body_contracts"
+    while IFS= read -r -d '' expected_body; do
+      expected_bodies+=("$expected_body")
+    done < <(split_body_contracts "$expected_text_body_contracts")
     for expected_body in "${expected_bodies[@]}"; do
       if printf '%s' "$expected_body" | cmp -s "$body_file" -; then
         printf 'valid:%s\n' "$expected_body"
