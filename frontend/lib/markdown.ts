@@ -435,7 +435,8 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   }
   const tagName = opening.tagName.toLowerCase();
   const isBlockTag = RAW_HTML_BLOCK_TAGS.has(tagName);
-  const isSelfClosing = /\/\s*>$/.test(opening.raw);
+  if (/\/\s+>$/.test(opening.raw)) return null;
+  const isSelfClosing = /\/>$/.test(opening.raw);
   if (isSelfClosing) {
     if (!isBlockTag && trimmed.slice(opening.raw.length).trim() !== '') return null;
     return { kind: 'blank', interruptsParagraph: isBlockTag };

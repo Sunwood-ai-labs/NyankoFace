@@ -390,6 +390,19 @@ test('keeps compact and spaced self-closing HTML blocks open until a blank line'
   }
 });
 
+test('does not treat spaces after a self-closing slash as raw HTML', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<my-widget / >',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not treat trailing text after a custom self-closing tag as an HTML block', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
