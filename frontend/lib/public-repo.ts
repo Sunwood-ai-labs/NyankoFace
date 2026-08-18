@@ -124,6 +124,10 @@ function parseScpTarget(value: string): { host: string } | undefined {
 function containsUnsafeNestedUrl(value: string): boolean {
   let current = value;
   for (let pass = 0; pass <= MAX_URL_DECODE_PASSES; pass += 1) {
+    // Percent decoding can reveal controls that were not present in the
+    // original public-looking URL. Reject them before WHATWG URL parsing can
+    // normalize them away.
+    if (/[\u0000-\u001f\u007f]/.test(current)) return true;
     for (const pattern of NESTED_URL_PATTERNS) {
       for (const match of current.matchAll(pattern)) {
         const candidate = (match[1] || '').replace(/[),.;!?]+$/, '');
