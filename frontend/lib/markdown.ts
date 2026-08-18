@@ -252,7 +252,7 @@ function expandLeadingTabs(line: string): string {
   return expanded + line.slice(index);
 }
 
-function matchZennFence(line: string): ZennFenceMatch | null {
+function matchZennFence(line: string, previousLine?: string): ZennFenceMatch | null {
   const blockquote = line.match(/^ {0,3}>[ \t]?(`{3,}|~{3,})/);
   if (blockquote) {
     return { token: blockquote[1], end: blockquote[0].length, container: { kind: 'blockquote' } };
@@ -266,6 +266,19 @@ function matchZennFence(line: string): ZennFenceMatch | null {
         kind: 'list',
         contentIndent: textColumns(list[0].slice(0, -list[1].length)),
       },
+    };
+  }
+  const previousListPrefix = previousLine?.match(LIST_CONTAINER_PREFIX);
+  const continuation = line.match(/^[ \t]+(`{3,}|~{3,})/);
+  if (
+    previousListPrefix
+    && continuation
+    && leadingIndentColumns(continuation[0].slice(0, -continuation[1].length)) >= textColumns(previousListPrefix[0])
+  ) {
+    return {
+      token: continuation[1],
+      end: continuation[0].length,
+      container: { kind: 'list', contentIndent: textColumns(previousListPrefix[0]) },
     };
   }
   const plain = line.match(/^ {0,3}(`{3,}|~{3,})/);
@@ -335,12 +348,12 @@ function isGfmTableDelimiter(line: string, headerLine?: string): boolean {
 function startsMarkdownBlock(line: string, paragraphActive = false, previousLine?: string): boolean {
   if (leadingIndentColumns(line) >= 4) return !paragraphActive;
   const content = line.replace(/^ {0,3}/, '');
-  const orderedList = content.match(/^(\d{1,9})[.)][ \t]+/);
+  const orderedList = content.match(/^(\d{1,9})[.)](?:[ \t]+|$)/);
   if (orderedList) return !paragraphActive || Number.parseInt(orderedList[1], 10) === 1;
   const shortSetextUnderline = /^(?:-[ \t]*){1,2}$/.test(content);
   return isGfmTableDelimiter(content, previousLine)
     || (shortSetextUnderline && paragraphActive)
-    || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-][ \t]+|>[ \t]?)/.test(content);
+    || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-](?:[ \t]+|$)|>[ \t]?)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
@@ -395,9 +408,11 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   if (/^<![A-Z]/.test(trimmed)) return trimmed.includes('>') ? null : { kind: 'closing', pattern: />/, interruptsParagraph: true };
   const closingTag = trimmed.match(/^<\/([A-Za-z][A-Za-z0-9-]*)>/);
   if (closingTag) {
+    const tagName = closingTag[1].toLowerCase();
+    if (!RAW_HTML_BLOCK_TAGS.has(tagName) && trimmed.slice(closingTag[0].length).trim() !== '') return null;
     return {
       kind: 'blank',
-      interruptsParagraph: RAW_HTML_BLOCK_TAGS.has(closingTag[1].toLowerCase()),
+      interruptsParagraph: RAW_HTML_BLOCK_TAGS.has(tagName),
     };
   }
   const opening = matchRawHtmlOpening(trimmed);
@@ -487,7 +502,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
       }
     }
 
-    const fence = matchZennFence(line);
+    const fence = matchZennFence(line, previousLine);
 
     if (fenceChar && fenceContainer && !continuesZennFenceContainer(line, fenceContainer)) {
       fenceChar = null;

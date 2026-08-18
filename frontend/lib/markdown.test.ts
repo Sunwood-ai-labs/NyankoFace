@@ -788,6 +788,53 @@ test('ends list-nested raw HTML when a Zenn closer deindents', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('recognizes empty list items before type-7 HTML', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '-',
+    '<my-widget>',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('tracks fences started on a later list-item continuation line', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- item',
+    '  ```',
+    '  code',
+    '- after',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not treat custom closing tags with trailing text as raw HTML blocks', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '</my-widget> trailing',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<p> trailing<\/p>/);
+  assert.doesNotMatch(bodyHtml, /my-widget/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps omitted type-6 HTML tags inside a Zenn block', () => {
   for (const tagName of ['option', 'optgroup', 'param', 'frame', 'frameset']) {
     const { bodyHtml } = parseReadme([
