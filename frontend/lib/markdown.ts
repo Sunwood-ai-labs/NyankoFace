@@ -273,10 +273,18 @@ function continuesZennFenceContainer(line: string, container: ZennFenceContainer
   return leadingIndentColumns(line) >= container.contentIndent;
 }
 
-function startsMarkdownBlock(line: string): boolean {
-  if (leadingIndentColumns(line) >= 4) return true;
+function isGfmTableDelimiter(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed.includes('|')) return false;
+  const cells = trimmed.replace(/^\|/, '').replace(/\|$/, '').split('|');
+  return cells.length >= 1 && cells.every((cell) => /^:?-+:?$/.test(cell.trim()));
+}
+
+function startsMarkdownBlock(line: string, paragraphActive = false): boolean {
+  if (leadingIndentColumns(line) >= 4) return !paragraphActive;
   const content = line.replace(/^ {0,3}/, '');
-  return /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){1,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|(?:[*+-]|\d{1,9}[.)])[ \t]+|>[ \t]?)/.test(content);
+  return isGfmTableDelimiter(content)
+    || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){1,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|(?:[*+-]|\d{1,9}[.)])[ \t]+|>[ \t]?)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
@@ -299,7 +307,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
       interruptsParagraph: RAW_HTML_BLOCK_TAGS.has(closingTag[1].toLowerCase()),
     };
   }
-  const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?>/);
+  const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?\/?>/);
   if (!opening) {
     const partialExplicitOpening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?=\s|$)/);
     if (partialExplicitOpening && RAW_HTML_TAGS_WITH_EXPLICIT_END.has(partialExplicitOpening[1].toLowerCase())) {
@@ -422,7 +430,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     } else if (line.trim() === '') {
       paragraphActive = false;
     } else {
-      paragraphActive = !startsMarkdownBlock(line);
+      paragraphActive = !startsMarkdownBlock(line, paragraphActive);
     }
     offset = end;
   }
@@ -454,8 +462,17 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   if (!header) return undefined;
 
   let rawLength = header[0].length;
-  const continuation = source.slice(rawLength).match(/^(?:[ \t]{0,3}>[^\r\n]*(?:\r?\n|$))+/);
-  if (continuation) rawLength += continuation[0].length;
+  let cursor = rawLength;
+  while (cursor < source.length) {
+    const newlineIndex = source.indexOf('\n', cursor);
+    const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
+    const line = source.slice(cursor, end).replace(/\r?\n$/, '');
+    if (line.trim() === '') break;
+    const isQuoted = /^ {0,3}>/.test(line);
+    if (!isQuoted && (startsMarkdownBlock(line) || parseZennOpeningLine(line))) break;
+    cursor = end;
+  }
+  rawLength = cursor;
   const raw = source.slice(0, rawLength);
   const bodyMarkdown = raw
     .split(/\r?\n/)

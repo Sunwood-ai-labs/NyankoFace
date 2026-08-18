@@ -123,6 +123,21 @@ test('renders every GitHub alert as a typed callout instead of a generic blockqu
   assert.doesNotMatch(bodyHtml, /<blockquote>/);
 });
 
+test('keeps lazy blockquote continuations inside GitHub alerts', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> first line',
+    'continued without a quote marker',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="github-alert" data-alert-type="NOTE"/);
+  assert.match(bodyHtml, /first line/);
+  assert.match(bodyHtml, /continued without a quote marker/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('requires at most one padding space before a GitHub alert marker', () => {
   const { bodyHtml } = parseReadme('>  [!NOTE]\n> This remains an ordinary blockquote.');
 
@@ -274,20 +289,22 @@ test('keeps type-7 custom HTML blocks open until a blank line', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
-test('keeps self-closing HTML blocks open until a blank line', () => {
-  const { bodyHtml } = parseReadme([
-    ':::message',
-    '<hr />',
-    ':::',
-    '',
-    ':::',
-    '',
-    '# After',
-  ].join('\n'));
+test('keeps compact and spaced self-closing HTML blocks open until a blank line', () => {
+  for (const tag of ['<hr />', '<hr/>']) {
+    const { bodyHtml } = parseReadme([
+      ':::message',
+      tag,
+      ':::',
+      '',
+      ':::',
+      '',
+      '# After',
+    ].join('\n'));
 
-  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
-  assert.match(bodyHtml, /<hr\s*\/>/);
-  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+    assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1, tag);
+    assert.match(bodyHtml, /<hr\s*\/>/, tag);
+    assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/, tag);
+  }
 });
 
 test('does not let a type-7 HTML tag interrupt a paragraph', () => {
@@ -302,6 +319,26 @@ test('does not let a type-7 HTML tag interrupt a paragraph', () => {
 
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /paragraph/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('preserves paragraph continuation before a type-7 HTML tag', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'paragraph',
+    '    continuation',
+    '<my-widget>',
+    ':::',
+    '</my-widget>',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /paragraph/);
+  assert.match(bodyHtml, /continuation/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
@@ -408,6 +445,25 @@ test('resets paragraph state after short hyphen setext underlines', () => {
     assert.match(bodyHtml, /:::/, underline);
     assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/, underline);
   }
+});
+
+test('resets paragraph state after GFM table delimiters', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '| header |',
+    '| --- |',
+    '<my-widget>',
+    ':::',
+    '</my-widget>',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<table>/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
 test('does not borrow a later closer for an unmatched Zenn opener', () => {
