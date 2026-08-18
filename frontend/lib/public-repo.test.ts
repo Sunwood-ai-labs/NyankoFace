@@ -223,6 +223,10 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     undefined,
   );
   assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http:buildbox/app'),
+    undefined,
+  );
+  assert.equal(
     safePublicUrl('https://public.example/redirect?next=http:127.0.0.1?x'),
     undefined,
   );
@@ -365,6 +369,15 @@ test('rejects the configured Forgejo origin even when its hostname is public-loo
     assert.equal(safePublicUrl('https://[2606:4700:4700::1111]/avatar.png'), undefined);
     process.env.FORGEJO_API = 'http://forgejo_dev:3000/api/v1';
     assert.equal(safePublicUrl('https://public.example/redirect?clone=git@forgejo_dev:org/repo.git'), undefined);
+    const sanitized = sanitizePublicRepo({
+      id: 14,
+      name: 'demo',
+      full_name: 'alice/demo',
+      description: 'internal endpoint forgejo_dev:3000/health',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo);
+    assert.doesNotMatch(sanitized.description || '', /forgejo_dev:3000/);
   } finally {
     if (original === undefined) delete process.env.FORGEJO_API;
     else process.env.FORGEJO_API = original;

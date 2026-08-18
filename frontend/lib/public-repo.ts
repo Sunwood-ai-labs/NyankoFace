@@ -210,7 +210,9 @@ function containsUnsafeNestedUrl(value: string): boolean {
           const nested = new URL(candidate);
           const slashlessHttpTarget = /^https?:[^\\/]/i.test(candidate);
           const unsafeHost = slashlessHttpTarget
-            ? isEstablishedPrivateEndpointHost(nested.hostname)
+            ? targetParameter
+              ? isPrivateHostname(nested.hostname)
+              : isEstablishedPrivateEndpointHost(nested.hostname)
             : isPrivateHostname(nested.hostname);
           if (
             (nested.protocol !== 'http:' && nested.protocol !== 'https:') ||
@@ -295,7 +297,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     }
   };
   const scrubBareEndpoint = (candidate: string): string => {
-    const endpoint = candidate.match(/^((?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\])):(\d{1,5})(?:[/?#][^\s<>"'`]*)?$/i);
+    const endpoint = candidate.match(/^((?:[a-z0-9_.-]+|\[[^\]\s<>"'`]+\])):(\d{1,5})(?:[/?#][^\s<>"'`]*)?$/i);
     if (!endpoint) return candidate;
     const host = endpoint[1];
     const port = endpoint[2];
