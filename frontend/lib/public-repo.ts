@@ -67,7 +67,16 @@ function normalizedHostnameForClassification(hostname: string): string {
     .replace(/\.+$/, '');
   const scopeSeparator = host.indexOf('%');
   if (scopeSeparator >= 0) return normalizedHostnameForClassification(host.slice(0, scopeSeparator));
-  if (!host.includes(':')) return host;
+  if (!host.includes(':')) {
+    try {
+      return new URL('http://' + host + '/').hostname
+        .toLowerCase()
+        .replace(/^\[|\]$/g, '')
+        .replace(/\.+$/, '');
+    } catch {
+      return host;
+    }
+  }
   try {
     return new URL(`http://[${host}]/`).hostname
       .toLowerCase()

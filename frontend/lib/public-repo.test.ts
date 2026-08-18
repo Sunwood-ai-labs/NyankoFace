@@ -396,6 +396,11 @@ test('rejects the configured Forgejo origin even when its hostname is public-loo
       safePublicUrl('https://public.example/redirect?clone=git@[2606:4700:4700:0:0:0:0:1111]:repo.git'),
       undefined,
     );
+    process.env.FORGEJO_API = 'https://förgejo.example.com/api/v1';
+    assert.equal(
+      safePublicUrl('https://public.example/redirect?clone=git@förgejo.example.com:repo.git'),
+      undefined,
+    );
     process.env.FORGEJO_API = 'http://forgejo_dev:3000/api/v1';
     assert.equal(safePublicUrl('https://public.example/redirect?clone=git@forgejo_dev:org/repo.git'), undefined);
     const sanitized = sanitizePublicRepo({
