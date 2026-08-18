@@ -49,39 +49,42 @@ HEALTH_TEXT_CONTENT_TYPES="${HEALTH_TEXT_CONTENT_TYPES:-text/plain}"
 HEALTH_JSON_STATUS_FIELD="${HEALTH_JSON_STATUS_FIELD:-status}"
 HEALTH_BODY_CONTRACTS="${HEALTH_BODY_CONTRACTS:-ok,healthy,OK}"
 HEALTH_TEXT_BODY_CONTRACTS="${HEALTH_TEXT_BODY_CONTRACTS:-OK}"
-STAGE_1_URL="${STAGE_1_URL:?set the stage-1 response URL}"
-STAGE_2_URL="${STAGE_2_URL:?set the stage-2 response URL}"
-STAGE_3_URL="${STAGE_3_URL:?set the stage-3 response URL}"
-STAGE_1_METHOD="${STAGE_1_METHOD:-GET}"
-STAGE_1_HEADERS="${STAGE_1_HEADERS:-}"
-STAGE_1_BODY_FILE="${STAGE_1_BODY_FILE:-}"
-STAGE_1_STATUS="${STAGE_1_STATUS:-$HEALTH_STATUS}"
-STAGE_1_CONTENT_TYPES="${STAGE_1_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
-STAGE_1_JSON_CONTENT_TYPES="${STAGE_1_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
-STAGE_1_TEXT_CONTENT_TYPES="${STAGE_1_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
-STAGE_1_JSON_STATUS_FIELD="${STAGE_1_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
-STAGE_1_BODY_CONTRACTS="${STAGE_1_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
-STAGE_1_TEXT_BODY_CONTRACTS="${STAGE_1_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
-STAGE_2_METHOD="${STAGE_2_METHOD:-GET}"
-STAGE_2_HEADERS="${STAGE_2_HEADERS:-}"
-STAGE_2_BODY_FILE="${STAGE_2_BODY_FILE:-}"
-STAGE_2_STATUS="${STAGE_2_STATUS:-$HEALTH_STATUS}"
-STAGE_2_CONTENT_TYPES="${STAGE_2_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
-STAGE_2_JSON_CONTENT_TYPES="${STAGE_2_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
-STAGE_2_TEXT_CONTENT_TYPES="${STAGE_2_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
-STAGE_2_JSON_STATUS_FIELD="${STAGE_2_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
-STAGE_2_BODY_CONTRACTS="${STAGE_2_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
-STAGE_2_TEXT_BODY_CONTRACTS="${STAGE_2_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
-STAGE_3_METHOD="${STAGE_3_METHOD:-GET}"
-STAGE_3_HEADERS="${STAGE_3_HEADERS:-}"
-STAGE_3_BODY_FILE="${STAGE_3_BODY_FILE:-}"
-STAGE_3_STATUS="${STAGE_3_STATUS:-$HEALTH_STATUS}"
-STAGE_3_CONTENT_TYPES="${STAGE_3_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
-STAGE_3_JSON_CONTENT_TYPES="${STAGE_3_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
-STAGE_3_TEXT_CONTENT_TYPES="${STAGE_3_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
-STAGE_3_JSON_STATUS_FIELD="${STAGE_3_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
-STAGE_3_BODY_CONTRACTS="${STAGE_3_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
-STAGE_3_TEXT_BODY_CONTRACTS="${STAGE_3_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
+STAGE_1_PROBE_URL="${STAGE_1_PROBE_URL:?set the idempotent stage-1 probe URL}"
+STAGE_1_PROBE_IDEMPOTENT="${STAGE_1_PROBE_IDEMPOTENT:?set stage-1 probe idempotence to true}"
+STAGE_1_PROBE_METHOD="${STAGE_1_PROBE_METHOD:-GET}"
+STAGE_1_PROBE_HEADERS_FILE="${STAGE_1_PROBE_HEADERS_FILE:-}"
+STAGE_1_PROBE_BODY_FILE="${STAGE_1_PROBE_BODY_FILE:-}"
+STAGE_1_PROBE_STATUS="${STAGE_1_PROBE_STATUS:-$HEALTH_STATUS}"
+STAGE_1_PROBE_CONTENT_TYPES="${STAGE_1_PROBE_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
+STAGE_1_PROBE_JSON_CONTENT_TYPES="${STAGE_1_PROBE_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
+STAGE_1_PROBE_TEXT_CONTENT_TYPES="${STAGE_1_PROBE_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
+STAGE_1_PROBE_JSON_STATUS_FIELD="${STAGE_1_PROBE_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
+STAGE_1_PROBE_BODY_CONTRACTS="${STAGE_1_PROBE_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
+STAGE_1_PROBE_TEXT_BODY_CONTRACTS="${STAGE_1_PROBE_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
+STAGE_2_PROBE_URL="${STAGE_2_PROBE_URL:?set the idempotent stage-2 probe URL}"
+STAGE_2_PROBE_IDEMPOTENT="${STAGE_2_PROBE_IDEMPOTENT:?set stage-2 probe idempotence to true}"
+STAGE_2_PROBE_METHOD="${STAGE_2_PROBE_METHOD:-GET}"
+STAGE_2_PROBE_HEADERS_FILE="${STAGE_2_PROBE_HEADERS_FILE:-}"
+STAGE_2_PROBE_BODY_FILE="${STAGE_2_PROBE_BODY_FILE:-}"
+STAGE_2_PROBE_STATUS="${STAGE_2_PROBE_STATUS:-$HEALTH_STATUS}"
+STAGE_2_PROBE_CONTENT_TYPES="${STAGE_2_PROBE_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
+STAGE_2_PROBE_JSON_CONTENT_TYPES="${STAGE_2_PROBE_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
+STAGE_2_PROBE_TEXT_CONTENT_TYPES="${STAGE_2_PROBE_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
+STAGE_2_PROBE_JSON_STATUS_FIELD="${STAGE_2_PROBE_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
+STAGE_2_PROBE_BODY_CONTRACTS="${STAGE_2_PROBE_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
+STAGE_2_PROBE_TEXT_BODY_CONTRACTS="${STAGE_2_PROBE_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
+STAGE_3_PROBE_URL="${STAGE_3_PROBE_URL:?set the idempotent stage-3 probe URL}"
+STAGE_3_PROBE_IDEMPOTENT="${STAGE_3_PROBE_IDEMPOTENT:?set stage-3 probe idempotence to true}"
+STAGE_3_PROBE_METHOD="${STAGE_3_PROBE_METHOD:-GET}"
+STAGE_3_PROBE_HEADERS_FILE="${STAGE_3_PROBE_HEADERS_FILE:-}"
+STAGE_3_PROBE_BODY_FILE="${STAGE_3_PROBE_BODY_FILE:-}"
+STAGE_3_PROBE_STATUS="${STAGE_3_PROBE_STATUS:-$HEALTH_STATUS}"
+STAGE_3_PROBE_CONTENT_TYPES="${STAGE_3_PROBE_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
+STAGE_3_PROBE_JSON_CONTENT_TYPES="${STAGE_3_PROBE_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
+STAGE_3_PROBE_TEXT_CONTENT_TYPES="${STAGE_3_PROBE_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
+STAGE_3_PROBE_JSON_STATUS_FIELD="${STAGE_3_PROBE_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
+STAGE_3_PROBE_BODY_CONTRACTS="${STAGE_3_PROBE_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
+STAGE_3_PROBE_TEXT_BODY_CONTRACTS="${STAGE_3_PROBE_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
 FAILURE_URL="${FAILURE_URL:?set the stable-name failure URL}"
 FAILURE_STATUS="${FAILURE_STATUS:?set the expected stopped-state HTTP status}"
 FAILURE_CONTENT_TYPE="${FAILURE_CONTENT_TYPE:?set the expected stopped-state content type}"
@@ -96,14 +99,18 @@ The default health contract accepts JSON `status` values `ok`, `healthy`, or
 `HEALTH_CONTENT_TYPES`, `HEALTH_JSON_CONTENT_TYPES`,
 `HEALTH_TEXT_CONTENT_TYPES`, `HEALTH_JSON_STATUS_FIELD`, and the comma-separated
 `HEALTH_BODY_CONTRACTS` values. Set `HEALTH_TEXT_BODY_CONTRACTS` separately for
-exact text responses. For each stage, set `STAGE_n_URL`, `STAGE_n_METHOD`,
-`STAGE_n_HEADERS` (a semicolon-separated full header list), and an optional
-`STAGE_n_BODY_FILE`; an empty header value uses the configured content types as
-the `Accept` header. Set the stage-specific status, content-type, JSON field,
-and body-contract variables when a stage differs from the health contract.
-The proof replays that complete configured request after the stage command; it
-must not claim to capture a response whose nonce, cookie, or request body
-cannot be replayed from these inputs.
+exact text responses. For each stage, set an idempotent `STAGE_n_PROBE_URL`,
+set `STAGE_n_PROBE_IDEMPOTENT=true` only after independently confirming that
+the probe cannot consume a nonce or mutate challenge state, and configure its
+method, optional `STAGE_n_PROBE_HEADERS_FILE` (one complete header per line),
+and optional `STAGE_n_PROBE_BODY_FILE`. An empty header-file value uses the
+configured content types as the `Accept` header. Set the probe-specific status,
+content-type, JSON field, and body-contract variables when a probe differs from
+the health contract. The stage command runs once; the proof then calls only the
+separate idempotent probe. It never replays a mutating stage request. If the
+stage response itself must be verified, have the stage command capture and
+validate that response as a challenge-specific artifact instead of using this
+probe.
 
 Use a stable name that is unique to this challenge. Do not identify a process
 by an arbitrary “latest Python” PID, a shared process-manager parent, or a
@@ -242,14 +249,6 @@ body_contract_valid() {
   [[ "$1" == valid:* && -n "${1#valid:}" ]]
 }
 
-body_contract_value() {
-  if [[ "$1" == valid:* ]]; then
-    printf '%s' "${1#valid:}"
-  else
-    printf '%s' "$1"
-  fi
-}
-
 read_health_body_contract() {
   local body_file="$1"
   local content_type="${2,,}"
@@ -380,17 +379,18 @@ done
 
 ## Rerun the proof matrix
 
-Run the challenge's three stages in order and capture each exit code and
-stable-name response. The exact command names belong to the challenge; the
-shape of the proof does not.
+Run the challenge's three stages in order and record each exit code plus the
+response from its separately configured idempotent probe. The exact command
+names belong to the challenge; the shape of the proof does not. The probe is
+not the stage request and must not advance challenge state.
 
 ~~~bash
-record_stable_response() {
+record_stage_probe() {
   local name="$1"
-  local response_url="$2"
-  local request_method="$3"
-  local request_headers="$4"
-  local request_body_file="$5"
+  local probe_url="$2"
+  local probe_method="$3"
+  local probe_headers_file="$4"
+  local probe_body_file="$5"
   local expected_status="$6"
   local expected_content_types="$7"
   local expected_json_content_types="$8"
@@ -398,61 +398,71 @@ record_stable_response() {
   local expected_json_status_field="${10}"
   local expected_body_contracts="${11}"
   local expected_text_body_contracts="${12}"
-  local body_file metadata content_type body_contract contract_value http_status header
+  local body_file metadata content_type body_contract body_contract_status http_status header
   local -a curl_args configured_headers
   body_file="$(mktemp)"
-  curl_args=(--silent --show-error --max-time 3 --request "$request_method")
-  if [[ -n "$request_headers" ]]; then
-    IFS=';' read -r -a configured_headers <<< "$request_headers"
+  curl_args=(--silent --show-error --max-time 3 --request "$probe_method")
+  if [[ -n "$probe_headers_file" ]]; then
+    [[ -f "$probe_headers_file" ]] || { rm -f "$body_file"; return 1; }
+    mapfile -t configured_headers < "$probe_headers_file"
     for header in "${configured_headers[@]}"; do
+      header="${header%$'\r'}"
       [[ -n "${header//[[:space:]]/}" ]] || continue
       curl_args+=(--header "$header")
     done
   else
     curl_args+=(--header "Accept: $expected_content_types")
   fi
-  if [[ -n "$request_body_file" ]]; then
-    [[ -f "$request_body_file" ]] || { rm -f "$body_file"; return 1; }
-    curl_args+=(--data-binary "@$request_body_file")
+  if [[ -n "$probe_body_file" ]]; then
+    [[ -f "$probe_body_file" ]] || { rm -f "$body_file"; return 1; }
+    curl_args+=(--data-binary "@$probe_body_file")
   fi
   metadata="$(curl "${curl_args[@]}" \
     --output "$body_file" \
-    --write-out $'%{http_code}\n%{content_type}' "$response_url")" || { rm -f "$body_file"; return 1; }
+    --write-out $'%{http_code}\n%{content_type}' "$probe_url")" || { rm -f "$body_file"; return 1; }
   http_status="${metadata%%$'\n'*}"
   content_type="${metadata#*$'\n'}"
   body_contract="$(read_health_body_contract "$body_file" "$content_type" \
     "$expected_content_types" "$expected_json_content_types" "$expected_text_content_types" \
     "$expected_json_status_field" "$expected_body_contracts" "$expected_text_body_contracts")"
-  contract_value="$(body_contract_value "$body_contract")"
+  body_contract_status='invalid'
+  if body_contract_valid "$body_contract"; then
+    body_contract_status='matched'
+  fi
   rm -f "$body_file"
-  printf 'stage=%s stable-name http_status=%s content_type=%s body_contract=%s\n' \
-    "$name" "$http_status" "$content_type" "$contract_value"
+  printf 'stage=%s idempotent_probe http_status=%s content_type=%s body_contract=%s\n' \
+    "$name" "$http_status" "$content_type" "$body_contract_status"
   [[ "$http_status" == "$expected_status" ]] && body_contract_valid "$body_contract"
 }
 
 run_stage() {
   local name="$1"
-  local response_url="$2"
-  local request_method="$3"
-  local request_headers="$4"
-  local request_body_file="$5"
-  local expected_status="$6"
-  local expected_content_types="$7"
-  local expected_json_content_types="$8"
-  local expected_text_content_types="$9"
-  local expected_json_status_field="${10}"
-  local expected_body_contracts="${11}"
-  local expected_text_body_contracts="${12}"
+  local probe_url="$2"
+  local probe_idempotent="$3"
+  local probe_method="$4"
+  local probe_headers_file="$5"
+  local probe_body_file="$6"
+  local expected_status="$7"
+  local expected_content_types="$8"
+  local expected_json_content_types="$9"
+  local expected_text_content_types="${10}"
+  local expected_json_status_field="${11}"
+  local expected_body_contracts="${12}"
+  local expected_text_body_contracts="${13}"
   local stage_status=0
-  shift 12
+  shift 13
+  if [[ "$probe_idempotent" != 'true' ]]; then
+    echo "$name probe is not explicitly marked idempotent" >&2
+    return 1
+  fi
   echo "== $name =="
   set +e
   "$@"
   stage_status=$?
   set -e
   printf 'stage=%s exit=%s\n' "$name" "$stage_status"
-  if ! record_stable_response "$name" "$response_url" "$request_method" "$request_headers" \
-    "$request_body_file" "$expected_status" "$expected_content_types" \
+  if ! record_stage_probe "$name" "$probe_url" "$probe_method" "$probe_headers_file" \
+    "$probe_body_file" "$expected_status" "$expected_content_types" \
     "$expected_json_content_types" "$expected_text_content_types" \
     "$expected_json_status_field" "$expected_body_contracts" "$expected_text_body_contracts"; then
     return 1
@@ -461,18 +471,21 @@ run_stage() {
 }
 
 matrix_status=0
-if ! run_stage stage-1 "$STAGE_1_URL" "$STAGE_1_METHOD" "$STAGE_1_HEADERS" "$STAGE_1_BODY_FILE" \
-  "$STAGE_1_STATUS" "$STAGE_1_CONTENT_TYPES" "$STAGE_1_JSON_CONTENT_TYPES" \
-  "$STAGE_1_TEXT_CONTENT_TYPES" "$STAGE_1_JSON_STATUS_FIELD" "$STAGE_1_BODY_CONTRACTS" \
-  "$STAGE_1_TEXT_BODY_CONTRACTS" "$VENV/bin/python" scripts/stage1.py; then matrix_status=1; fi
-if ! run_stage stage-2 "$STAGE_2_URL" "$STAGE_2_METHOD" "$STAGE_2_HEADERS" "$STAGE_2_BODY_FILE" \
-  "$STAGE_2_STATUS" "$STAGE_2_CONTENT_TYPES" "$STAGE_2_JSON_CONTENT_TYPES" \
-  "$STAGE_2_TEXT_CONTENT_TYPES" "$STAGE_2_JSON_STATUS_FIELD" "$STAGE_2_BODY_CONTRACTS" \
-  "$STAGE_2_TEXT_BODY_CONTRACTS" "$VENV/bin/python" scripts/stage2.py; then matrix_status=1; fi
-if ! run_stage stage-3 "$STAGE_3_URL" "$STAGE_3_METHOD" "$STAGE_3_HEADERS" "$STAGE_3_BODY_FILE" \
-  "$STAGE_3_STATUS" "$STAGE_3_CONTENT_TYPES" "$STAGE_3_JSON_CONTENT_TYPES" \
-  "$STAGE_3_TEXT_CONTENT_TYPES" "$STAGE_3_JSON_STATUS_FIELD" "$STAGE_3_BODY_CONTRACTS" \
-  "$STAGE_3_TEXT_BODY_CONTRACTS" "$VENV/bin/python" scripts/stage3.py; then matrix_status=1; fi
+if ! run_stage stage-1 "$STAGE_1_PROBE_URL" "$STAGE_1_PROBE_IDEMPOTENT" "$STAGE_1_PROBE_METHOD" \
+  "$STAGE_1_PROBE_HEADERS_FILE" "$STAGE_1_PROBE_BODY_FILE" "$STAGE_1_PROBE_STATUS" \
+  "$STAGE_1_PROBE_CONTENT_TYPES" "$STAGE_1_PROBE_JSON_CONTENT_TYPES" "$STAGE_1_PROBE_TEXT_CONTENT_TYPES" \
+  "$STAGE_1_PROBE_JSON_STATUS_FIELD" "$STAGE_1_PROBE_BODY_CONTRACTS" "$STAGE_1_PROBE_TEXT_BODY_CONTRACTS" \
+  "$VENV/bin/python" scripts/stage1.py; then matrix_status=1; fi
+if ! run_stage stage-2 "$STAGE_2_PROBE_URL" "$STAGE_2_PROBE_IDEMPOTENT" "$STAGE_2_PROBE_METHOD" \
+  "$STAGE_2_PROBE_HEADERS_FILE" "$STAGE_2_PROBE_BODY_FILE" "$STAGE_2_PROBE_STATUS" \
+  "$STAGE_2_PROBE_CONTENT_TYPES" "$STAGE_2_PROBE_JSON_CONTENT_TYPES" "$STAGE_2_PROBE_TEXT_CONTENT_TYPES" \
+  "$STAGE_2_PROBE_JSON_STATUS_FIELD" "$STAGE_2_PROBE_BODY_CONTRACTS" "$STAGE_2_PROBE_TEXT_BODY_CONTRACTS" \
+  "$VENV/bin/python" scripts/stage2.py; then matrix_status=1; fi
+if ! run_stage stage-3 "$STAGE_3_PROBE_URL" "$STAGE_3_PROBE_IDEMPOTENT" "$STAGE_3_PROBE_METHOD" \
+  "$STAGE_3_PROBE_HEADERS_FILE" "$STAGE_3_PROBE_BODY_FILE" "$STAGE_3_PROBE_STATUS" \
+  "$STAGE_3_PROBE_CONTENT_TYPES" "$STAGE_3_PROBE_JSON_CONTENT_TYPES" "$STAGE_3_PROBE_TEXT_CONTENT_TYPES" \
+  "$STAGE_3_PROBE_JSON_STATUS_FIELD" "$STAGE_3_PROBE_BODY_CONTRACTS" "$STAGE_3_PROBE_TEXT_BODY_CONTRACTS" \
+  "$VENV/bin/python" scripts/stage3.py; then matrix_status=1; fi
 if (( matrix_status != 0 )); then exit 1; fi
 ~~~
 
