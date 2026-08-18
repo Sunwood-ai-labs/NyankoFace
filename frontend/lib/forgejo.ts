@@ -253,32 +253,50 @@ async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchRep
   };
 }
 
-const MAX_REPOSITORY_SEARCH_PAGES = 100;
-const MAX_SKILL_SEARCH_PAGES = 100;
+function rawSearchPageBudget(rawTotal: number, rawPageSize: number): number {
+  if (rawTotal <= 0) return 1;
+  if (rawPageSize <= 0) return 0;
+  return Math.max(1, Math.ceil(rawTotal / rawPageSize));
+}
 
 async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposResult> {
   const limit = Math.max(1, params.limit || 20);
   const requestedPage = Math.max(1, params.page || 1);
   const firstAdmittedIndex = (requestedPage - 1) * limit;
+  const targetAdmittedCount = firstAdmittedIndex + limit;
   const admitted: Repo[] = [];
   let rawTotal = 0;
   let rawFetched = 0;
   let rawExhausted = false;
+  let maxRawPages = 1;
 
-  for (let rawPage = 1; rawPage <= MAX_SKILL_SEARCH_PAGES; rawPage += 1) {
+  for (let rawPage = 1; rawPage <= maxRawPages; rawPage += 1) {
     const result = await fetchRepoSearchPage({ ...params, limit, page: rawPage });
     if (!result.ok) return result;
     rawTotal = result.total_count;
-    rawFetched += result.raw_page_size ?? result.data.length;
+    const rawPageSize = result.raw_page_size ?? result.data.length;
+    if (rawPage === 1) maxRawPages = rawSearchPageBudget(rawTotal, rawPageSize);
+    rawFetched += rawPageSize;
 
-    const skillResult = await enrichSkillMetadata(result.data);
+    // A paged listing only needs enough admitted Skills for the requested
+    // page. The complete catalog path below remains responsible for exact
+    // totals and full relationship enrichment.
+    const skillResult = await enrichSkillMetadata(result.data, targetAdmittedCount - admitted.length);
     if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
     admitted.push(...skillResult.repos);
 
+    if (admitted.length >= targetAdmittedCount) {
+      return {
+        ok: true,
+        data: admitted.slice(firstAdmittedIndex, targetAdmittedCount),
+        total_count: admitted.length,
+      };
+    }
     if (rawFetched >= rawTotal) {
       rawExhausted = true;
       break;
     }
+    if (rawPageSize === 0) break;
   }
 
   if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
@@ -324,14 +342,17 @@ export async function searchAllReposByTopicAndQuery(
   let expectedTotal = Number.POSITIVE_INFINITY;
   let rawFetched = 0;
   let rawExhausted = false;
+  let maxRawPages = 1;
   const repos: Repo[] = [];
 
-  for (page = 1; page <= MAX_REPOSITORY_SEARCH_PAGES && rawFetched < expectedTotal; page += 1) {
+  for (page = 1; page <= maxRawPages && rawFetched < expectedTotal; page += 1) {
     const result = await searchRepos({ topic, q: topic ? undefined : q, sort: 'updated', limit: pageSize, page });
     if (!result.ok) return { ok: false, data: [], total_count: 0 };
     repos.push(...result.data);
     expectedTotal = result.total_count;
-    rawFetched += result.raw_page_size ?? result.data.length;
+    const rawPageSize = result.raw_page_size ?? result.data.length;
+    if (page === 1) maxRawPages = rawSearchPageBudget(expectedTotal, rawPageSize);
+    rawFetched += rawPageSize;
     // `data` excludes private repositories, while Forgejo's total still
     // describes the raw result set. Do not stop just because a page became
     // shorter after that safety filter; otherwise a later public page could
@@ -340,6 +361,7 @@ export async function searchAllReposByTopicAndQuery(
       rawExhausted = true;
       break;
     }
+    if (rawPageSize === 0) break;
   }
 
   if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
@@ -362,12 +384,15 @@ async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchRep
   let rawTotal = Number.POSITIVE_INFINITY;
   let rawFetched = 0;
   let rawExhausted = false;
+  let maxRawPages = 1;
 
-  for (let page = 1; page <= MAX_SKILL_SEARCH_PAGES; page += 1) {
+  for (let page = 1; page <= maxRawPages; page += 1) {
     const result = await fetchRepoSearchPage({ topic: 'skill', sort: 'updated', limit: pageSize, page });
     if (!result.ok) return result;
     rawTotal = result.total_count;
-    rawFetched += result.raw_page_size ?? result.data.length;
+    const rawPageSize = result.raw_page_size ?? result.data.length;
+    if (page === 1) maxRawPages = rawSearchPageBudget(rawTotal, rawPageSize);
+    rawFetched += rawPageSize;
     const skillResult = await enrichSkillMetadata(result.data);
     if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
     repos.push(...skillResult.repos);
@@ -375,6 +400,7 @@ async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchRep
       rawExhausted = true;
       break;
     }
+    if (rawPageSize === 0) break;
   }
 
   if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
@@ -853,8 +879,8 @@ async function getSkillRootStatus(owner: string, repo: string): Promise<SkillRoo
   return content && hasRequiredSkillFrontmatter(content) ? 'valid' : 'invalid';
 }
 
-async function enrichSkillMetadata(repos: Repo[]): Promise<SkillEnrichmentResult> {
-  const results = await Promise.all(repos.map(async (repo) => {
+async function enrichSkillMetadata(repos: Repo[], maxAdmitted = Number.POSITIVE_INFINITY): Promise<SkillEnrichmentResult> {
+  const enrichOne = async (repo: Repo): Promise<{ repo: Repo | null; unavailable: boolean }> => {
     const owner = repo.owner?.login ?? repo.full_name.split('/')[0];
     const rootStatus = await getSkillRootStatus(owner, repo.name);
     if (rootStatus === 'unavailable') return { repo: null, unavailable: true };
@@ -863,7 +889,19 @@ async function enrichSkillMetadata(repos: Repo[]): Promise<SkillEnrichmentResult
       repo: { ...repo, skill_relationships: await getSkillRelationships(owner, repo.name) },
       unavailable: false,
     };
-  }));
+  };
+  if (Number.isFinite(maxAdmitted)) {
+    const admitted: Repo[] = [];
+    for (const repo of repos) {
+      if (admitted.length >= maxAdmitted) break;
+      const result = await enrichOne(repo);
+      if (result.unavailable) return { repos: [], unavailable: true };
+      if (result.repo) admitted.push(result.repo);
+    }
+    return { repos: admitted, unavailable: false };
+  }
+
+  const results = await Promise.all(repos.map(enrichOne));
   return {
     repos: results.flatMap((result) => result.repo ? [result.repo] : []),
     unavailable: results.some((result) => result.unavailable),

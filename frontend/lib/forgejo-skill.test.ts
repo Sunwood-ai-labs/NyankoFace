@@ -257,6 +257,28 @@ test('continues global catalog scans when Forgejo caps the requested page size',
   assert.deepEqual(requestedPages, [1, 2]);
 });
 
+test('does not stop complete non-Skill scans at an arbitrary page count', async () => {
+  const pageSize = 50;
+  const total = 5_001;
+  const requestedPages: number[] = [];
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) {
+      const page = Number(url.searchParams.get('page'));
+      requestedPages.push(page);
+      const data = page < 101
+        ? Array.from({ length: pageSize }, (_, index) => repo(`model-page-${page}-${index}`))
+        : [repo('model-last')];
+      return jsonResponse({ data }, 200, { 'x-total-count': String(total) });
+    }
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    const listing = await searchAllReposByTopicAndQuery('model');
+    assert.equal(listing.ok, true);
+    assert.equal(listing.data.length, total);
+  });
+  assert.equal(requestedPages.length, 101);
+});
+
 test('scans the all-Skill catalog once instead of rescanning earlier raw pages', async () => {
   const firstPage = Array.from({ length: 100 }, (_, index) => repo(`first-${index}`));
   const secondPage = [repo('second')];
@@ -281,7 +303,7 @@ test('scans the all-Skill catalog once instead of rescanning earlier raw pages',
   assert.deepEqual(requestedPages, [1, 2]);
 });
 
-test('fails closed when the bounded Skill page budget cannot exhaust raw results', async () => {
+test('fails closed when a raw page makes no progress toward exhaustion', async () => {
   let pageRequests = 0;
   await withFetch(async (url) => {
     if (url.pathname.endsWith('/repos/search')) {
@@ -301,10 +323,10 @@ test('fails closed when the bounded Skill page budget cannot exhaust raw results
       total_count: 0,
     });
   });
-  assert.equal(pageRequests, 200);
+  assert.equal(pageRequests, 2);
 });
 
-test('does not return a partial paged Skill catalog when raw results exceed the budget', async () => {
+test('paged Skill search stops enriching after the requested page is filled', async () => {
   const candidate = repo('valid-before-budget');
   let pageRequests = 0;
   await withFetch(async (url) => {
@@ -313,13 +335,12 @@ test('does not return a partial paged Skill catalog when raw results exceed the 
       return jsonResponse({ data: [candidate] }, 200, { 'x-total-count': '10001' });
     }
     if (url.pathname.endsWith('/contents/SKILL.md')) return jsonResponse(skillRootEntry());
+    if (url.pathname.endsWith('/contents/skill.json')) return jsonResponse({}, 404);
     throw new Error(`Unexpected Forgejo request: ${url}`);
   }, async () => {
-    assert.deepEqual(await searchRepos({ topic: 'skill', limit: 1 }), {
-      ok: false,
-      data: [],
-      total_count: 0,
-    });
+    const listing = await searchRepos({ topic: 'skill', limit: 1 });
+    assert.equal(listing.ok, true);
+    assert.deepEqual(listing.data.map((item) => item.full_name), ['owner/valid-before-budget']);
   });
-  assert.equal(pageRequests, 100);
+  assert.equal(pageRequests, 1);
 });
