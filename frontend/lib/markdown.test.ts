@@ -101,3 +101,73 @@ test('keeps empty README bodies empty for an explanatory page fallback', () => {
   assert.equal(parseReadme('').bodyHtml, '');
   assert.equal(parseReadme('---\ntitle: metadata only\n---').bodyHtml, '');
 });
+
+test('renders every GitHub alert as a typed callout instead of a generic blockquote', () => {
+  const source = [
+    ['NOTE', '補足情報です。'],
+    ['TIP', 'ヒントです。'],
+    ['IMPORTANT', '重要な情報です。'],
+    ['WARNING', '注意が必要です。'],
+    ['CAUTION', '危険性のある操作です。'],
+  ].flatMap(([type, text]) => [`> [!${type}]`, `> ${text}`, '']).join('\n');
+  const { bodyHtml } = parseReadme(source, { locale: 'ja' });
+
+  for (const type of ['NOTE', 'TIP', 'IMPORTANT', 'WARNING', 'CAUTION']) {
+    assert.match(bodyHtml, new RegExp(`data-markdown-block="github-alert" data-alert-type="${type}"`));
+  }
+  assert.match(bodyHtml, /<span>補足<\/span>/);
+  assert.match(bodyHtml, /<span>ヒント<\/span>/);
+  assert.match(bodyHtml, /<span>重要<\/span>/);
+  assert.match(bodyHtml, /<span>警告<\/span>/);
+  assert.match(bodyHtml, /<span>注意<\/span>/);
+  assert.doesNotMatch(bodyHtml, /<blockquote>/);
+});
+
+test('renders Zenn message and details blocks through the shared safe Markdown pipeline', () => {
+  const source = [
+    ':::message',
+    '# Message heading',
+    '',
+    '[Guide](./guide.md)',
+    '',
+    '```ts',
+    'const safe = true;',
+    '```',
+    ':::',
+    '',
+    ':::message alert',
+    '警告メッセージ',
+    ':::',
+    '',
+    ':::details 詳細を表示',
+    '- [x] Complete',
+    '- [ ] Pending',
+    '',
+    ':::message',
+    'Nested message',
+    ':::',
+    ':::',
+    '',
+    ':::unsupported',
+    '<script>alert(1)</script>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n');
+  const { bodyHtml } = parseReadme(source, {
+    relativeLinkBaseUrl: '/owner/repo/blob/main/',
+    locale: 'ja',
+  });
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message" data-message-variant="default"/);
+  assert.match(bodyHtml, /data-markdown-block="zenn-message" data-message-variant="alert"/);
+  assert.match(bodyHtml, /<details[^>]*><summary[^>]*>詳細を表示<\/summary>/);
+  assert.match(bodyHtml, /<h1[^>]*>Message heading<\/h1>/);
+  assert.match(bodyHtml, /href="\/owner\/repo\/blob\/main\/guide\.md"/);
+  assert.match(bodyHtml, /class="nyankoface-code-block"/);
+  assert.match(bodyHtml, /<input checked disabled type="checkbox" \/>/);
+  assert.match(bodyHtml, /<input disabled type="checkbox" \/>/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+  assert.match(bodyHtml, /:::unsupported/);
+  assert.doesNotMatch(bodyHtml, /<script|javascript:/i);
+});

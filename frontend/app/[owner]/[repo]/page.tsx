@@ -4,7 +4,6 @@ import { cache } from 'react';
 import {
   getRepo,
   getPagesInspection,
-  getReadme,
   getContents,
   getCommits,
   getRepoTags,
@@ -61,7 +60,7 @@ export async function generateMetadata({
   const appName = getAppName();
   const repoInfo = await getCachedRepo(owner, repo);
   const kind = repoInfo ? repoKind(repoInfo.topics) : null;
-  const label = kind === 'space' ? 'Space' : kind === 'dataset' ? ui(locale, 'データセット', 'Dataset') : kind === 'skill' ? ui(locale, 'スキル', 'Skill') : kind === 'mcp' ? 'MCP server' : kind === 'prompt' ? ui(locale, 'プロンプト', 'Prompt') : kind === 'doc' ? ui(locale, 'ナレッジ', 'Knowledge') : kind === 'character' ? ui(locale, 'キャラクター', 'Character') : kind === 'benchmark' ? ui(locale, 'ベンチマーク', 'Benchmark') : kind === 'automation' ? 'Automation' : ui(locale, 'モデル', 'Model');
+  const label = kind === 'space' ? 'Space' : kind === 'dataset' ? ui(locale, 'データセット', 'Dataset') : kind === 'skill' ? ui(locale, 'スキル', 'Skill') : kind === 'mcp' ? 'MCP server' : kind === 'prompt' ? ui(locale, 'プロンプト', 'Prompt') : kind === 'doc' ? ui(locale, 'ナレッジ', 'Knowledge') : kind === 'character' ? ui(locale, 'キャラクター', 'Character') : kind === 'benchmark' ? ui(locale, 'ベンチマーク', 'Benchmark') : kind === 'automation' ? 'Automation' : kind === null ? ui(locale, 'リポジトリ', 'Repository') : ui(locale, 'モデル', 'Model');
   const repoName = repoInfo?.full_name || `${owner}/${repo}`;
   return {
     title: `${repoName} - ${label} - ${appName}`,
@@ -81,6 +80,39 @@ const KIND_ICON: Record<string, HfIconName> = {
   benchmark: 'benchmark',
   automation: 'automation',
 };
+
+const MAX_README_PREVIEW_BYTES = 2_000_000;
+
+type RepositoryReadmeResult =
+  | { status: 'present'; raw: string; path: string; size: number }
+  | { status: 'absent' | 'unavailable' | 'too-large'; path?: string; size?: number };
+
+async function loadRepositoryReadme(owner: string, repo: string, ref: string): Promise<RepositoryReadmeResult> {
+  try {
+    const root = await getContents(owner, repo, '', ref);
+    if (!root.ok || !Array.isArray(root.data)) return { status: 'unavailable' };
+
+    const entry = root.data.find((candidate) =>
+      candidate.type === 'file' && candidate.name.toLowerCase() === 'readme.md',
+    );
+    if (!entry) return { status: 'absent' };
+    if (entry.size >= MAX_README_PREVIEW_BYTES) {
+      return { status: 'too-large', path: entry.path, size: entry.size };
+    }
+
+    const file = await getContents(owner, repo, entry.path, ref);
+    if (!file.ok || !file.data || Array.isArray(file.data) || file.data.type !== 'file' || typeof file.data.content !== 'string') {
+      return { status: 'unavailable', path: entry.path, size: entry.size };
+    }
+    const raw = Buffer.from(
+      file.data.content,
+      (file.data.encoding as BufferEncoding) || 'base64',
+    ).toString('utf-8');
+    return { status: 'present', raw, path: entry.path, size: file.data.size ?? entry.size };
+  } catch {
+    return { status: 'unavailable' };
+  }
+}
 
 export default async function RepoDetailPage({
   params,
@@ -135,8 +167,8 @@ export default async function RepoDetailPage({
   const selectedRevision = requestedRevision && promptTags.some((tag) => tag.name === requestedRevision)
     ? requestedRevision
     : null;
-  const kindLabel = isSpace ? 'Spaces' : kind === 'dataset' ? ui(locale, 'データセット', 'Datasets') : kind === 'skill' ? ui(locale, 'スキル', 'Skills') : kind === 'mcp' ? 'MCPs' : kind === 'prompt' ? ui(locale, 'プロンプト', 'Prompts') : kind === 'doc' ? ui(locale, 'ナレッジ', 'Knowledge') : kind === 'character' ? 'Characters' : kind === 'benchmark' ? 'Benchmarks' : kind === 'automation' ? 'Automations' : ui(locale, 'モデル', 'Models');
-  const kindHref = isSpace ? '/spaces' : kind === 'dataset' ? '/datasets' : kind === 'skill' ? '/skills' : kind === 'mcp' ? '/mcps' : kind === 'prompt' ? '/prompts' : kind === 'doc' ? '/docs' : kind === 'character' ? '/characters' : kind === 'benchmark' ? '/benchmarks' : kind === 'automation' ? '/automations' : '/models';
+  const kindLabel = isSpace ? 'Spaces' : kind === 'dataset' ? ui(locale, 'データセット', 'Datasets') : kind === 'skill' ? ui(locale, 'スキル', 'Skills') : kind === 'mcp' ? 'MCPs' : kind === 'prompt' ? ui(locale, 'プロンプト', 'Prompts') : kind === 'doc' ? ui(locale, 'ナレッジ', 'Knowledge') : kind === 'character' ? 'Characters' : kind === 'benchmark' ? 'Benchmarks' : kind === 'automation' ? 'Automations' : kind === null ? ui(locale, 'リポジトリ', 'Repository') : ui(locale, 'モデル', 'Models');
+  const kindHref = isSpace ? '/spaces' : kind === 'dataset' ? '/datasets' : kind === 'skill' ? '/skills' : kind === 'mcp' ? '/mcps' : kind === 'prompt' ? '/prompts' : kind === 'doc' ? '/docs' : kind === 'character' ? '/characters' : kind === 'benchmark' ? '/benchmarks' : kind === 'automation' ? '/automations' : kind === null ? `/git/${owner}` : '/models';
   const kindIcon = kind ? KIND_ICON[kind] : 'box';
   timing.add('api', performance.now() - routeStartedAt);
   timing.log(`/${owner}/${repo}`);
@@ -293,7 +325,7 @@ export default async function RepoDetailPage({
           ) : null}
           <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm dark:border-zinc-800 dark:bg-zinc-900">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              {isSpace ? ui(locale, 'Spaceの操作', 'Space actions') : kind === 'dataset' ? ui(locale, 'データセットの操作', 'Dataset actions') : kind === 'skill' ? ui(locale, 'スキルの操作', 'Skill actions') : kind === 'mcp' ? ui(locale, 'MCPの操作', 'MCP actions') : kind === 'prompt' ? ui(locale, 'プロンプトの操作', 'Prompt actions') : kind === 'doc' ? ui(locale, 'ナレッジの操作', 'Knowledge actions') : kind === 'character' ? ui(locale, 'キャラクターの操作', 'Character actions') : kind === 'benchmark' ? ui(locale, 'ベンチマークの操作', 'Benchmark actions') : kind === 'automation' ? ui(locale, 'Automationの操作', 'Automation actions') : ui(locale, 'モデルの操作', 'Model actions')}
+              {isSpace ? ui(locale, 'Spaceの操作', 'Space actions') : kind === 'dataset' ? ui(locale, 'データセットの操作', 'Dataset actions') : kind === 'skill' ? ui(locale, 'スキルの操作', 'Skill actions') : kind === 'mcp' ? ui(locale, 'MCPの操作', 'MCP actions') : kind === 'prompt' ? ui(locale, 'プロンプトの操作', 'Prompt actions') : kind === 'doc' ? ui(locale, 'ナレッジの操作', 'Knowledge actions') : kind === 'character' ? ui(locale, 'キャラクターの操作', 'Character actions') : kind === 'benchmark' ? ui(locale, 'ベンチマークの操作', 'Benchmark actions') : kind === 'automation' ? ui(locale, 'Automationの操作', 'Automation actions') : kind === null ? ui(locale, 'リポジトリの操作', 'Repository actions') : ui(locale, 'モデルの操作', 'Model actions')}
             </p>
             <div className="grid gap-2">
               {isSpace ? (
@@ -395,6 +427,17 @@ export default async function RepoDetailPage({
                     {ui(locale, '構成ファイルを見る', 'Browse package files')}
                   </a>
                 </>
+              ) : kind === null ? (
+                <>
+                  <a href={`/${owner}/${repo}?tab=files`} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-950 px-3 text-sm font-semibold text-white hover:bg-zinc-800">
+                    <HfIcon name="folder" className="h-3.5 w-3.5" />
+                    {ui(locale, 'ファイルを見る', 'Browse files')}
+                  </a>
+                  <a href={forgejoRepoUrl(owner, repo)} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-zinc-200 px-3 text-sm font-semibold text-zinc-700 hover:bg-zinc-50">
+                    <HfIcon name="link" className="h-3.5 w-3.5" />
+                    {ui(locale, 'リポジトリを開く', 'Open repository')}
+                  </a>
+                </>
               ) : (
                 <>
                   <a href={forgejoRepoUrl(owner, repo)} className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-zinc-950 px-3 text-sm font-semibold text-white hover:bg-zinc-800">
@@ -489,8 +532,8 @@ async function CardTabContent({
 }) {
   const ref = revision || defaultBranch;
   const refKind = revision ? 'tag' : 'branch';
-  const [readmeRaw, taggedPromptRaw] = await Promise.all([
-    getReadme(owner, repo, ref),
+  const [readme, taggedPromptRaw] = await Promise.all([
+    loadRepositoryReadme(owner, repo, ref),
     kind === 'prompt' && revision ? getTextFile(owner, repo, 'PROMPT.md', revision) : Promise.resolve(null),
   ]);
   const automationInspection = kind === 'automation'
@@ -499,16 +542,39 @@ async function CardTabContent({
   const reviewedAutomationToml = automationInspection?.preflight.ok
     ? buildDisabledAutomationBundle(automationInspection.preflight, { acknowledgeWarnings: true })
     : null;
-  const renderedRaw = taggedPromptRaw || readmeRaw;
-  const { frontmatter, bodyHtml } = parseReadme(renderedRaw, {
-    assetBaseUrl: forgejoRawUrl(owner, repo, '', ref, refKind),
-    relativeLinkBaseUrl: revision
-      ? forgejoTreeUrl(owner, repo, '', revision, 'tag') + '/'
-      : `/${owner}/${repo}/blob/`,
-    locale,
-  });
+  const renderedRaw = taggedPromptRaw || (readme.status === 'present' ? readme.raw : null);
+  let readmeStatus: RepositoryReadmeResult['status'] | 'empty' | 'parse' = taggedPromptRaw ? 'present' : readme.status;
+  let frontmatter: import('@/lib/markdown').ModelCardFrontmatter = {};
+  let bodyHtml = '';
+  if (renderedRaw) {
+    try {
+      const parsed = parseReadme(renderedRaw, {
+        assetBaseUrl: forgejoRawUrl(owner, repo, '', ref, refKind),
+        relativeLinkBaseUrl: revision
+          ? forgejoTreeUrl(owner, repo, '', revision, 'tag') + '/'
+          : `/${owner}/${repo}/blob/`,
+        locale,
+      });
+      frontmatter = parsed.frontmatter;
+      bodyHtml = parsed.bodyHtml;
+      if (!bodyHtml.trim()) readmeStatus = 'empty';
+    } catch {
+      readmeStatus = 'parse';
+    }
+  } else if (readmeStatus === 'present') {
+    readmeStatus = 'empty';
+  }
 
-  if (!renderedRaw) {
+  if (readmeStatus !== 'present') {
+    const message = readmeStatus === 'absent'
+      ? ui(locale, 'README.mdがありません。ファイル一覧からリポジトリの内容を確認できます。', 'No README.md was found. Browse the repository files to inspect its contents.')
+      : readmeStatus === 'too-large'
+        ? ui(locale, 'README.mdが大きすぎるためプレビューできません。ファイル一覧から原文を開けます。', 'README.md is too large to preview. Open the raw file from the repository files.')
+        : readmeStatus === 'parse'
+          ? ui(locale, 'README.mdをMarkdownとして解析できませんでした。ファイル一覧から原文を確認できます。', 'README.md could not be parsed as Markdown. Open the raw file from the repository files.')
+          : readmeStatus === 'empty'
+            ? ui(locale, 'README.mdは空か、表示できるMarkdown本文がありません。', 'README.md is empty or has no renderable Markdown body.')
+            : ui(locale, 'README.mdを取得できませんでした。権限またはForgejoの接続状態を確認してください。', 'README.md could not be loaded. Check repository access or Forgejo availability.');
     return (
       <div>
         {kind === 'skill' && skillRepo ? (
@@ -517,7 +583,11 @@ async function CardTabContent({
           </div>
         ) : null}
         <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          {ui(locale, 'README.mdが見つかりません。スキル連携情報は', 'README.md was not found. Skill relationships remain available from')} <code>skill.json</code>{ui(locale, 'で確認できます。', '.')}
+          <p>{message}</p>
+          {kind === 'skill' ? <p className="mt-2">{ui(locale, 'スキル連携情報は', 'Skill relationships remain available from')} <code>skill.json</code>{ui(locale, 'で確認できます。', '.')}</p> : null}
+          <a href={`/${owner}/${repo}?tab=files`} className="mt-3 inline-block text-accent-dark hover:underline">
+            {ui(locale, 'ファイル一覧を開く', 'Browse repository files')}
+          </a>
         </div>
       </div>
     );
@@ -544,7 +614,7 @@ async function CardTabContent({
           <span>{ui(locale, <><strong className="font-mono">{revision}</strong> のGit tagに保存された <code>PROMPT.md</code> 原文を表示しています。</>, <>Showing the original <code>PROMPT.md</code> stored in Git tag <strong className="font-mono">{revision}</strong>.</>)}</span>
         </div>
       ) : null}
-      <CardBadges frontmatter={frontmatter} basePath={kind === 'dataset' ? '/datasets' : kind === 'space' ? '/spaces' : kind === 'skill' ? '/skills' : kind === 'mcp' ? '/mcps' : kind === 'prompt' ? '/prompts' : kind === 'doc' ? '/docs' : kind === 'character' ? '/characters' : kind === 'benchmark' ? '/benchmarks' : kind === 'automation' ? '/automations' : '/models'} />
+      {kind ? <CardBadges frontmatter={frontmatter} basePath={kind === 'dataset' ? '/datasets' : kind === 'space' ? '/spaces' : kind === 'skill' ? '/skills' : kind === 'mcp' ? '/mcps' : kind === 'prompt' ? '/prompts' : kind === 'doc' ? '/docs' : kind === 'character' ? '/characters' : kind === 'benchmark' ? '/benchmarks' : kind === 'automation' ? '/automations' : '/models'} /> : null}
       {kind === 'skill' && skillRepo ? (
         <div className="mb-7 lg:hidden">
           <SkillRelationshipMap repo={skillRepo} catalog={skillCatalog} placement="mobile" locale={locale} />
