@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { CharacterRepositoryProfile, CodexPetPackage, inspectCharacterRepository } from '@/lib/character-format';
-import { forgejoRawUrl, nonTypeTopics } from '@/lib/forgejo';
+import { forgejoRawUrl, nonTypeTopics, repoDefaultBranch } from '@/lib/forgejo';
 import { getCatalogPage, isCatalogSort, isSortOrder, type CatalogSort, type RankedRepo, type SortOrder } from '@/lib/catalog-sort';
 import { getLocale } from '@/lib/i18n-server';
 import { ui } from '@/lib/i18n';
@@ -39,7 +39,7 @@ export default async function CharactersDirectoryPage({
   })));
   const allItems = profiled.flatMap<CharacterCatalogItem>(({ repo, profile }) => {
     const owner = repo.owner?.login || repo.full_name.split('/')[0];
-    const branch = repo.default_branch || 'main';
+    const branch = repoDefaultBranch(repo);
     if (profile.purupuru) {
       return [{
         kind: 'purupuru' as const,

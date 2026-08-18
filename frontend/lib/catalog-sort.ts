@@ -1,5 +1,6 @@
 import { getRepoMetricsBatch, type RepoAgentMetrics } from './agent-metrics';
 import {
+  copyOperationalDefaultBranch,
   searchAllReposByTopicAndQuery,
   type Repo,
   type RepoKind,
@@ -128,7 +129,7 @@ export async function getCatalogPage(query: CatalogQuery): Promise<CatalogPage> 
     owner: repo.owner?.login ?? repo.full_name.split('/')[0],
     repo: repo.name,
   })));
-  const ranked = result.data.map((repo): RankedRepo => ({
+  const ranked = result.data.map((repo): RankedRepo => copyOperationalDefaultBranch(repo, {
     ...repo,
     metrics: metrics[repo.full_name] || {
       owner: repo.owner?.login ?? repo.full_name.split('/')[0],

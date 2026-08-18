@@ -1,0 +1,667 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { safePublicUrl, sanitizePublicRepo } from './public-repo';
+import { copyOperationalDefaultBranch, repoDefaultBranch } from './forgejo';
+import type { Repo } from './forgejo';
+
+test('sanitizes upstream repository URLs at the public boundary', () => {
+  const raw = {
+    id: 7,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: {
+      login: 'alice',
+      html_url: 'http://forgejo:3000/alice',
+      avatar_url: 'http://forgejo:3000/user/avatar/alice',
+    },
+    updated_at: '2026-08-16T00:00:00Z',
+    html_url: 'http://192.168.11.22:8443/git/alice/demo',
+    website: 'http://forgejo:3000/alice/demo',
+    url: 'http://forgejo:3000/api/v1/repos/alice/demo',
+    languages_url: 'http://forgejo:3000/api/v1/repos/alice/demo/languages',
+    clone_url: 'http://localhost:3000/alice/demo.git',
+    ssh_url: 'ssh://git@localhost:2222/alice/demo.git',
+    space_url: 'https://[fc00::1]:8443/spaces/alice/demo',
+    parent: {
+      full_name: 'alice/parent',
+      html_url: 'http://forgejo:3000/alice/parent',
+      clone_url: 'http://forgejo:3000/alice/parent.git',
+      website: 'http://forgejo:3000/alice/parent/docs',
+    },
+    external_tracker: {
+      external_tracker_format: 'http://forgejo:3000/{user}/{repo}/issues/{index}',
+    },
+  } as unknown as Repo & Record<string, unknown>;
+
+  const sanitized = sanitizePublicRepo(raw);
+  const serialized = JSON.stringify(sanitized);
+
+  assert.equal(sanitized.html_url, '/git/alice/demo');
+  assert.equal(sanitized.owner.avatar_url, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).url, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).clone_url, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).ssh_url, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).languages_url, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).space_url, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).website, undefined);
+  assert.equal((sanitized as Repo & Record<string, unknown>).external_tracker, undefined);
+  const parent = (sanitized as Repo & Record<string, unknown>).parent as Record<string, unknown>;
+  assert.equal(parent.html_url, undefined);
+  assert.equal(parent.clone_url, undefined);
+  assert.equal((sanitized.owner as unknown as Record<string, unknown>).html_url, undefined);
+  assert.doesNotMatch(serialized, /192\.168\.11\.22|forgejo:3000|localhost:3000|ssh:\/\//);
+});
+
+test('keeps public relative avatar paths usable', () => {
+  const repo = {
+    id: 8,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: { login: 'alice', avatar_url: '/git/avatars/alice.png' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo;
+
+  assert.equal(sanitizePublicRepo(repo).owner.avatar_url, '/git/avatars/alice.png');
+});
+
+test('keeps an operational default branch separate from public metadata', () => {
+  const repo = {
+    id: 13,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+    default_branch: 'http://forgejo:3000/main',
+  } as unknown as Repo;
+
+  const sanitized = sanitizePublicRepo(repo);
+  assert.equal(sanitized.default_branch, '[internal URL omitted]');
+  assert.equal(repoDefaultBranch(sanitized), 'http://forgejo:3000/main');
+  const ranked = copyOperationalDefaultBranch(sanitized, { ...sanitized });
+  assert.equal(repoDefaultBranch(ranked), 'http://forgejo:3000/main');
+  assert.doesNotMatch(JSON.stringify(sanitized), /forgejo:3000/);
+});
+
+test('preserves valid default-branch identifiers that resemble private hosts', () => {
+  const sanitized = sanitizePublicRepo({
+    id: 22,
+    name: 'branch-name',
+    full_name: 'alice/branch-name',
+    description: null,
+    owner: { login: 'alice' },
+    default_branch: 'docs.internal',
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo);
+
+  assert.equal(sanitized.default_branch, 'docs.internal');
+  assert.equal(repoDefaultBranch(sanitized), 'docs.internal');
+});
+
+test('rejects protocol-relative avatar URLs that could target an internal host', () => {
+  const repo = {
+    id: 9,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: { login: 'alice', avatar_url: '//forgejo:3000/user/avatar/alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as unknown as Repo;
+
+  assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
+  assert.equal(safePublicUrl('https://[ff05::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:db8::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:11::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:100::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2002::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[4000::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[64:ff9b::1]/avatar.png'), 'https://[64:ff9b::1]/avatar.png');
+  assert.equal(safePublicUrl('https://[2001:21::1]/avatar.png'), 'https://[2001:21::1]/avatar.png');
+  assert.equal(safePublicUrl('https://localhost.localdomain:3000/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://service.localdomain/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:3::1]/avatar.png'), 'https://[2001:3::1]/avatar.png');
+  assert.equal(safePublicUrl('https://[2001:1::3]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[2001:4:112::1]/avatar.png'), 'https://[2001:4:112::1]/avatar.png');
+  assert.equal(safePublicUrl('https://cdn.example.com//avatar.png'), 'https://cdn.example.com//avatar.png');
+  assert.equal(safePublicUrl('https://cdn.example.com///avatar.png'), 'https://cdn.example.com///avatar.png');
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=//cdn.example.com/app'),
+    'https://public.example/redirect?next=//cdn.example.com/app',
+  );
+  assert.equal(
+    safePublicUrl('https://github.com/search?q=//foo'),
+    'https://github.com/search?q=//foo',
+  );
+  assert.equal(
+    safePublicUrl('https://github.com/search?q=@types:node'),
+    'https://github.com/search?q=@types:node',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=//forgejo:3000/app'),
+    undefined,
+  );
+  assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[3fff::1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://[64:ff9b:1::1]/avatar.png'), undefined);
+});
+
+test('scrubs private origins embedded in retained repository text', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    const repo = {
+      id: 12,
+      name: 'demo',
+      full_name: 'alice/demo',
+      description: 'Docs: http://forgejo.ops.example.com/alice/demo; Encoded: http%3A%2F%2Fforgejo%3A3000%2Falice%2Fdemo; Slashless HTTP: http:forgejo/app, http:buildbox:3000/app, http:127.0.0.1/app, http:user:secret@public.example/path; Public URI label: http:status/overview; SSH: ssh://git@forgejo:2222/alice/demo.git; SCP: git@forgejo:alice/demo.git; SCP without user: forgejo:alice/demo.git, forgejo:demo.git; Short SCP: 10:repo.git, 0:repo.git; Mapped IPv6 SCP: [::ffff:127.0.0.1]:repo.git; Scoped IPv6 SCP: [fe80::1%lo]:repo.git; Scoped IPv6 port: [fe80::1%lo]:8080; Malformed nested: %ZZ http%253A%252F%252Fforgejo%253A3000%252Frepo; Labels: frontend:React, backend:FastAPI, git:main; Bare: forgejo:3000; Private IP: 192.168.1.4:8080; Numeric IPv4: 2130706433:8080, 127.1:8080, 0xc0a80104:8080, 0x7f.1:8080, 0xc0.0250.1.4:8080, 127:8080, 10:8080, 0:8080, 0:80; Invalid clock endpoint: 99:30; Numeric suffixes: 12:30/path, 12:30?next=x, 23:59#fragment, 12:30/, 12:30?, 23:59#; Internal runners: spaces-runner:8000, nyankoface-mcp:8000, mcp-admin:8001, maintenance-agent:8010, gpu-worker:8787; IPv6 bare: [fc00::1]:8080; IPv6 SCP: [fc00::1]:alice/demo.git; Clock: 12:30 UTC; Image: node:20; Public port: example.com:443; Notation: docs:guide/setup; Config: config:foo/bar; Windows: C:/Users/alice/model.bin; Windows escaped: C:\\Users\\alice\\model.bin; Git: git://forgejo:9418/alice/demo; public: https://8.8.8.8/docs.',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+      created_at: '2026-08-16T12:34:56Z',
+    } as Repo;
+
+    const sanitized = sanitizePublicRepo(repo);
+    assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com/);
+    assert.doesNotMatch(sanitized.description || '', /http%3A%2F%2Fforgejo/i);
+    assert.doesNotMatch(sanitized.description || '', /http:forgejo\/app|http:buildbox:3000\/app|http:127\.0\.0\.1\/app/);
+    assert.doesNotMatch(sanitized.description || '', /http:user:secret@public\.example\/path/);
+    assert.doesNotMatch(sanitized.description || '', /ssh:\/\/|git:\/\//);
+    assert.doesNotMatch(sanitized.description || '', /git@forgejo:/);
+    assert.doesNotMatch(sanitized.description || '', /forgejo:alice\//);
+    assert.doesNotMatch(sanitized.description || '', /forgejo:demo\.git/);
+    assert.doesNotMatch(sanitized.description || '', /10:repo\.git|0:repo\.git|\[::ffff:127\.0\.0\.1\]:repo\.git|\[fe80::1%lo\]:repo\.git|\[fe80::1%lo\]:8080/);
+    assert.doesNotMatch(sanitized.description || '', /forgejo:3000/);
+    assert.doesNotMatch(sanitized.description || '', /192\.168\.1\.4:8080/);
+    assert.doesNotMatch(sanitized.description || '', /2130706433:8080|127\.1:8080|0xc0a80104:8080|0x7f\.1:8080|0xc0\.0250\.1\.4:8080|127:8080|10:8080|0:8080|0:80|99:30|12:30\/path|12:30\?next=x|23:59#fragment|12:30\/|12:30\?|23:59#/);
+    assert.doesNotMatch(sanitized.description || '', /spaces-runner:8000|nyankoface-mcp:8000|mcp-admin:8001|maintenance-agent:8010|gpu-worker:8787/);
+    assert.doesNotMatch(sanitized.description || '', /\[fc00::1\]:8080|\[fc00::1\]:alice\//);
+    assert.match(sanitized.description || '', /frontend:React|backend:FastAPI|git:main/);
+    assert.match(sanitized.description || '', /12:30 UTC/);
+    assert.match(sanitized.description || '', /node:20/);
+    assert.match(sanitized.description || '', /example\.com:443/);
+    assert.match(sanitized.description || '', /docs:guide\/setup/);
+    assert.match(sanitized.description || '', /config:foo\/bar/);
+    assert.match(sanitized.description || '', /http:status\/overview/);
+    assert.match(sanitized.description || '', /C:\/Users\/alice\/model\.bin/);
+    assert.ok((sanitized.description || '').includes('C:\\Users\\alice\\model.bin'));
+    assert.equal(sanitized.updated_at, '2026-08-16T00:00:00Z');
+    assert.equal(sanitized.created_at, '2026-08-16T12:34:56Z');
+    assert.match(sanitized.description || '', /\[internal URL omitted\]/);
+    assert.match(sanitized.description || '', /https:\/\/8\.8\.8\.8\/docs/);
+    let deeplyEncodedPrivateText = 'http://forgejo:3000/private';
+    for (let pass = 0; pass < 8; pass += 1) deeplyEncodedPrivateText = encodeURIComponent(deeplyEncodedPrivateText);
+    assert.equal(
+      sanitizePublicRepo({ ...repo, description: deeplyEncodedPrivateText }).description,
+      '[internal URL omitted]',
+    );
+    let deeplyEncodedPublicText = 'https://example.com/resource';
+    for (let pass = 0; pass < 8; pass += 1) deeplyEncodedPublicText = encodeURIComponent(deeplyEncodedPublicText);
+    assert.equal(
+      sanitizePublicRepo({ ...repo, description: deeplyEncodedPublicText }).description,
+      deeplyEncodedPublicText,
+    );
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
+test('rejects link-local and IPv6 ULA origins', () => {
+  const repo = {
+    id: 10,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: { login: 'alice', avatar_url: 'https://[fe80::1]/avatar.png' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as unknown as Repo;
+
+  assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
+});
+
+test('rejects hex IPv4-mapped IPv6 and backslash-normalized internal URLs', () => {
+  const repo = {
+    id: 11,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: null,
+    owner: {
+      login: 'alice',
+      avatar_url: 'https://[::ffff:0a00:0001]/avatar.png',
+    },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as unknown as Repo;
+
+  assert.equal(sanitizePublicRepo(repo).owner.avatar_url, undefined);
+  assert.equal(safePublicUrl('https://[::ffff:127.0.0.1]/avatar.png'), undefined);
+  assert.equal(safePublicUrl('/\\\\forgejo:3000/private'), undefined);
+  assert.equal(safePublicUrl('https://public.example/redirect?next=%5C%5Cforgejo:3000/app'), undefined);
+});
+
+test('rejects private URLs nested in public query and fragment parameters', () => {
+  assert.equal(
+    safePublicUrl('https://cdn.example.com/images//avatar.png'),
+    'https://cdn.example.com/images//avatar.png',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http://forgejo:3000/app'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=+http://forgejo:3000/app'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http:forgejo:3000/app'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http:forgejo/app'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http:forgejo'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http:buildbox/app'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http:127.0.0.1?x'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=javascript:alert(1)'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=slack:open'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=tg:resolve'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=intent:launch'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=com.example.app:open'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=ht%09tp%3A%2F%2Fforgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=forgejo:org/repo'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=%5Bfc00%3A%3A1%5D:repo'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=deploy+@forgejo:repo.git'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=deploy!@forgejo:repo.git'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=git@[fe80::1%25lo]:repo.git'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=git@127.1:repo.git'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=github.com:org/repo'),
+    'https://public.example/redirect?clone=github.com:org/repo',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/docs/git:main'),
+    'https://public.example/docs/git:main',
+  );
+  assert.equal(
+    safePublicUrl('/docs/blob:pending'),
+    '/docs/blob:pending',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/docs/time:12'),
+    'https://public.example/docs/time:12',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/docs/http:status'),
+    'https://public.example/docs/http:status',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/docs/http:status/overview'),
+    'https://public.example/docs/http:status/overview',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/docs/C:/Users/alice/file'),
+    'https://public.example/docs/C:/Users/alice/file',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fforgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://github.com/search?q=%5Cfoo'),
+    'https://github.com/search?q=%5Cfoo',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=%5Cforgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect#next=https%3A%2F%2F127.0.0.1%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect/http://forgejo:3000/app'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?bad=%E0%A4%A&next=http%3A%2F%2Fforgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=https://cdn.example/app'),
+    'https://public.example/redirect?next=https://cdn.example/app',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/search?q=100%25'),
+    'https://public.example/search?q=100%25',
+  );
+  assert.equal(
+    safePublicUrl('https://github.com/search?q=language:typescript'),
+    'https://github.com/search?q=language:typescript',
+  );
+  let deeplyEncodedPrivateTarget = 'http://forgejo:3000/private';
+  for (let pass = 0; pass < 8; pass += 1) deeplyEncodedPrivateTarget = encodeURIComponent(deeplyEncodedPrivateTarget);
+  assert.equal(
+    safePublicUrl(`https://public.example/redirect?next=${deeplyEncodedPrivateTarget}`),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl(
+      'https://public.example/redirect?next=https%3A%2F%2Fpublic1.example%2F%3Fnext%3Dhttps%253A%252F%252Fpublic2.example%252F%253Fnext%253Dhttps%25253A%25252F%25252Fpublic3.example%25252F%25253Fnext%25253Dhttp%25253A%25252F%25252Fforgejo%25253A3000%25252Fapp',
+    ),
+    undefined,
+  );
+});
+
+test('rejects internal hostnames and preserves public service labels', () => {
+  assert.equal(safePublicUrl('https://git/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://forgejo.:3000/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://nas.home.arpa/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://home.arpa/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://198.18.0.1/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://0.1.2.3/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://192.0.1.1/avatar.png'), 'https://192.0.1.1/avatar.png');
+  assert.equal(safePublicUrl('https://192.0.0.9/avatar.png'), 'https://192.0.0.9/avatar.png');
+  assert.equal(safePublicUrl('https://192.0.0.10/avatar.png'), 'https://192.0.0.10/avatar.png');
+  assert.equal(safePublicUrl('https://192.88.99.2/avatar.png'), 'https://192.88.99.2/avatar.png');
+  assert.equal(safePublicUrl('https://alice:secret@public.example/avatar.png'), undefined);
+  assert.equal(safePublicUrl('https://git.example.com/avatar.png'), 'https://git.example.com/avatar.png');
+  assert.equal(safePublicUrl('https://gateway.example.org/avatar.png'), 'https://gateway.example.org/avatar.png');
+  assert.equal(safePublicUrl('https://frontend.example.net/avatar.png'), 'https://frontend.example.net/avatar.png');
+  assert.equal(safePublicUrl('https://forgejo.example.com/avatar.png'), 'https://forgejo.example.com/avatar.png');
+  assert.equal(safePublicUrl('https://backend.example.com/avatar.png'), 'https://backend.example.com/avatar.png');
+  assert.equal(safePublicUrl('https://mcp.example.com/avatar.png'), 'https://mcp.example.com/avatar.png');
+});
+
+test('rejects the configured Forgejo origin even when its hostname is public-looking', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    assert.equal(safePublicUrl('https://forgejo.ops.example.com/avatar.png'), undefined);
+    process.env.FORGEJO_API = 'https://[2606:4700:4700::1111]/api/v1';
+    assert.equal(safePublicUrl('https://[2606:4700:4700::1111]/avatar.png'), undefined);
+    assert.equal(
+      safePublicUrl('https://public.example/redirect?clone=git@[2606:4700:4700:0:0:0:0:1111]:repo.git'),
+      undefined,
+    );
+    process.env.FORGEJO_API = 'https://förgejo.example.com/api/v1';
+    assert.equal(
+      safePublicUrl('https://public.example/redirect?clone=git@förgejo.example.com:repo.git'),
+      undefined,
+    );
+    process.env.FORGEJO_API = 'http://forgejo_dev:3000/api/v1';
+    assert.equal(safePublicUrl('https://public.example/redirect?clone=git@forgejo_dev:org/repo.git'), undefined);
+    const sanitized = sanitizePublicRepo({
+      id: 14,
+      name: 'demo',
+      full_name: 'alice/demo',
+      description: 'internal endpoint forgejo_dev:3000/health',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo);
+    assert.doesNotMatch(sanitized.description || '', /forgejo_dev:3000/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
+test('scrubs private bare host paths while preserving public host paths', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    const sanitized = sanitizePublicRepo({
+      id: 17,
+      name: 'bare-host-paths',
+      full_name: 'alice/bare-host-paths',
+      description: 'Private forgejo.ops.example.com/alice/demo, forgejo.ops.example.com:repo, docs.internal/wiki, and docs.internal/; public github.com/alice/demo remains.',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo);
+    assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com\/alice\/demo|forgejo\.ops\.example\.com:repo|docs\.internal\/wiki|docs\.internal\//);
+    assert.match(sanitized.description || '', /github\.com\/alice\/demo/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
+test('scrubs private bare hostname tokens while preserving public host tokens', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    const sanitized = sanitizePublicRepo({
+      id: 19,
+      name: 'bare-hostnames',
+      full_name: 'alice/bare-hostnames',
+      description: 'Hosted on forgejo.ops.example.com; see docs.internal. Public: github.com and example.com.',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo).description || '';
+    assert.doesNotMatch(sanitized, /forgejo\.ops\.example\.com|docs\.internal/);
+    assert.match(sanitized, /github\.com|example\.com/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
+test('scrubs relative-looking text without rewriting repository identifiers', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    const sanitized = sanitizePublicRepo({
+      id: 20,
+      name: 'docs.internal',
+      full_name: 'alice/docs.internal',
+      description: '/mirror/forgejo.ops.example.com/alice/demo',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo);
+    assert.equal(sanitized.name, 'docs.internal');
+    assert.equal(sanitized.full_name, 'alice/docs.internal');
+    assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
+test('preserves skill dependency identifiers while scrubbing their explanations', () => {
+  const sanitized = sanitizePublicRepo({
+    id: 21,
+    name: 'skill-with-dependency',
+    full_name: 'alice/skill-with-dependency',
+    description: null,
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+    skill_relationships: {
+      schemaVersion: 2,
+      dependencies: [{
+        repo: 'docs.internal',
+        type: 'required',
+        reason: 'Requires docs.internal for the guide.',
+        evidence: 'See docs.internal in the setup notes.',
+      }],
+    },
+  } as Repo);
+  const dependency = sanitized.skill_relationships?.dependencies[0];
+
+  assert.equal(dependency?.repo, 'docs.internal');
+  assert.doesNotMatch(dependency?.reason || '', /docs\.internal/);
+  assert.doesNotMatch(dependency?.evidence || '', /docs\.internal/);
+});
+
+test('scrubs URL-shaped skill dependency identifiers before public serialization', () => {
+  const sanitized = sanitizePublicRepo({
+    id: 22,
+    name: 'skill-with-unsafe-dependency',
+    full_name: 'alice/skill-with-unsafe-dependency',
+    description: null,
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+    skill_relationships: {
+      schemaVersion: 2,
+      dependencies: [
+        { repo: 'http://forgejo:3000/team/tool', type: 'required' },
+        { repo: 'git@forgejo:team/tool', type: 'recommended' },
+        { repo: 'owner/docs.internal', type: 'recommended' },
+      ],
+    },
+  } as Repo);
+  const dependencies = sanitized.skill_relationships?.dependencies || [];
+
+  assert.equal(dependencies[0]?.repo, '[internal URL omitted]');
+  assert.equal(dependencies[1]?.repo, '[internal URL omitted]');
+  assert.equal(dependencies[2]?.repo, 'owner/docs.internal');
+});
+
+test('scrubs Unicode configured hosts in bare host paths', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://förgejo.example.com/api/v1';
+    const sanitized = sanitizePublicRepo({
+      id: 18,
+      name: 'unicode-bare-host-path',
+      full_name: 'alice/unicode-bare-host-path',
+      description: 'Private förgejo.example.com/alice/demo; public github.com/alice/demo remains.',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo);
+    assert.doesNotMatch(sanitized.description || '', /förgejo\.example\.com\/alice\/demo/);
+    assert.match(sanitized.description || '', /github\.com\/alice\/demo/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
+test('rejects nested URLs with quoted userinfo before an internal host', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%27%40forgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%3C%40forgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%E2%80%83%40forgejo%3A3000%2Fapp'),
+    undefined,
+  );
+});
+
+test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
+  const repo = {
+    id: 13,
+    name: 'demo',
+    full_name: 'alice/demo',
+    description: 'Public git@github.com:org/repo.git and github.com:org/repo.git; private docs.internal:repo, forgejo:repo, buildbox:repo, buildbox:org/repo.git, git@forgejo:org/repo.git, git@buildbox:org/repo.git, deploy!@forgejo:repo.git, and [fc00::1]:repo',
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo;
+
+  const description = sanitizePublicRepo(repo).description || '';
+  assert.match(description, /git@github\.com:org\/repo\.git/);
+  assert.match(description, /github\.com:org\/repo\.git/);
+  assert.doesNotMatch(description, /docs\.internal:repo/);
+  assert.doesNotMatch(description, /forgejo:repo/);
+  assert.doesNotMatch(description, /buildbox:repo/);
+  assert.doesNotMatch(description, /buildbox:org\/repo\.git/);
+  assert.doesNotMatch(description, /git@forgejo:org\/repo\.git/);
+  assert.doesNotMatch(description, /git@buildbox:org\/repo\.git/);
+  assert.doesNotMatch(description, /deploy!@forgejo:repo\.git/);
+  assert.doesNotMatch(description, /\[fc00::1\]:repo/);
+});
+
+test('classifies username-less SCP targets nested in public URLs', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=forgejo:demo.git'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=github.com:org/repo.git'),
+    'https://public.example/redirect?clone=github.com:org/repo.git',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=git@buildbox:org/repo.git'),
+    undefined,
+  );
+});
+
+test('classifies non-ASCII SCP host aliases instead of ignoring them', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/?clone=git@フォージョ:repo.git'),
+    undefined,
+  );
+  const sanitized = sanitizePublicRepo({
+    id: 15,
+    name: 'unicode-host',
+    full_name: 'alice/unicode-host',
+    description: 'Internal git@フォージョ:repo.git and フォージョ:org/repo.git',
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo).description || '';
+  assert.doesNotMatch(sanitized, /フォージョ/);
+});
+
+test('classifies SCP hosts after the final at-sign', () => {
+  assert.equal(
+    safePublicUrl('https://public.example/?clone=git@@forgejo:repo.git'),
+    undefined,
+  );
+  const sanitized = sanitizePublicRepo({
+    id: 16,
+    name: 'double-at-host',
+    full_name: 'alice/double-at-host',
+    description: 'Internal git@@forgejo:repo.git',
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo).description || '';
+  assert.doesNotMatch(sanitized, /git@@forgejo/);
+});

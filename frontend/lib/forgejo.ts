@@ -1,6 +1,7 @@
 import fs from 'fs';
 import matter from 'gray-matter';
 import { resolvePublicOrigin, sanitizePublicUrlRecord } from './public-origin';
+import { safePublicUrl, sanitizePublicRepo } from './public-repo';
 
 // ---------------------------------------------------------------------------
 // Configuration (固定契約: PLAN.md)
@@ -63,6 +64,34 @@ export interface Repo {
   private?: boolean;
 }
 
+const OPERATIONAL_DEFAULT_BRANCH = '__nyankofaceOperationalDefaultBranch';
+type RepoWithOperationalDefaultBranch = Repo & {
+  [key: string]: unknown;
+};
+
+function attachOperationalDefaultBranch(repo: Repo, branch: unknown): Repo {
+  if (typeof branch !== 'string' || !branch.trim()) return repo;
+  Object.defineProperty(repo, OPERATIONAL_DEFAULT_BRANCH, {
+    configurable: true,
+    enumerable: false,
+    value: branch.trim(),
+    writable: false,
+  });
+  return repo;
+}
+
+export function repoDefaultBranch(repo: Pick<Repo, 'default_branch'> | null | undefined): string {
+  if (!repo) return 'main';
+  const operational = (repo as RepoWithOperationalDefaultBranch)[OPERATIONAL_DEFAULT_BRANCH];
+  if (typeof operational === 'string' && operational) return operational;
+  const visible = repo.default_branch?.trim();
+  return visible && visible !== '[internal URL omitted]' ? visible : 'main';
+}
+
+export function copyOperationalDefaultBranch<T extends Repo>(source: Pick<Repo, 'default_branch'>, target: T): T {
+  return attachOperationalDefaultBranch(target, repoDefaultBranch(source)) as T;
+}
+
 export type SkillDependencyType = 'required' | 'recommended';
 
 export interface SkillDependency {
@@ -80,9 +109,14 @@ export interface SkillRelationships {
 export interface SearchReposResult {
   ok: boolean;
   data: Repo[];
+  /** Public repositories returned after visibility filtering. */
   total_count: number;
+  /** Raw Forgejo count used only to decide whether another upstream page exists. */
+  upstream_total_count?: number;
   /** Number of raw repositories returned before private visibility filtering. */
   raw_page_size?: number;
+  /** Number of raw Forgejo rows inspected before the public filter was applied. */
+  upstream_inspected_count?: number;
 }
 
 export interface ContentEntry {
@@ -239,19 +273,23 @@ async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchRep
 
   const res = await apiFetch(`/repos/search?${qs.toString()}`, signal);
   if (!res.ok || !res.json) {
-    return { ok: false, data: [], total_count: 0 };
+    return { ok: false, data: [], total_count: 0, upstream_total_count: 0 };
   }
   // This server-side client uses the seed admin token to read repository
   // metadata. Never let that privileged token turn private Forgejo assets into
   // public NyankoFace catalog entries.
-  const rawData = Array.isArray(res.json.data) ? res.json.data as Repo[] : [];
-  const data = rawData.filter((repo) => !repo.private);
+  const upstreamData = Array.isArray(res.json.data) ? res.json.data as Repo[] : [];
+  const data = upstreamData
+    .filter((repo) => !repo.private)
+    .map(sanitizePublicRepo);
   const headerTotal = Number.parseInt(res.headers?.get('x-total-count') || '', 10);
   return {
     ok: true,
     data,
-    total_count: Number.isFinite(headerTotal) ? headerTotal : rawData.length,
-    raw_page_size: rawData.length,
+    total_count: data.length,
+    upstream_total_count: Number.isFinite(headerTotal) ? headerTotal : upstreamData.length,
+    raw_page_size: upstreamData.length,
+    upstream_inspected_count: upstreamData.length,
   };
 }
 
@@ -275,8 +313,8 @@ async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposR
   for (let rawPage = 1; rawPage <= maxRawPages; rawPage += 1) {
     const result = await fetchRepoSearchPage({ ...params, limit, page: rawPage });
     if (!result.ok) return result;
-    rawTotal = result.total_count;
-    const rawPageSize = result.raw_page_size ?? result.data.length;
+    rawTotal = result.upstream_total_count ?? result.total_count;
+    const rawPageSize = result.upstream_inspected_count ?? result.raw_page_size ?? result.data.length;
     if (rawPage === 1) maxRawPages = rawSearchPageBudget(rawTotal, rawPageSize);
     rawFetched += rawPageSize;
 
@@ -322,7 +360,7 @@ export async function searchRepos(params: SearchReposParams): Promise<SearchRepo
   }
   return {
     ...result,
-    data: enrichedData,
+    data: enrichedData.map(sanitizePublicRepo),
   };
 }
 
@@ -351,8 +389,8 @@ export async function searchAllReposByTopicAndQuery(
     const result = await searchRepos({ topic, q: topic ? undefined : q, sort: 'updated', limit: pageSize, page });
     if (!result.ok) return { ok: false, data: [], total_count: 0 };
     repos.push(...result.data);
-    expectedTotal = result.total_count;
-    const rawPageSize = result.raw_page_size ?? result.data.length;
+    expectedTotal = result.upstream_total_count ?? result.total_count;
+    const rawPageSize = result.upstream_inspected_count ?? result.raw_page_size ?? result.data.length;
     if (page === 1) maxRawPages = rawSearchPageBudget(expectedTotal, rawPageSize);
     rawFetched += rawPageSize;
     // `data` excludes private repositories, while Forgejo's total still
@@ -391,8 +429,8 @@ async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchRep
   for (let page = 1; page <= maxRawPages; page += 1) {
     const result = await fetchRepoSearchPage({ topic: 'skill', sort: 'updated', limit: pageSize, page });
     if (!result.ok) return result;
-    rawTotal = result.total_count;
-    const rawPageSize = result.raw_page_size ?? result.data.length;
+    rawTotal = result.upstream_total_count ?? result.total_count;
+    const rawPageSize = result.upstream_inspected_count ?? result.raw_page_size ?? result.data.length;
     if (page === 1) maxRawPages = rawSearchPageBudget(rawTotal, rawPageSize);
     rawFetched += rawPageSize;
     const skillResult = await enrichSkillMetadata(result.data);
@@ -443,7 +481,14 @@ export async function searchReposByTopicAndQuery(
       (r.topics || []).some((repoTopic) => repoTopic.toLowerCase().includes(needle))
     );
   });
-  return { ok: res.ok, data: filtered, total_count: filtered.length };
+  return {
+    ok: res.ok,
+    data: filtered,
+    total_count: filtered.length,
+    upstream_total_count: res.upstream_total_count,
+    raw_page_size: res.raw_page_size,
+    upstream_inspected_count: res.upstream_inspected_count,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -452,12 +497,13 @@ export async function searchReposByTopicAndQuery(
 export async function getRepo(owner: string, repo: string): Promise<Repo | null> {
   const res = await apiFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`);
   if (!res.ok || !res.json || res.json.private) return null;
-  const repoInfo = res.json as Repo;
+  const repoInfo = sanitizePublicRepo(res.json as Repo);
   const kind = repoKind(repoInfo.topics);
-  if (kind === 'space') return (await enrichSpaceMetadata([repoInfo]))[0];
+  if (kind === 'space') return sanitizePublicRepo((await enrichSpaceMetadata([repoInfo]))[0]);
   if (kind === 'skill') {
     const skillResult = await enrichSkillMetadata([repoInfo]);
-    return skillResult.unavailable ? null : skillResult.repos[0] || null;
+    const enriched = skillResult.repos[0];
+    return skillResult.unavailable || !enriched ? null : sanitizePublicRepo(enriched);
   }
   return repoInfo;
 }
@@ -501,8 +547,12 @@ export async function resolvePublicRepoRevision(
   const encodedRepo = encodeURIComponent(repo);
   const repoResponse = await publicApiFetch(`/repos/${encodedOwner}/${encodedRepo}`);
   if (!repoResponse.ok || !repoResponse.json || repoResponse.json.private) return null;
-  const repoInfo = repoResponse.json as Repo;
-  const ref = requestedRef?.trim() || repoInfo.default_branch || 'main';
+  const rawRepoInfo = repoResponse.json as Repo;
+  const repoInfo = sanitizePublicRepo(rawRepoInfo);
+  const rawDefaultBranch = typeof rawRepoInfo.default_branch === 'string'
+    ? rawRepoInfo.default_branch.trim()
+    : '';
+  const ref = requestedRef?.trim() || rawDefaultBranch || 'main';
   const commitResponse = await publicApiFetch(
     `/repos/${encodedOwner}/${encodedRepo}/git/commits/${encodeURIComponent(ref)}`,
   );
@@ -762,13 +812,8 @@ function normalizeExternalSpaceUrl(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
   if (!trimmed || trimmed.length > 2048) return undefined;
-  try {
-    const url = new URL(trimmed);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
-    return url.href;
-  } catch {
-    return undefined;
-  }
+  const safe = safePublicUrl(trimmed);
+  return safe && !safe.startsWith('/') ? safe : undefined;
 }
 
 function inferredSpaceEmoji(repo: Repo): string {
@@ -790,6 +835,7 @@ function inferredSpaceEmoji(repo: Repo): string {
 async function enrichSpaceMetadata(repos: Repo[]): Promise<Repo[]> {
   return Promise.all(repos.map(async (repo) => {
     const owner = repo.owner?.login ?? repo.full_name.split('/')[0];
+    const branch = repoDefaultBranch(repo);
     const readme = await getReadme(owner, repo.name);
     let configuredEmoji: string | undefined;
     let configuredExternalUrl: string | undefined;
@@ -803,11 +849,11 @@ async function enrichSpaceMetadata(repos: Repo[]): Promise<Repo[]> {
         configuredExternalUrl = undefined;
       }
     }
-    return {
+    return attachOperationalDefaultBranch({
       ...repo,
       space_emoji: configuredEmoji || inferredSpaceEmoji(repo),
       ...(configuredExternalUrl ? { space_url: configuredExternalUrl } : {}),
-    };
+    }, branch);
   }));
 }
 
@@ -897,8 +943,12 @@ async function enrichSkillMetadata(repos: Repo[], maxAdmitted = Number.POSITIVE_
     const rootStatus = await getSkillRootStatus(owner, repo.name);
     if (rootStatus === 'unavailable') return { repo: null, unavailable: true };
     if (rootStatus !== 'valid') return { repo: null, unavailable: false };
+    const enriched = attachOperationalDefaultBranch({
+      ...repo,
+      skill_relationships: await getSkillRelationships(owner, repo.name),
+    }, repoDefaultBranch(repo));
     return {
-      repo: { ...repo, skill_relationships: await getSkillRelationships(owner, repo.name) },
+      repo: sanitizePublicRepo(enriched),
       unavailable: false,
     };
   };

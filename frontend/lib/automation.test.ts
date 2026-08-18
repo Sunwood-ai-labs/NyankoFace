@@ -154,6 +154,37 @@ test('public revision lookup never sends the privileged Forgejo token', async ()
   }
 });
 
+test('public revision lookup uses the raw default branch before repository sanitization', async () => {
+  const originalFetch = globalThis.fetch;
+  const requests: string[] = [];
+  let call = 0;
+  globalThis.fetch = (async (input) => {
+    requests.push(String(input));
+    call += 1;
+    if (call === 1) {
+      return Response.json({
+        id: 2,
+        name: 'unsafe-ref',
+        full_name: 'nyankoface/unsafe-ref',
+        description: 'Safe report',
+        owner: { login: 'nyankoface' },
+        updated_at: new Date(0).toISOString(),
+        private: false,
+        default_branch: 'http://forgejo:3000/main',
+        topics: ['automation'],
+      });
+    }
+    return Response.json({ sha: 'c'.repeat(40) });
+  }) as typeof fetch;
+  try {
+    const revision = await resolvePublicRepoRevision('nyankoface', 'unsafe-ref');
+    assert.equal(revision?.requestedRef, 'http://forgejo:3000/main');
+    assert.match(requests[1], /git\/commits\/http%3A%2F%2Fforgejo%3A3000%2Fmain$/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('private repositories are indistinguishable from missing public revisions', async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async () => Response.json({ private: true })) as typeof fetch;
