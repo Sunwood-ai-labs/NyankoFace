@@ -317,6 +317,24 @@ test('keeps a type-7 closing tag inside an active paragraph', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('resets paragraph state after a heading before type-7 HTML', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '# Heading',
+    '<my-widget>',
+    ':::',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /Heading/);
+  assert.match(bodyHtml, /:::/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not borrow a later closer for an unmatched Zenn opener', () => {
   const { bodyHtml } = parseReadme([
     ':::message',

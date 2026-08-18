@@ -231,6 +231,11 @@ function continuesZennFenceContainer(line: string, container: ZennFenceContainer
   return (line.match(/^[ \t]*/)![0].length >= container.contentIndent);
 }
 
+function startsMarkdownBlock(line: string): boolean {
+  const content = line.replace(/^[ \t]{0,3}/, '');
+  return /^(?:#{1,6}(?:[ \t]+|$)|={2,}[ \t]*$|-{3,}[ \t]*$)/.test(content);
+}
+
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
   if (!left || !right) return left === right;
   if (left.kind !== right.kind) return false;
@@ -356,7 +361,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     } else if (line.trim() === '') {
       paragraphActive = false;
     } else {
-      paragraphActive = true;
+      paragraphActive = !startsMarkdownBlock(line);
     }
     offset = end;
   }
