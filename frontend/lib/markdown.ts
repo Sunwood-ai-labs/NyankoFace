@@ -249,7 +249,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
   if (trimmed.startsWith('<!--')) return trimmed.includes('-->') ? null : { kind: 'closing', pattern: /-->/, interruptsParagraph: true };
   if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/, interruptsParagraph: true };
   if (/^<!\[CDATA\[/i.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/, interruptsParagraph: true };
-  if (/^<![A-Z]/.test(trimmed)) return trimmed.endsWith('>') ? null : { kind: 'closing', pattern: />/, interruptsParagraph: true };
+  if (/^<![A-Z]/.test(trimmed)) return trimmed.includes('>') ? null : { kind: 'closing', pattern: />/, interruptsParagraph: true };
   const closingTag = trimmed.match(/^<\/([A-Za-z][A-Za-z0-9-]*)\s*>\s*$/);
   if (closingTag) {
     return {
@@ -257,13 +257,15 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockBoundary | null {
       interruptsParagraph: RAW_HTML_BLOCK_TAGS.has(closingTag[1].toLowerCase()),
     };
   }
-  const partialExplicitOpening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?=\s|$)/);
-  if (partialExplicitOpening && RAW_HTML_TAGS_WITH_EXPLICIT_END.has(partialExplicitOpening[1].toLowerCase())) {
-    const tagName = partialExplicitOpening[1].toLowerCase();
-    return { kind: 'closing', pattern: new RegExp(`</${tagName}\\s*>`, 'i'), interruptsParagraph: true };
-  }
   const opening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?:\s[^<>]*)?>/);
-  if (!opening) return null;
+  if (!opening) {
+    const partialExplicitOpening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?=\s|$)/);
+    if (partialExplicitOpening && RAW_HTML_TAGS_WITH_EXPLICIT_END.has(partialExplicitOpening[1].toLowerCase())) {
+      const tagName = partialExplicitOpening[1].toLowerCase();
+      return { kind: 'closing', pattern: new RegExp(`</${tagName}\\s*>`, 'i'), interruptsParagraph: true };
+    }
+    return null;
+  }
   const tagName = opening[1].toLowerCase();
   const isBlockTag = RAW_HTML_BLOCK_TAGS.has(tagName);
   const isSelfClosing = /\/\s*>$/.test(opening[0]);
@@ -305,7 +307,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         offset = end;
         continue;
       }
-      const rawHtml = rawHtmlBlockEnd(line);
+      const rawHtml = rawHtmlBlockEnd(stripZennContainerPrefix(line));
       if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph)) {
         htmlBlockEnd = rawHtml;
         paragraphActive = false;

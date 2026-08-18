@@ -398,6 +398,50 @@ test('keeps multiline explicit-end HTML open until its closing tag', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps same-line explicit-end HTML inside a Zenn block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre class="x">text</pre>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /text/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('recognizes list-nested raw HTML before Zenn closers', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- <div>',
+    '  :::',
+    '  </div>',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /:::/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('closes declaration HTML at its first angle bracket', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<!DOCTYPE html>   ',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends block HTML boundaries at a blank line', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
