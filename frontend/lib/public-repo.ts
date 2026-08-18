@@ -21,6 +21,7 @@ const NESTED_URL_PATTERNS = [
   /(?<=[?&#=\s([{<])(?=((?:\[[^\]\s<>"'`]+\]):[^\s<>"'`]+))/gi,
 ];
 const EXTERNAL_TARGET_PARAMETER_PATTERN = /(?:^|[?&#])((?:next|url|uri|redirect|redirect_url|redirect_uri|return|return_to|return_url|target|destination|dest|link|href|clone|repository|repo|callback|continue))\s*=\s*$/i;
+const EXTERNAL_TARGET_PARAMETER_BACKSLASH_PATTERN = /(?:^|[?&#])(?:next|url|uri|redirect|redirect_url|redirect_uri|return|return_to|return_url|target|destination|dest|link|href|clone|repository|repo|callback|continue)\s*=\s*[^&#]*\\/i;
 const GIT_REMOTE_TARGET_PARAMETERS = new Set(['clone', 'repository', 'repo']);
 const MAX_URL_DECODE_PASSES = 8;
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
@@ -194,6 +195,12 @@ function decodePercentEscapesBestEffort(value: string): string {
   return result;
 }
 
+function containsUnsafeDecodedBackslash(value: string): boolean {
+  const queryOrFragmentStart = value.search(/[?#]/);
+  const path = queryOrFragmentStart === -1 ? value : value.slice(0, queryOrFragmentStart);
+  return path.includes('\\') || EXTERNAL_TARGET_PARAMETER_BACKSLASH_PATTERN.test(value);
+}
+
 function containsUnsafeNestedUrl(value: string): boolean {
   let current = value;
   for (let pass = 0; pass <= MAX_URL_DECODE_PASSES; pass += 1) {
@@ -201,7 +208,7 @@ function containsUnsafeNestedUrl(value: string): boolean {
     // Percent decoding can reveal controls that were not present in the
     // original public-looking URL. Reject them before WHATWG URL parsing can
     // normalize them away.
-    if (current.includes('\\') || /[\u0000-\u001f\u007f]/.test(current)) return true;
+    if (containsUnsafeDecodedBackslash(current) || /[\u0000-\u001f\u007f]/.test(current)) return true;
     if (/(?:^|[?&#=\s([{<])https?:[\\/]{1,3}[^/&#?]*@/i.test(inspectionValue)) return true;
     for (const pattern of NESTED_URL_PATTERNS) {
       for (const match of inspectionValue.matchAll(pattern)) {
@@ -381,6 +388,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
   };
   return value
     .replace(/(?<![\p{L}\p{N}_.:@\/\\-])(?:[\p{L}\p{N}][\p{L}\p{N}_.-]*|\[[^\]\s<>"'`&]+\])(?=$|[^\p{L}\p{N}_.:@\/\\-])/giu, scrubBareHostname)
+    .replace(/(?<![\p{L}\p{N}_.-])[\p{L}\p{N}][\p{L}\p{N}_.-]*\.[\p{L}\p{N}_.-]+\/[^\s<>"'`&]+/giu, scrubBareHostPath)
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
     .replace(/\b[^\s<>"'`&]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+/gi, scrub)
@@ -445,9 +453,10 @@ function sanitizePublicRepoText(value: string): string {
 
 function sanitizePublicRepoValue(value: unknown, fieldName?: string): unknown {
   if (typeof value === 'string') {
+    if (fieldName === 'name' || fieldName === 'full_name') return value;
     if (fieldName?.endsWith('_at') && ISO_TIMESTAMP_PATTERN.test(value)) return value;
     const direct = safePublicUrl(value);
-    return direct ?? sanitizePublicRepoText(value);
+    return direct && !direct.startsWith('/') ? direct : sanitizePublicRepoText(value);
   }
   if (Array.isArray(value)) return value.map((entry) => sanitizePublicRepoValue(entry, fieldName));
   if (!value || typeof value !== 'object') return value;

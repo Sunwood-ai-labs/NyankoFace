@@ -338,6 +338,14 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     undefined,
   );
   assert.equal(
+    safePublicUrl('https://github.com/search?q=%5Cfoo'),
+    'https://github.com/search?q=%5Cfoo',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=%5Cforgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
     safePublicUrl('https://public.example/redirect#next=https%3A%2F%2F127.0.0.1%2Fapp'),
     undefined,
   );
@@ -462,6 +470,27 @@ test('scrubs private bare hostname tokens while preserving public host tokens', 
     } as Repo).description || '';
     assert.doesNotMatch(sanitized, /forgejo\.ops\.example\.com|docs\.internal/);
     assert.match(sanitized, /github\.com|example\.com/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
+test('scrubs relative-looking text without rewriting repository identifiers', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://forgejo.ops.example.com/api/v1';
+    const sanitized = sanitizePublicRepo({
+      id: 20,
+      name: 'docs.internal',
+      full_name: 'alice/docs.internal',
+      description: '/mirror/forgejo.ops.example.com/alice/demo',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo);
+    assert.equal(sanitized.name, 'docs.internal');
+    assert.equal(sanitized.full_name, 'alice/docs.internal');
+    assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com/);
   } finally {
     if (original === undefined) delete process.env.FORGEJO_API;
     else process.env.FORGEJO_API = original;
