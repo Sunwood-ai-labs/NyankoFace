@@ -947,11 +947,11 @@ export function forgejoRepoUrl(owner: string, repo: string): string {
 
 export function forgejoTreeUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
   const cleanPath = path.replace(/^\/+/, '');
-  return `${forgejoRepoUrl(owner, repo)}/src/${refKind}/${branch}${cleanPath ? `/${cleanPath}` : ''}`;
+  return `${forgejoRepoUrl(owner, repo)}/src/${refKind}/${encodeURIComponent(branch)}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 
 export function forgejoRawUrl(owner: string, repo: string, path: string, branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
-  return `${forgejoRepoUrl(owner, repo)}/raw/${refKind}/${branch}/${path.replace(/^\/+/, '')}`;
+  return `${forgejoRepoUrl(owner, repo)}/raw/${refKind}/${encodeURIComponent(branch)}/${path.replace(/^\/+/, '')}`;
 }
 
 export type DownloadSource = 'raw' | 'lfs' | 'automation';
@@ -975,7 +975,7 @@ export function nyankofaceDownloadUrl(
 
 export function forgejoCommitsUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
   const cleanPath = path.replace(/^\/+/, '');
-  return `${forgejoRepoUrl(owner, repo)}/commits/${refKind}/${branch}${cleanPath ? `/${cleanPath}` : ''}`;
+  return `${forgejoRepoUrl(owner, repo)}/commits/${refKind}/${encodeURIComponent(branch)}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 
 const TYPE_TOPICS = new Set<string>(['model', 'dataset', 'space', 'skill', 'mcp', 'prompt', 'doc', 'character', 'benchmark', 'automation']);

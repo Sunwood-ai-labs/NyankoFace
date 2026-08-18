@@ -120,11 +120,15 @@ async function loadRepositoryReadme(owner: string, repo: string, ref: string): P
     if (!file.ok || !file.data || Array.isArray(file.data) || file.data.type !== 'file' || typeof file.data.content !== 'string') {
       return remember({ status: 'unavailable', path: entry.path, size: entry.size });
     }
-    const raw = Buffer.from(
+    const rawBuffer = Buffer.from(
       file.data.content,
       (file.data.encoding as BufferEncoding) || 'base64',
-    ).toString('utf-8');
-    return remember({ status: 'present', raw, path: entry.path, size: file.data.size ?? entry.size });
+    );
+    const fetchedSize = file.data.size ?? rawBuffer.byteLength;
+    if (fetchedSize >= MAX_README_PREVIEW_BYTES || rawBuffer.byteLength >= MAX_README_PREVIEW_BYTES) {
+      return remember({ status: 'too-large', path: entry.path, size: fetchedSize });
+    }
+    return remember({ status: 'present', raw: rawBuffer.toString('utf-8'), path: entry.path, size: fetchedSize });
   } catch {
     return remember({ status: 'unavailable' });
   }
