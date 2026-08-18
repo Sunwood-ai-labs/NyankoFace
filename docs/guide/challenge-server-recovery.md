@@ -43,6 +43,11 @@ HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:?set the challenge port}"
 HEALTH_URL="${HEALTH_URL:?set the stable-name health URL}"
 HEALTH_STATUS="${HEALTH_STATUS:?set the expected health HTTP status}"
+HEALTH_CONTENT_TYPES="${HEALTH_CONTENT_TYPES:-application/json,text/plain}"
+HEALTH_JSON_CONTENT_TYPES="${HEALTH_JSON_CONTENT_TYPES:-application/json}"
+HEALTH_TEXT_CONTENT_TYPES="${HEALTH_TEXT_CONTENT_TYPES:-text/plain}"
+HEALTH_JSON_STATUS_FIELD="${HEALTH_JSON_STATUS_FIELD:-status}"
+HEALTH_BODY_CONTRACTS="${HEALTH_BODY_CONTRACTS:-ok,healthy,OK}"
 FAILURE_URL="${FAILURE_URL:?set the stable-name failure URL}"
 FAILURE_STATUS="${FAILURE_STATUS:?set the expected stopped-state HTTP status}"
 FAILURE_CONTENT_TYPE="${FAILURE_CONTENT_TYPE:?set the expected stopped-state content type}"
@@ -51,6 +56,12 @@ VENV="$CHALLENGE_DIR/.venv"
 LOG_FILE="$CHALLENGE_DIR/run/$SERVICE_NAME.log"
 mkdir -p "$(dirname "$PID_FILE")"
 ~~~
+
+The default health contract accepts JSON `status` values `ok`, `healthy`, or
+`OK`, and an exact plain-text `OK` body. For another challenge, configure
+`HEALTH_CONTENT_TYPES`, `HEALTH_JSON_CONTENT_TYPES`,
+`HEALTH_TEXT_CONTENT_TYPES`, `HEALTH_JSON_STATUS_FIELD`, and the comma-separated
+`HEALTH_BODY_CONTRACTS` values before running the proof.
 
 Use a stable name that is unique to this challenge. Do not identify a process
 by an arbitrary “latest Python” PID, a shared process-manager parent, or a
@@ -135,15 +146,40 @@ command-substitution loss.
 content_type_matches() {
   local actual="${1,,}"
   local expected="${2,,}"
-  [[ "$actual" == "$expected" || "$actual" == "$expected;"* ]]
+  actual="${actual%%;*}"
+  expected="${expected%%;*}"
+  actual="$(printf '%s' "$actual" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  expected="$(printf '%s' "$expected" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+  [[ "$actual" == "$expected" ]]
+}
+
+content_type_in_list() {
+  local actual="$1"
+  local expected_list="$2"
+  local expected
+  local -a expected_types
+  IFS=',' read -r -a expected_types <<< "$expected_list"
+  for expected in "${expected_types[@]}"; do
+    if content_type_matches "$actual" "$expected"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+body_contract_valid() {
+  [[ "$1" != 'unexpected' && "$1" != 'invalid-json' && -n "$1" ]]
 }
 
 read_health_body_contract() {
   local body_file="$1"
   local content_type="${2,,}"
-  case "$content_type" in
-    application/json|'application/json;'*)
-      "$VENV/bin/python" - "$body_file" <<'PY'
+  if ! content_type_in_list "$content_type" "$HEALTH_CONTENT_TYPES"; then
+    printf 'unexpected\n'
+    return
+  fi
+  if content_type_in_list "$content_type" "$HEALTH_JSON_CONTENT_TYPES"; then
+    "$VENV/bin/python" - "$body_file" "$HEALTH_JSON_STATUS_FIELD" "$HEALTH_BODY_CONTRACTS" <<'PY'
 import json
 import pathlib
 import sys
@@ -153,22 +189,24 @@ try:
 except (OSError, UnicodeError, ValueError):
     print('invalid-json')
 else:
-    status = value.get('status') if isinstance(value, dict) else None
-    allowed = {'ok', 'healthy', 'OK'}
-    print(status if isinstance(status, str) and status in allowed else 'unexpected')
+    status = value.get(sys.argv[2]) if isinstance(value, dict) else None
+    expected = {item.strip() for item in sys.argv[3].split(',') if item.strip()}
+    print(status if isinstance(status, str) and status in expected else 'unexpected')
 PY
-      ;;
-    text/plain|'text/plain;'*)
-      if printf '%s' 'OK' | cmp -s "$body_file" -; then
-        printf 'OK\n'
-      else
-        printf 'unexpected\n'
+    return
+  fi
+  if content_type_in_list "$content_type" "$HEALTH_TEXT_CONTENT_TYPES"; then
+    local expected_body
+    local -a expected_bodies
+    IFS=',' read -r -a expected_bodies <<< "$HEALTH_BODY_CONTRACTS"
+    for expected_body in "${expected_bodies[@]}"; do
+      if printf '%s' "$expected_body" | cmp -s "$body_file" -; then
+        printf '%s\n' "$expected_body"
+        return
       fi
-      ;;
-    *)
-      printf 'unexpected\n'
-      ;;
-  esac
+    done
+  fi
+  printf 'unexpected\n'
 }
 
 failure_body_file="$(mktemp)"
@@ -231,15 +269,14 @@ check_health() {
   local body_file metadata content_type body_contract http_status
   body_file="$(mktemp)"
   metadata="$(curl --silent --show-error --max-time 3 \
-    --header 'Accept: application/json, text/plain' \
+    --header "Accept: $HEALTH_CONTENT_TYPES" \
     --output "$body_file" \
     --write-out $'%{http_code}\n%{content_type}' "$HEALTH_URL")" || { rm -f "$body_file"; return 1; }
   http_status="${metadata%%$'\n'*}"
   content_type="${metadata#*$'\n'}"
   body_contract="$(read_health_body_contract "$body_file" "$content_type")"
   rm -f "$body_file"
-  [[ "$http_status" == "$HEALTH_STATUS" \
-    && ( "$body_contract" == 'ok' || "$body_contract" == 'healthy' || "$body_contract" == 'OK' ) ]]
+  [[ "$http_status" == "$HEALTH_STATUS" ]] && body_contract_valid "$body_contract"
 }
 
 healthy=0
@@ -265,7 +302,7 @@ record_stable_response() {
   local body_file metadata content_type body_contract http_status
   body_file="$(mktemp)"
   metadata="$(curl --silent --show-error --max-time 3 \
-    --header 'Accept: application/json, text/plain' \
+    --header "Accept: $HEALTH_CONTENT_TYPES" \
     --output "$body_file" \
     --write-out $'%{http_code}\n%{content_type}' "$HEALTH_URL")" || { rm -f "$body_file"; return 1; }
   http_status="${metadata%%$'\n'*}"
@@ -274,8 +311,7 @@ record_stable_response() {
   rm -f "$body_file"
   printf 'stage=%s stable-name http_status=%s content_type=%s body_contract=%s\n' \
     "$name" "$http_status" "$content_type" "$body_contract"
-  [[ "$http_status" == "$HEALTH_STATUS" \
-    && ( "$body_contract" == 'ok' || "$body_contract" == 'healthy' || "$body_contract" == 'OK' ) ]]
+  [[ "$http_status" == "$HEALTH_STATUS" ]] && body_contract_valid "$body_contract"
 }
 
 run_stage() {
