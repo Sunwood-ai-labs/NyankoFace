@@ -237,3 +237,26 @@ test('scans the all-Skill catalog once instead of rescanning earlier raw pages',
   });
   assert.deepEqual(requestedPages, [1, 2]);
 });
+
+test('fails closed when the bounded Skill page budget cannot exhaust raw results', async () => {
+  let pageRequests = 0;
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) {
+      pageRequests += 1;
+      return jsonResponse({ data: [] }, 200, { 'x-total-count': '10001' });
+    }
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    assert.deepEqual(await searchRepos({ topic: 'skill', limit: 1 }), {
+      ok: false,
+      data: [],
+      total_count: 0,
+    });
+    assert.deepEqual(await searchAllReposByTopicAndQuery('skill'), {
+      ok: false,
+      data: [],
+      total_count: 0,
+    });
+  });
+  assert.equal(pageRequests, 200);
+});

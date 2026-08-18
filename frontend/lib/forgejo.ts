@@ -257,6 +257,7 @@ async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposR
   const firstAdmittedIndex = (requestedPage - 1) * limit;
   const admitted: Repo[] = [];
   let rawTotal = 0;
+  let rawExhausted = false;
 
   for (let rawPage = 1; rawPage <= MAX_SKILL_SEARCH_PAGES; rawPage += 1) {
     const result = await fetchRepoSearchPage({ ...params, limit, page: rawPage });
@@ -268,8 +269,13 @@ async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposR
     admitted.push(...skillResult.repos);
 
     const rawPageExhausted = rawPage * limit >= rawTotal;
-    if (admitted.length >= firstAdmittedIndex + limit || rawPageExhausted) break;
+    if (admitted.length >= firstAdmittedIndex + limit || rawPageExhausted) {
+      rawExhausted = true;
+      break;
+    }
   }
+
+  if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
 
   return {
     ok: true,
@@ -341,6 +347,7 @@ async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchRep
   const pageSize = 100;
   const repos: Repo[] = [];
   let rawTotal = Number.POSITIVE_INFINITY;
+  let rawExhausted = false;
 
   for (let page = 1; page <= MAX_SKILL_SEARCH_PAGES; page += 1) {
     const result = await fetchRepoSearchPage({ topic: 'skill', sort: 'updated', limit: pageSize, page });
@@ -349,8 +356,13 @@ async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchRep
     const skillResult = await enrichSkillMetadata(result.data);
     if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
     repos.push(...skillResult.repos);
-    if (page * pageSize >= rawTotal) break;
+    if (page * pageSize >= rawTotal) {
+      rawExhausted = true;
+      break;
+    }
   }
+
+  if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
 
   const needle = q?.toLowerCase();
   const filtered = needle
