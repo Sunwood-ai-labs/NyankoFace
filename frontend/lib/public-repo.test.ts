@@ -332,6 +332,8 @@ test('rejects the configured Forgejo origin even when its hostname is public-loo
     assert.equal(safePublicUrl('https://forgejo.ops.example.com/avatar.png'), undefined);
     process.env.FORGEJO_API = 'https://[2606:4700:4700::1111]/api/v1';
     assert.equal(safePublicUrl('https://[2606:4700:4700::1111]/avatar.png'), undefined);
+    process.env.FORGEJO_API = 'http://forgejo_dev:3000/api/v1';
+    assert.equal(safePublicUrl('https://public.example/redirect?clone=git@forgejo_dev:org/repo.git'), undefined);
   } finally {
     if (original === undefined) delete process.env.FORGEJO_API;
     else process.env.FORGEJO_API = original;
