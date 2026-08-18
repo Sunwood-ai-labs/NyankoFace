@@ -115,12 +115,18 @@ function isEstablishedPrivateEndpointHost(hostname: string, port?: string, allow
   return (host.includes('.') || host.includes(':')) && isPrivateHostname(host);
 }
 
-function parseScpTarget(value: string): { host: string } | undefined {
-  const match = value.match(/^(?:[^@\s<>"'`&]+@)?(\[[^\]\s<>"'`&]+\]|[a-z0-9_.-]+):[^\s<>"'`&]+$/i);
+function parseScpTarget(value: string): { host: string; hasUser: boolean } | undefined {
+  const match = value.match(/^(?:([^@\s<>"'`&]+)@)?(\[[^\]\s<>"'`&]+\]|[a-z0-9_.-]+):[^\s<>"'`&]+$/i);
   if (!match) return undefined;
-  const host = match[1];
+  const host = match[2];
   if (/^[a-z][a-z0-9+.-]*:/i.test(value) && !host.startsWith('[') && !host.includes('.')) return undefined;
-  return { host };
+  return { host, hasUser: Boolean(match[1]) };
+}
+
+function isUnsafeScpHost(target: { host: string; hasUser: boolean }): boolean {
+  return target.hasUser
+    ? isPrivateHostname(target.host)
+    : isEstablishedPrivateEndpointHost(target.host, undefined, true);
 }
 
 function hasExternalTargetParameter(source: string, candidateStart: number): boolean {
@@ -147,7 +153,7 @@ function containsUnsafeNestedUrl(value: string): boolean {
         ) continue;
         const scpTarget = parseScpTarget(candidate);
         if (scpTarget) {
-          if (isEstablishedPrivateEndpointHost(scpTarget.host, undefined, true)) return true;
+          if (isUnsafeScpHost(scpTarget)) return true;
           continue;
         }
         try {
@@ -228,7 +234,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     const url = trailing ? candidate.slice(0, -trailing.length) : candidate;
     const scpTarget = parseScpTarget(url);
     if (scpTarget) {
-      return isEstablishedPrivateEndpointHost(scpTarget.host, undefined, true)
+      return isUnsafeScpHost(scpTarget)
         ? '[internal URL omitted]' + trailing
         : candidate;
     }
