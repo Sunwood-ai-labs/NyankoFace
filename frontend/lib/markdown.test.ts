@@ -302,6 +302,35 @@ test('does not let a type-7 HTML tag interrupt a paragraph', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps a type-7 closing tag inside an active paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'paragraph',
+    '</span>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /paragraph/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not borrow a later closer for an unmatched Zenn opener', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'unclosed',
+    '',
+    ':::message',
+    'valid',
+    ':::',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<p>:::message\s*unclosed<\/p>/);
+});
+
 test('does not treat incomplete inline HTML as a raw block', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -312,6 +341,23 @@ test('does not treat incomplete inline HTML as a raw block', () => {
   ].join('\n'));
 
   assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps multiline explicit-end HTML open until its closing tag', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre',
+    'class="language-text">',
+    ':::',
+    '</pre>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /:::/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 

@@ -10,6 +10,7 @@ import {
   searchRepos,
   getTextFile,
   cloneUrl,
+  encodeRepositoryPath,
   forgejoRepoUrl,
   forgejoTreeUrl,
   forgejoRawUrl,
@@ -597,6 +598,7 @@ async function CardTabContent({
     ? readme.path.split('/').slice(0, -1).join('/')
     : '';
   const readmeAssetPath = readmeDirectory ? `${readmeDirectory}/` : '';
+  const readmeUrlAssetPath = encodeRepositoryPath(readmeAssetPath);
   let readmeStatus: RepositoryReadmeResult['status'] | 'empty' | 'parse' = taggedPromptRaw ? 'present' : readme.status;
   let frontmatter: import('@/lib/markdown').ModelCardFrontmatter = {};
   let bodyHtml = '';
@@ -606,7 +608,7 @@ async function CardTabContent({
         assetBaseUrl: forgejoRawUrl(owner, repo, readmeAssetPath, ref, refKind),
         relativeLinkBaseUrl: revision
           ? forgejoTreeUrl(owner, repo, readmeDirectory, revision, 'tag') + '/'
-          : `/${owner}/${repo}/blob/${readmeAssetPath}`,
+          : `/${owner}/${repo}/blob/${readmeUrlAssetPath}`,
         locale,
       });
       frontmatter = parsed.frontmatter;

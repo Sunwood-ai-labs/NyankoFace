@@ -955,12 +955,12 @@ export function forgejoRepoUrl(owner: string, repo: string): string {
 }
 
 export function forgejoTreeUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = encodeRepositoryPath(path);
   return `${forgejoRepoUrl(owner, repo)}/src/${refKind}/${encodeURIComponent(branch)}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 
 export function forgejoRawUrl(owner: string, repo: string, path: string, branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
-  return `${forgejoRepoUrl(owner, repo)}/raw/${refKind}/${encodeURIComponent(branch)}/${path.replace(/^\/+/, '')}`;
+  return `${forgejoRepoUrl(owner, repo)}/raw/${refKind}/${encodeURIComponent(branch)}/${encodeRepositoryPath(path)}`;
 }
 
 export type DownloadSource = 'raw' | 'lfs' | 'automation';

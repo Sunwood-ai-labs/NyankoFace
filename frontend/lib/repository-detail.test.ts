@@ -35,9 +35,10 @@ test('repository detail resolves a case-insensitive root README and distinguishe
   assert.match(repoPageSource, /getContents\(owner, repo, path, ref\)/);
   assert.match(repoPageSource, /refKind = revision \? 'tag'/);
   assert.match(repoPageSource, /const readmeDirectory = !taggedPromptRaw/);
+  assert.match(repoPageSource, /encodeRepositoryPath\(readmeAssetPath\)/);
   assert.match(repoPageSource, /forgejoRawUrl\(owner, repo, readmeAssetPath, ref, refKind\)/);
   assert.match(repoPageSource, /forgejoTreeUrl\(owner, repo, readmeDirectory, revision, 'tag'\)/);
-  assert.match(repoPageSource, /blob\/\$\{readmeAssetPath\}/);
+  assert.match(repoPageSource, /blob\/\$\{readmeUrlAssetPath\}/);
 });
 
 test('encodes slash-bearing branch and tag names in Forgejo navigation URLs', () => {
@@ -48,8 +49,16 @@ test('encodes slash-bearing branch and tag names in Forgejo navigation URLs', ()
     '/git/owner/repo/src/branch/release%2Fcandidate%201%232%3Ffinal/docs/guide.md',
   );
   assert.equal(
+    forgejoTreeUrl('owner', 'repo', 'docs#v1/README.md'),
+    '/git/owner/repo/src/branch/main/docs%23v1/README.md',
+  );
+  assert.equal(
     forgejoRawUrl('owner', 'repo', 'README.md', ref, 'tag'),
     '/git/owner/repo/raw/tag/release%2Fcandidate%201%232%3Ffinal/README.md',
+  );
+  assert.equal(
+    forgejoRawUrl('owner', 'repo', 'docs#v1/README.md'),
+    '/git/owner/repo/raw/branch/main/docs%23v1/README.md',
   );
   assert.equal(
     forgejoCommitsUrl('owner', 'repo', '', ref, 'tag'),
