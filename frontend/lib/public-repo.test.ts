@@ -113,6 +113,14 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
     safePublicUrl('https://public.example/redirect?next=//cdn.example.com/app'),
     'https://public.example/redirect?next=//cdn.example.com/app',
   );
+  assert.equal(
+    safePublicUrl('https://github.com/search?q=//foo'),
+    'https://github.com/search?q=//foo',
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=//forgejo:3000/app'),
+    undefined,
+  );
   assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[3fff::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[64:ff9b:1::1]/avatar.png'), undefined);

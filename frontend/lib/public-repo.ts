@@ -199,6 +199,10 @@ function containsUnsafeNestedUrl(value: string): boolean {
         ) return true;
         if (
           candidate.startsWith('//') &&
+          !targetParameter
+        ) continue;
+        if (
+          candidate.startsWith('//') &&
           match.index > 0 &&
           !/[?&#=\s([{<]/.test(current[match.index - 1])
         ) continue;
