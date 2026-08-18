@@ -54,10 +54,7 @@ function configuredForgejoHostname(): string | undefined {
   const configured = process.env.FORGEJO_API;
   if (!configured) return undefined;
   try {
-    return new URL(configured).hostname
-      .toLowerCase()
-      .replace(/^\[|\]$/g, '')
-      .replace(/\.+$/, '');
+    return normalizedHostnameForClassification(new URL(configured).hostname);
   } catch {
     return undefined;
   }
@@ -70,7 +67,7 @@ function normalizedHostnameForClassification(hostname: string): string {
     .replace(/\.+$/, '');
   const scopeSeparator = host.indexOf('%');
   if (scopeSeparator >= 0) return normalizedHostnameForClassification(host.slice(0, scopeSeparator));
-  if (!host.includes(':') || !host.includes('.')) return host;
+  if (!host.includes(':')) return host;
   try {
     return new URL(`http://[${host}]/`).hostname
       .toLowerCase()
@@ -125,9 +122,13 @@ function parseScpTarget(value: string): { host: string; hasUser: boolean } | und
 }
 
 function isUnsafeScpHost(target: { host: string; hasUser: boolean }): boolean {
-  return target.hasUser
-    ? isPrivateHostname(target.host)
-    : isEstablishedPrivateEndpointHost(target.host, undefined, true);
+  if (target.hasUser) {
+    const canonicalNumericHost = canonicalNumericIpv4Host(target.host, undefined, true);
+    return canonicalNumericHost
+      ? isPrivateHostname(canonicalNumericHost)
+      : isPrivateHostname(target.host);
+  }
+  return isEstablishedPrivateEndpointHost(target.host, undefined, true);
 }
 
 function externalTargetParameter(source: string, candidateStart: number): string | undefined {
