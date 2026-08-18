@@ -350,7 +350,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
   const scrubBareHostPath = (candidate: string): string => {
     const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
     const hostPath = trailing ? candidate.slice(0, -trailing.length) : candidate;
-    const match = hostPath.match(/^([a-z0-9][a-z0-9_.-]*|\[[^\]\s<>'"`&]+\])\/[^\s<>'"`&]+$/i);
+    const match = hostPath.match(/^([\p{L}\p{N}][\p{L}\p{N}_.-]*|\[[^\]\s<>'"`&]+\])\/[^\s<>'"`&]+$/iu);
     if (!match) return candidate;
     const host = normalizedHostnameForClassification(match[1]);
     if (!match[1].includes('.') && !match[1].startsWith('[') && configuredForgejoHostname() !== host) return candidate;
@@ -366,7 +366,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(\[[^\]\s<>"'`]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint)
-    .replace(/(?<![a-z0-9_.-])(?:[a-z0-9][a-z0-9_.-]*|\[[^\]\s<>"'`&]+\])\/[^\s<>"'`&]+/gi, scrubBareHostPath);
+    .replace(/(?<![\p{L}\p{N}_.-])(?:[\p{L}\p{N}][\p{L}\p{N}_.-]*|\[[^\]\s<>"'`&]+\])\/[^\s<>"'`&]+/giu, scrubBareHostPath);
 }
 
 function decodeSafePercentSequences(value: string): string {

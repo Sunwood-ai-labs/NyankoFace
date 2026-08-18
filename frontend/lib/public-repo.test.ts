@@ -440,6 +440,26 @@ test('scrubs private bare host paths while preserving public host paths', () => 
   }
 });
 
+test('scrubs Unicode configured hosts in bare host paths', () => {
+  const original = process.env.FORGEJO_API;
+  try {
+    process.env.FORGEJO_API = 'https://förgejo.example.com/api/v1';
+    const sanitized = sanitizePublicRepo({
+      id: 18,
+      name: 'unicode-bare-host-path',
+      full_name: 'alice/unicode-bare-host-path',
+      description: 'Private förgejo.example.com/alice/demo; public github.com/alice/demo remains.',
+      owner: { login: 'alice' },
+      updated_at: '2026-08-16T00:00:00Z',
+    } as Repo);
+    assert.doesNotMatch(sanitized.description || '', /förgejo\.example\.com\/alice\/demo/);
+    assert.match(sanitized.description || '', /github\.com\/alice\/demo/);
+  } finally {
+    if (original === undefined) delete process.env.FORGEJO_API;
+    else process.env.FORGEJO_API = original;
+  }
+});
+
 test('rejects nested URLs with quoted userinfo before an internal host', () => {
   assert.equal(
     safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%27%40forgejo%3A3000%2Fapp'),
