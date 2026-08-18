@@ -33,7 +33,7 @@ function isNonGlobalIpv6(host: string): boolean {
   // IANA's 2001::/23 aggregate is non-global except for its explicit
   // globally reachable allocations below.
   const isGlobal2001Exception = (
-    (second === 1 && groups.slice(2, 7).every((group) => group === 0) && [1, 2, 3].includes(groups[7])) ||
+    (second === 1 && groups.slice(2, 7).every((group) => group === 0) && [1, 2].includes(groups[7])) ||
     second === 3 ||
     (second === 4 && groups[2] === 0x112) ||
     (second >= 0x30 && second <= 0x3f)

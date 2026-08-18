@@ -504,8 +504,12 @@ export async function resolvePublicRepoRevision(
   const encodedRepo = encodeURIComponent(repo);
   const repoResponse = await publicApiFetch(`/repos/${encodedOwner}/${encodedRepo}`);
   if (!repoResponse.ok || !repoResponse.json || repoResponse.json.private) return null;
-  const repoInfo = sanitizePublicRepo(repoResponse.json as Repo);
-  const ref = requestedRef?.trim() || repoInfo.default_branch || 'main';
+  const rawRepoInfo = repoResponse.json as Repo;
+  const repoInfo = sanitizePublicRepo(rawRepoInfo);
+  const rawDefaultBranch = typeof rawRepoInfo.default_branch === 'string'
+    ? rawRepoInfo.default_branch.trim()
+    : '';
+  const ref = requestedRef?.trim() || rawDefaultBranch || 'main';
   const commitResponse = await publicApiFetch(
     `/repos/${encodedOwner}/${encodedRepo}/git/commits/${encodeURIComponent(ref)}`,
   );
