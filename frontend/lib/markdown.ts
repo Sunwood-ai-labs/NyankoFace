@@ -631,7 +631,10 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       )
     ) break;
     cursor = end;
-    paragraphActive = contentLine.trim() !== '' && !startsMarkdownBlock(contentLine, paragraphActive);
+    const quotedFence = matchZennFence(contentLine);
+    paragraphActive = contentLine.trim() !== ''
+      && !startsMarkdownBlock(contentLine, paragraphActive)
+      && !quotedFence;
   }
   rawLength = cursor;
   const raw = source.slice(0, rawLength);
