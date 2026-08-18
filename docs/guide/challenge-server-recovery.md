@@ -52,6 +52,36 @@ HEALTH_TEXT_BODY_CONTRACTS="${HEALTH_TEXT_BODY_CONTRACTS:-OK}"
 STAGE_1_URL="${STAGE_1_URL:?set the stage-1 response URL}"
 STAGE_2_URL="${STAGE_2_URL:?set the stage-2 response URL}"
 STAGE_3_URL="${STAGE_3_URL:?set the stage-3 response URL}"
+STAGE_1_METHOD="${STAGE_1_METHOD:-GET}"
+STAGE_1_HEADERS="${STAGE_1_HEADERS:-}"
+STAGE_1_BODY_FILE="${STAGE_1_BODY_FILE:-}"
+STAGE_1_STATUS="${STAGE_1_STATUS:-$HEALTH_STATUS}"
+STAGE_1_CONTENT_TYPES="${STAGE_1_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
+STAGE_1_JSON_CONTENT_TYPES="${STAGE_1_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
+STAGE_1_TEXT_CONTENT_TYPES="${STAGE_1_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
+STAGE_1_JSON_STATUS_FIELD="${STAGE_1_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
+STAGE_1_BODY_CONTRACTS="${STAGE_1_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
+STAGE_1_TEXT_BODY_CONTRACTS="${STAGE_1_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
+STAGE_2_METHOD="${STAGE_2_METHOD:-GET}"
+STAGE_2_HEADERS="${STAGE_2_HEADERS:-}"
+STAGE_2_BODY_FILE="${STAGE_2_BODY_FILE:-}"
+STAGE_2_STATUS="${STAGE_2_STATUS:-$HEALTH_STATUS}"
+STAGE_2_CONTENT_TYPES="${STAGE_2_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
+STAGE_2_JSON_CONTENT_TYPES="${STAGE_2_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
+STAGE_2_TEXT_CONTENT_TYPES="${STAGE_2_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
+STAGE_2_JSON_STATUS_FIELD="${STAGE_2_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
+STAGE_2_BODY_CONTRACTS="${STAGE_2_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
+STAGE_2_TEXT_BODY_CONTRACTS="${STAGE_2_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
+STAGE_3_METHOD="${STAGE_3_METHOD:-GET}"
+STAGE_3_HEADERS="${STAGE_3_HEADERS:-}"
+STAGE_3_BODY_FILE="${STAGE_3_BODY_FILE:-}"
+STAGE_3_STATUS="${STAGE_3_STATUS:-$HEALTH_STATUS}"
+STAGE_3_CONTENT_TYPES="${STAGE_3_CONTENT_TYPES:-$HEALTH_CONTENT_TYPES}"
+STAGE_3_JSON_CONTENT_TYPES="${STAGE_3_JSON_CONTENT_TYPES:-$HEALTH_JSON_CONTENT_TYPES}"
+STAGE_3_TEXT_CONTENT_TYPES="${STAGE_3_TEXT_CONTENT_TYPES:-$HEALTH_TEXT_CONTENT_TYPES}"
+STAGE_3_JSON_STATUS_FIELD="${STAGE_3_JSON_STATUS_FIELD:-$HEALTH_JSON_STATUS_FIELD}"
+STAGE_3_BODY_CONTRACTS="${STAGE_3_BODY_CONTRACTS:-$HEALTH_BODY_CONTRACTS}"
+STAGE_3_TEXT_BODY_CONTRACTS="${STAGE_3_TEXT_BODY_CONTRACTS:-$HEALTH_TEXT_BODY_CONTRACTS}"
 FAILURE_URL="${FAILURE_URL:?set the stable-name failure URL}"
 FAILURE_STATUS="${FAILURE_STATUS:?set the expected stopped-state HTTP status}"
 FAILURE_CONTENT_TYPE="${FAILURE_CONTENT_TYPE:?set the expected stopped-state content type}"
@@ -66,8 +96,14 @@ The default health contract accepts JSON `status` values `ok`, `healthy`, or
 `HEALTH_CONTENT_TYPES`, `HEALTH_JSON_CONTENT_TYPES`,
 `HEALTH_TEXT_CONTENT_TYPES`, `HEALTH_JSON_STATUS_FIELD`, and the comma-separated
 `HEALTH_BODY_CONTRACTS` values. Set `HEALTH_TEXT_BODY_CONTRACTS` separately for
-exact text responses, and set `STAGE_1_URL`, `STAGE_2_URL`, and `STAGE_3_URL`
-to the response endpoint exercised by each stage before running the proof.
+exact text responses. For each stage, set `STAGE_n_URL`, `STAGE_n_METHOD`,
+`STAGE_n_HEADERS` (a semicolon-separated full header list), and an optional
+`STAGE_n_BODY_FILE`; an empty header value uses the configured content types as
+the `Accept` header. Set the stage-specific status, content-type, JSON field,
+and body-contract variables when a stage differs from the health contract.
+The proof replays that complete configured request after the stage command; it
+must not claim to capture a response whose nonce, cookie, or request body
+cannot be replayed from these inputs.
 
 Use a stable name that is unique to this challenge. Do not identify a process
 by an arbitrary “latest Python” PID, a shared process-manager parent, or a
@@ -217,12 +253,18 @@ body_contract_value() {
 read_health_body_contract() {
   local body_file="$1"
   local content_type="${2,,}"
-  if ! content_type_in_list "$content_type" "$HEALTH_CONTENT_TYPES"; then
+  local expected_content_types="${3:-$HEALTH_CONTENT_TYPES}"
+  local expected_json_content_types="${4:-$HEALTH_JSON_CONTENT_TYPES}"
+  local expected_text_content_types="${5:-$HEALTH_TEXT_CONTENT_TYPES}"
+  local expected_json_status_field="${6:-$HEALTH_JSON_STATUS_FIELD}"
+  local expected_body_contracts="${7:-$HEALTH_BODY_CONTRACTS}"
+  local expected_text_body_contracts="${8:-$HEALTH_TEXT_BODY_CONTRACTS}"
+  if ! content_type_in_list "$content_type" "$expected_content_types"; then
     printf 'invalid:content-type\n'
     return
   fi
-  if content_type_in_list "$content_type" "$HEALTH_JSON_CONTENT_TYPES"; then
-    "$VENV/bin/python" - "$body_file" "$HEALTH_JSON_STATUS_FIELD" "$HEALTH_BODY_CONTRACTS" <<'PY'
+  if content_type_in_list "$content_type" "$expected_json_content_types"; then
+    "$VENV/bin/python" - "$body_file" "$expected_json_status_field" "$expected_body_contracts" <<'PY'
 import json
 import pathlib
 import sys
@@ -241,10 +283,10 @@ else:
 PY
     return
   fi
-  if content_type_in_list "$content_type" "$HEALTH_TEXT_CONTENT_TYPES"; then
+  if content_type_in_list "$content_type" "$expected_text_content_types"; then
     local expected_body
     local -a expected_bodies
-    IFS=',' read -r -a expected_bodies <<< "$HEALTH_TEXT_BODY_CONTRACTS"
+    IFS=',' read -r -a expected_bodies <<< "$expected_text_body_contracts"
     for expected_body in "${expected_bodies[@]}"; do
       if printf '%s' "$expected_body" | cmp -s "$body_file" -; then
         printf 'valid:%s\n' "$expected_body"
@@ -346,43 +388,91 @@ shape of the proof does not.
 record_stable_response() {
   local name="$1"
   local response_url="$2"
-  local body_file metadata content_type body_contract http_status
+  local request_method="$3"
+  local request_headers="$4"
+  local request_body_file="$5"
+  local expected_status="$6"
+  local expected_content_types="$7"
+  local expected_json_content_types="$8"
+  local expected_text_content_types="$9"
+  local expected_json_status_field="${10}"
+  local expected_body_contracts="${11}"
+  local expected_text_body_contracts="${12}"
+  local body_file metadata content_type body_contract contract_value http_status header
+  local -a curl_args configured_headers
   body_file="$(mktemp)"
-  metadata="$(curl --silent --show-error --max-time 3 \
-    --header "Accept: $HEALTH_CONTENT_TYPES" \
+  curl_args=(--silent --show-error --max-time 3 --request "$request_method")
+  if [[ -n "$request_headers" ]]; then
+    IFS=';' read -r -a configured_headers <<< "$request_headers"
+    for header in "${configured_headers[@]}"; do
+      [[ -n "${header//[[:space:]]/}" ]] || continue
+      curl_args+=(--header "$header")
+    done
+  else
+    curl_args+=(--header "Accept: $expected_content_types")
+  fi
+  if [[ -n "$request_body_file" ]]; then
+    [[ -f "$request_body_file" ]] || { rm -f "$body_file"; return 1; }
+    curl_args+=(--data-binary "@$request_body_file")
+  fi
+  metadata="$(curl "${curl_args[@]}" \
     --output "$body_file" \
     --write-out $'%{http_code}\n%{content_type}' "$response_url")" || { rm -f "$body_file"; return 1; }
   http_status="${metadata%%$'\n'*}"
   content_type="${metadata#*$'\n'}"
-  body_contract="$(read_health_body_contract "$body_file" "$content_type")"
+  body_contract="$(read_health_body_contract "$body_file" "$content_type" \
+    "$expected_content_types" "$expected_json_content_types" "$expected_text_content_types" \
+    "$expected_json_status_field" "$expected_body_contracts" "$expected_text_body_contracts")"
   contract_value="$(body_contract_value "$body_contract")"
   rm -f "$body_file"
   printf 'stage=%s stable-name http_status=%s content_type=%s body_contract=%s\n' \
     "$name" "$http_status" "$content_type" "$contract_value"
-  [[ "$http_status" == "$HEALTH_STATUS" ]] && body_contract_valid "$body_contract"
+  [[ "$http_status" == "$expected_status" ]] && body_contract_valid "$body_contract"
 }
 
 run_stage() {
   local name="$1"
   local response_url="$2"
+  local request_method="$3"
+  local request_headers="$4"
+  local request_body_file="$5"
+  local expected_status="$6"
+  local expected_content_types="$7"
+  local expected_json_content_types="$8"
+  local expected_text_content_types="$9"
+  local expected_json_status_field="${10}"
+  local expected_body_contracts="${11}"
+  local expected_text_body_contracts="${12}"
   local stage_status=0
-  shift 2
+  shift 12
   echo "== $name =="
   set +e
   "$@"
   stage_status=$?
   set -e
   printf 'stage=%s exit=%s\n' "$name" "$stage_status"
-  if ! record_stable_response "$name" "$response_url"; then
+  if ! record_stable_response "$name" "$response_url" "$request_method" "$request_headers" \
+    "$request_body_file" "$expected_status" "$expected_content_types" \
+    "$expected_json_content_types" "$expected_text_content_types" \
+    "$expected_json_status_field" "$expected_body_contracts" "$expected_text_body_contracts"; then
     return 1
   fi
   return "$stage_status"
 }
 
 matrix_status=0
-if ! run_stage stage-1 "$STAGE_1_URL" "$VENV/bin/python" scripts/stage1.py; then matrix_status=1; fi
-if ! run_stage stage-2 "$STAGE_2_URL" "$VENV/bin/python" scripts/stage2.py; then matrix_status=1; fi
-if ! run_stage stage-3 "$STAGE_3_URL" "$VENV/bin/python" scripts/stage3.py; then matrix_status=1; fi
+if ! run_stage stage-1 "$STAGE_1_URL" "$STAGE_1_METHOD" "$STAGE_1_HEADERS" "$STAGE_1_BODY_FILE" \
+  "$STAGE_1_STATUS" "$STAGE_1_CONTENT_TYPES" "$STAGE_1_JSON_CONTENT_TYPES" \
+  "$STAGE_1_TEXT_CONTENT_TYPES" "$STAGE_1_JSON_STATUS_FIELD" "$STAGE_1_BODY_CONTRACTS" \
+  "$STAGE_1_TEXT_BODY_CONTRACTS" "$VENV/bin/python" scripts/stage1.py; then matrix_status=1; fi
+if ! run_stage stage-2 "$STAGE_2_URL" "$STAGE_2_METHOD" "$STAGE_2_HEADERS" "$STAGE_2_BODY_FILE" \
+  "$STAGE_2_STATUS" "$STAGE_2_CONTENT_TYPES" "$STAGE_2_JSON_CONTENT_TYPES" \
+  "$STAGE_2_TEXT_CONTENT_TYPES" "$STAGE_2_JSON_STATUS_FIELD" "$STAGE_2_BODY_CONTRACTS" \
+  "$STAGE_2_TEXT_BODY_CONTRACTS" "$VENV/bin/python" scripts/stage2.py; then matrix_status=1; fi
+if ! run_stage stage-3 "$STAGE_3_URL" "$STAGE_3_METHOD" "$STAGE_3_HEADERS" "$STAGE_3_BODY_FILE" \
+  "$STAGE_3_STATUS" "$STAGE_3_CONTENT_TYPES" "$STAGE_3_JSON_CONTENT_TYPES" \
+  "$STAGE_3_TEXT_CONTENT_TYPES" "$STAGE_3_JSON_STATUS_FIELD" "$STAGE_3_BODY_CONTRACTS" \
+  "$STAGE_3_TEXT_BODY_CONTRACTS" "$VENV/bin/python" scripts/stage3.py; then matrix_status=1; fi
 if (( matrix_status != 0 )); then exit 1; fi
 ~~~
 
