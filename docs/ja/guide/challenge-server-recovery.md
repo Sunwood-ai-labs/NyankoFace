@@ -41,6 +41,8 @@ HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:?challenge portを指定}"
 HEALTH_URL="${HEALTH_URL:?stable nameのhealth URLを指定}"
 FAILURE_URL="${FAILURE_URL:?stable nameのfailure URLを指定}"
+FAILURE_STATUS="${FAILURE_STATUS:?停止状態で期待するHTTP statusを指定}"
+FAILURE_CONTENT_TYPE="${FAILURE_CONTENT_TYPE:?停止状態で期待するcontent typeを指定}"
 PID_FILE="$CHALLENGE_DIR/run/$SERVICE_NAME.pid"
 VENV="$CHALLENGE_DIR/.venv"
 LOG_FILE="$CHALLENGE_DIR/run/$SERVICE_NAME.log"
@@ -104,10 +106,17 @@ stable-name routeは、別serverの成功応答やHTML error pageではなく、
 bodyをmemory上で扱い、markerを完全一致させます。
 
 ~~~bash
-failure_body="$(curl --silent --show-error --max-time 3 \
-  --header 'Accept: text/plain' "$FAILURE_URL")"
-if [[ "$failure_body" != '000FAIL' ]]; then
-  echo "stable nameが期待する000FAIL markerを返しません" >&2
+failure_response="$(curl --silent --show-error --max-time 3 \
+  --header 'Accept: text/plain' \
+  --write-out $'\n%{http_code}\n%{content_type}' "$FAILURE_URL")" || exit 1
+failure_content_type="${failure_response##*$'\n'}"
+failure_status_and_body="${failure_response%$'\n'*}"
+failure_status="${failure_status_and_body##*$'\n'}"
+failure_body="${failure_status_and_body%$'\n'*}"
+if [[ "$failure_status" != "$FAILURE_STATUS" \
+  || "$failure_content_type" != "$FAILURE_CONTENT_TYPE"* \
+  || "$failure_body" != '000FAIL' ]]; then
+  echo "stable nameが期待する停止状態のcontractを返しません" >&2
   exit 1
 fi
 ~~~

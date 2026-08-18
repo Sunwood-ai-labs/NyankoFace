@@ -43,6 +43,8 @@ HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:?set the challenge port}"
 HEALTH_URL="${HEALTH_URL:?set the stable-name health URL}"
 FAILURE_URL="${FAILURE_URL:?set the stable-name failure URL}"
+FAILURE_STATUS="${FAILURE_STATUS:?set the expected stopped-state HTTP status}"
+FAILURE_CONTENT_TYPE="${FAILURE_CONTENT_TYPE:?set the expected stopped-state content type}"
 PID_FILE="$CHALLENGE_DIR/run/$SERVICE_NAME.pid"
 VENV="$CHALLENGE_DIR/.venv"
 LOG_FILE="$CHALLENGE_DIR/run/$SERVICE_NAME.log"
@@ -110,10 +112,17 @@ not an HTML error page or a successful response from a different server. Keep
 the response body in memory and compare the exact marker.
 
 ~~~bash
-failure_body="$(curl --silent --show-error --max-time 3 \
-  --header 'Accept: text/plain' "$FAILURE_URL")"
-if [[ "$failure_body" != '000FAIL' ]]; then
-  echo "stable name did not return the expected 000FAIL marker" >&2
+failure_response="$(curl --silent --show-error --max-time 3 \
+  --header 'Accept: text/plain' \
+  --write-out $'\n%{http_code}\n%{content_type}' "$FAILURE_URL")" || exit 1
+failure_content_type="${failure_response##*$'\n'}"
+failure_status_and_body="${failure_response%$'\n'*}"
+failure_status="${failure_status_and_body##*$'\n'}"
+failure_body="${failure_status_and_body%$'\n'*}"
+if [[ "$failure_status" != "$FAILURE_STATUS" \
+  || "$failure_content_type" != "$FAILURE_CONTENT_TYPE"* \
+  || "$failure_body" != '000FAIL' ]]; then
+  echo "stable name did not return the expected stopped-state contract" >&2
   exit 1
 fi
 ~~~
