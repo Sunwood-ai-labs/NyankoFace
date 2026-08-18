@@ -932,11 +932,12 @@ async function enrichSkillMetadata(repos: Repo[], maxAdmitted = Number.POSITIVE_
     const rootStatus = await getSkillRootStatus(owner, repo.name);
     if (rootStatus === 'unavailable') return { repo: null, unavailable: true };
     if (rootStatus !== 'valid') return { repo: null, unavailable: false };
+    const enriched = attachOperationalDefaultBranch({
+      ...repo,
+      skill_relationships: await getSkillRelationships(owner, repo.name),
+    }, repoDefaultBranch(repo));
     return {
-      repo: attachOperationalDefaultBranch({
-        ...repo,
-        skill_relationships: await getSkillRelationships(owner, repo.name),
-      }, repoDefaultBranch(repo)),
+      repo: sanitizePublicRepo(enriched),
       unavailable: false,
     };
   };

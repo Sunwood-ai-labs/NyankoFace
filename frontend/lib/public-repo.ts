@@ -153,6 +153,12 @@ function isSafeGitRefIdentifier(value: string): boolean {
     && !value.includes('//');
 }
 
+function isSafeRepositoryIdentifier(value: string): boolean {
+  const segments = value.split('/');
+  return segments.length <= 2
+    && segments.every((segment) => /^[\p{L}\p{N}][\p{L}\p{N}_.-]*$/u.test(segment));
+}
+
 function externalTargetParameter(source: string, candidateStart: number): string | undefined {
   return source.slice(0, candidateStart).match(EXTERNAL_TARGET_PARAMETER_PATTERN)?.[1].toLowerCase();
 }
@@ -467,9 +473,10 @@ function sanitizePublicRepoText(value: string): string {
 
 function sanitizePublicRepoValue(value: unknown, fieldName?: string, parentFieldName?: string): unknown {
   if (typeof value === 'string') {
-    if (fieldName === 'name' || fieldName === 'full_name' || (fieldName === 'repo' && parentFieldName === 'dependencies')) {
+    if (fieldName === 'name' || fieldName === 'full_name') {
       return value;
     }
+    if (fieldName === 'repo' && parentFieldName === 'dependencies' && isSafeRepositoryIdentifier(value)) return value;
     if (fieldName === 'default_branch' && isSafeGitRefIdentifier(value)) return value;
     if (fieldName?.endsWith('_at') && ISO_TIMESTAMP_PATTERN.test(value)) return value;
     const direct = safePublicUrl(value);

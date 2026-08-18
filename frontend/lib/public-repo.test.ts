@@ -537,6 +537,30 @@ test('preserves skill dependency identifiers while scrubbing their explanations'
   assert.doesNotMatch(dependency?.evidence || '', /docs\.internal/);
 });
 
+test('scrubs URL-shaped skill dependency identifiers before public serialization', () => {
+  const sanitized = sanitizePublicRepo({
+    id: 22,
+    name: 'skill-with-unsafe-dependency',
+    full_name: 'alice/skill-with-unsafe-dependency',
+    description: null,
+    owner: { login: 'alice' },
+    updated_at: '2026-08-16T00:00:00Z',
+    skill_relationships: {
+      schemaVersion: 2,
+      dependencies: [
+        { repo: 'http://forgejo:3000/team/tool', type: 'required' },
+        { repo: 'git@forgejo:team/tool', type: 'recommended' },
+        { repo: 'owner/docs.internal', type: 'recommended' },
+      ],
+    },
+  } as Repo);
+  const dependencies = sanitized.skill_relationships?.dependencies || [];
+
+  assert.equal(dependencies[0]?.repo, '[internal URL omitted]');
+  assert.equal(dependencies[1]?.repo, '[internal URL omitted]');
+  assert.equal(dependencies[2]?.repo, 'owner/docs.internal');
+});
+
 test('scrubs Unicode configured hosts in bare host paths', () => {
   const original = process.env.FORGEJO_API;
   try {
