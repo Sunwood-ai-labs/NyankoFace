@@ -11,12 +11,12 @@ const UPSTREAM_URL_FIELDS = [
 ] as const;
 
 const NESTED_URL_PATTERNS = [
-  /(?<=[?&#=\s([{<])(?=((?:[a-z0-9_.-]+|\[[0-9a-f:.%]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
+  /(?<=[?&#=\s([{<])(?=((?:[a-z0-9_.-]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
   /(?<![a-z0-9+.-])(?=([a-z][a-z0-9+.-]*:[\\/]{1,3}[^\s<>"'`&]+))/gi,
   /(?<![a-z0-9+.-])(?=(https?:(?![\\/])[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=([a-z][a-z0-9+.-]*:[^\s<>"'`&]+))/gi,
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
-  /(?=(\b[^\s<>"'`&@]+@(?:[a-z0-9_.-]+|\[[0-9a-f:.%]+\]):[^\s<>"'`&]+))/gi,
+  /(?=(\b[^\s<>"'`&@]+@(?:[a-z0-9_.-]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:[a-z0-9_.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`&]+\/[^\s<>"'`]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:\[[^\]\s<>"'`]+\]):[^\s<>"'`]+))/gi,
 ];
@@ -134,6 +134,49 @@ function externalTargetParameter(source: string, candidateStart: number): string
   return source.slice(0, candidateStart).match(EXTERNAL_TARGET_PARAMETER_PATTERN)?.[1].toLowerCase();
 }
 
+function decodePercentEscapesBestEffort(value: string): string {
+  let result = '';
+  let index = 0;
+  while (index < value.length) {
+    if (value[index] !== '%') {
+      result += value[index];
+      index += 1;
+      continue;
+    }
+    const runStart = index;
+    while (index + 2 < value.length && value[index] === '%' && /^[0-9a-f]{2}$/i.test(value.slice(index + 1, index + 3))) {
+      index += 3;
+    }
+    if (index === runStart) {
+      result += value[index];
+      index += 1;
+      continue;
+    }
+    const run = value.slice(runStart, index);
+    let runOffset = 0;
+    while (runOffset < run.length) {
+      let decoded = '';
+      let decodedEnd = run.length;
+      while (decodedEnd > runOffset) {
+        try {
+          decoded = decodeURIComponent(run.slice(runOffset, decodedEnd));
+          break;
+        } catch {
+          decodedEnd -= 3;
+        }
+      }
+      if (decodedEnd === runOffset) {
+        result += run.slice(runOffset, runOffset + 3);
+        runOffset += 3;
+      } else {
+        result += decoded;
+        runOffset = decodedEnd;
+      }
+    }
+  }
+  return result;
+}
+
 function containsUnsafeNestedUrl(value: string): boolean {
   let current = value;
   for (let pass = 0; pass <= MAX_URL_DECODE_PASSES; pass += 1) {
@@ -180,22 +223,13 @@ function containsUnsafeNestedUrl(value: string): boolean {
         }
       }
     }
-    let decoded: string;
-    try {
-      decoded = decodeURIComponent(current);
-    } catch {
-      return true;
-    }
+    const decoded = decodePercentEscapesBestEffort(current);
     if (decoded === current) break;
     current = decoded;
   }
   // A value that still changes after the bounded decode budget is ambiguous;
   // do not preserve it at a public metadata boundary.
-  try {
-    return decodeURIComponent(current) !== current;
-  } catch {
-    return true;
-  }
+  return decodePercentEscapesBestEffort(current) !== current;
 }
 
 export function safePublicUrl(value: unknown): string | undefined {

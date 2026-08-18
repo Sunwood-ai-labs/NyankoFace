@@ -315,6 +315,10 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     'https://public.example/redirect?next=https://cdn.example/app',
   );
   assert.equal(
+    safePublicUrl('https://public.example/search?q=100%25'),
+    'https://public.example/search?q=100%25',
+  );
+  assert.equal(
     safePublicUrl('https://github.com/search?q=language:typescript'),
     'https://github.com/search?q=language:typescript',
   );
