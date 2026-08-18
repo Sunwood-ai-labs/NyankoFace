@@ -18,6 +18,7 @@ const NESTED_URL_PATTERNS = [
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
   /(?=(\b[\w.+-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`&]+\/[^\s<>"'`]+))/gi,
+  /(?<=[?&#=\s([{<])(?=((?:\[[^\]\s<>"'`]+\]):[^\s<>"'`]+))/gi,
 ];
 const MAX_URL_DECODE_PASSES = 8;
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/;
@@ -264,6 +265,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
     .replace(/\b[\w.+-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
+    .replace(/(?<![a-z0-9.-])(\[[^\]\s<>"'`]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint);
 }
 
