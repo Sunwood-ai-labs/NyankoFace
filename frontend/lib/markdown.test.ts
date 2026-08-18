@@ -581,6 +581,38 @@ test('does not close a Zenn block on a fenced code line with language info', () 
   assert.doesNotMatch(bodyHtml, /data-markdown-block="zenn-details"/);
 });
 
+test('does not treat tab-indented fences as Zenn code fences', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '\t```',
+    '\tcode',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('resets paragraph state after indented code before type-7 HTML', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '    code',
+    '<my-widget>',
+    ':::',
+    '</my-widget>',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /:::/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps container-prefixed fence-like lines inside a plain fenced block', () => {
   const { bodyHtml } = parseReadme([
     ':::message',

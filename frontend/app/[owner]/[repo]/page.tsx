@@ -110,12 +110,11 @@ function pruneRepositoryReadmeCache(now = Date.now(), makeRoom = false): void {
 }
 
 function normalizeRepositoryPath(value: string): string | undefined {
-  const trimmed = value.trim();
-  if (!trimmed || trimmed.startsWith('/') || trimmed.includes('\\') || /[\u0000-\u001f\u007f]/.test(trimmed)) {
+  if (!value || value.startsWith('/') || value.includes('\\') || /[\u0000-\u001f\u007f]/.test(value)) {
     return undefined;
   }
   const segments: string[] = [];
-  for (const segment of trimmed.split('/')) {
+  for (const segment of value.split('/')) {
     if (!segment || segment === '.') continue;
     if (segment === '..') {
       if (!segments.length) return undefined;

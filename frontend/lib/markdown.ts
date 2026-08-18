@@ -203,12 +203,26 @@ type ZennBoundaryContext = {
 // remaining README for every recursive block.
 const zennBoundaryStacks = new WeakMap<object, ZennBoundaryContext[]>();
 
+function leadingIndentColumns(line: string): number {
+  let columns = 0;
+  for (const character of line) {
+    if (character === ' ') {
+      columns += 1;
+    } else if (character === '\t') {
+      columns += 4 - (columns % 4);
+    } else {
+      break;
+    }
+  }
+  return columns;
+}
+
 function matchZennFence(line: string): ZennFenceMatch | null {
-  const blockquote = line.match(/^[ \t]{0,3}>[ \t]?(`{3,}|~{3,})/);
+  const blockquote = line.match(/^ {0,3}>[ \t]?(`{3,}|~{3,})/);
   if (blockquote) {
     return { token: blockquote[1], end: blockquote[0].length, container: { kind: 'blockquote' } };
   }
-  const list = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+(`{3,}|~{3,})/);
+  const list = line.match(/^ {0,3}(?:[*+-]|\d+[.)])[ \t]+(`{3,}|~{3,})/);
   if (list) {
     return {
       token: list[1],
@@ -216,12 +230,12 @@ function matchZennFence(line: string): ZennFenceMatch | null {
       container: { kind: 'list', contentIndent: list[0].length - list[1].length },
     };
   }
-  const plain = line.match(/^[ \t]{0,3}(`{3,}|~{3,})/);
+  const plain = line.match(/^ {0,3}(`{3,}|~{3,})/);
   return plain ? { token: plain[1], end: plain[0].length } : null;
 }
 
 function stripZennContainerPrefix(line: string): string {
-  const prefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
+  const prefix = line.match(/^ {0,3}(?:[*+-]|\d+[.)])[ \t]+/);
   return prefix ? line.slice(prefix[0].length) : line;
 }
 
@@ -234,12 +248,13 @@ function isZennClosingLine(line: string, listContentIndent?: number): boolean {
 
 function continuesZennFenceContainer(line: string, container: ZennFenceContainer): boolean {
   if (!line.trim()) return true;
-  if (container.kind === 'blockquote') return /^[ \t]{0,3}>[ \t]?/.test(line);
-  return (line.match(/^[ \t]*/)![0].length >= container.contentIndent);
+  if (container.kind === 'blockquote') return /^ {0,3}>[ \t]?/.test(line);
+  return leadingIndentColumns(line) >= container.contentIndent;
 }
 
 function startsMarkdownBlock(line: string): boolean {
-  const content = line.replace(/^[ \t]{0,3}/, '');
+  if (leadingIndentColumns(line) >= 4) return true;
+  const content = line.replace(/^ {0,3}/, '');
   return /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){1,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|(?:[*+-]|\d{1,9}[.)])[ \t]+|>[ \t]?)/.test(content);
 }
 
@@ -556,15 +571,19 @@ function sanitizeRenderedMarkdown(html: string): string {
 
 function renderMarkdown(markdown: string, urls?: ReadmeRenderUrls): string {
   const locale = urls?.locale || 'en';
-  // Marked parses LF-normalized input, so index the exact source it receives.
+  // Marked expands leading tabs before block tokenization; index the same source
+  // so custom block offsets remain aligned with the parser's input.
   const normalizedMarkdown = markdown.replace(/\r\n?/g, '\n');
-  const boundaryIndex = buildZennBoundaryIndex(normalizedMarkdown);
+  const markedMarkdown = normalizedMarkdown.replace(/^( *)(\t+)/gm, (_, leading, tabs) => (
+    `${leading}${'    '.repeat(tabs.length)}`
+  ));
+  const boundaryIndex = buildZennBoundaryIndex(markedMarkdown);
   const parser = new Marked({
     gfm: true,
     breaks: false,
     ...createMarkdownExtensions(locale, boundaryIndex),
   });
-  const rendered = parser.parse(normalizedMarkdown, { async: false, renderer: createMarkdownRenderer(locale) }) as string;
+  const rendered = parser.parse(markedMarkdown, { async: false, renderer: createMarkdownRenderer(locale) }) as string;
   return sanitizeRenderedMarkdown(resolveRelativeRepositoryUrls(rendered, urls));
 }
 
