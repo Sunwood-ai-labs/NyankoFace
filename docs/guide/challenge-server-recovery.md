@@ -166,7 +166,7 @@ assert_pid_owner() {
   grep -Fqx -- "NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER" <<<"$process_env"
 }
 
-pid_probe_status=1
+pid_probe_status=0
 probe_pid "$old_pid" || pid_probe_status=$?
 if [[ "$pid_probe_status" -eq 2 ]]; then
   echo "cannot prove ownership of old PID: $old_pid" >&2
@@ -178,7 +178,7 @@ if [[ "$pid_probe_status" -eq 0 ]]; then
   sleep 1
 fi
 
-pid_probe_status=1
+pid_probe_status=0
 probe_pid "$old_pid" || pid_probe_status=$?
 if [[ "$pid_probe_status" -eq 2 ]]; then
   echo "cannot probe old PID after TERM: $old_pid" >&2
@@ -190,7 +190,7 @@ if [[ "$pid_probe_status" -eq 0 ]]; then
   sleep 1
 fi
 
-pid_probe_status=1
+pid_probe_status=0
 probe_pid "$old_pid" || pid_probe_status=$?
 if [[ "$pid_probe_status" -eq 2 ]]; then
   echo "cannot prove old PID stopped: $old_pid" >&2
