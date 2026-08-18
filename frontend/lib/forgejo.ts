@@ -253,6 +253,7 @@ async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchRep
   };
 }
 
+const MAX_REPOSITORY_SEARCH_PAGES = 100;
 const MAX_SKILL_SEARCH_PAGES = 100;
 
 async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposResult> {
@@ -322,9 +323,10 @@ export async function searchAllReposByTopicAndQuery(
   let page = 1;
   let expectedTotal = Number.POSITIVE_INFINITY;
   let rawFetched = 0;
+  let rawExhausted = false;
   const repos: Repo[] = [];
 
-  while ((page - 1) * pageSize < expectedTotal) {
+  for (page = 1; page <= MAX_REPOSITORY_SEARCH_PAGES && rawFetched < expectedTotal; page += 1) {
     const result = await searchRepos({ topic, q: topic ? undefined : q, sort: 'updated', limit: pageSize, page });
     if (!result.ok) return { ok: false, data: [], total_count: 0 };
     repos.push(...result.data);
@@ -334,9 +336,13 @@ export async function searchAllReposByTopicAndQuery(
     // describes the raw result set. Do not stop just because a page became
     // shorter after that safety filter; otherwise a later public page could
     // be omitted from the global metric ranking.
-    if (rawFetched >= expectedTotal) break;
-    page += 1;
+    if (rawFetched >= expectedTotal) {
+      rawExhausted = true;
+      break;
+    }
   }
+
+  if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
 
   const needle = q?.toLowerCase();
   const filtered = needle

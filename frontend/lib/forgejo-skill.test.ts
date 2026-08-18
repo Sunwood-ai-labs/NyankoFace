@@ -238,6 +238,25 @@ test('continues when Forgejo returns fewer raw items than the requested page siz
   assert.deepEqual(requestedPages, [1, 2]);
 });
 
+test('continues global catalog scans when Forgejo caps the requested page size', async () => {
+  const firstPage = Array.from({ length: 50 }, (_, index) => repo(`model-first-${index}`));
+  const secondPage = Array.from({ length: 25 }, (_, index) => repo(`model-second-${index}`));
+  const requestedPages: number[] = [];
+  await withFetch(async (url) => {
+    if (url.pathname.endsWith('/repos/search')) {
+      const page = Number(url.searchParams.get('page'));
+      requestedPages.push(page);
+      return jsonResponse({ data: page === 1 ? firstPage : secondPage }, 200, { 'x-total-count': '75' });
+    }
+    throw new Error(`Unexpected Forgejo request: ${url}`);
+  }, async () => {
+    const listing = await searchAllReposByTopicAndQuery('model');
+    assert.equal(listing.ok, true);
+    assert.equal(listing.data.length, 75);
+  });
+  assert.deepEqual(requestedPages, [1, 2]);
+});
+
 test('scans the all-Skill catalog once instead of rescanning earlier raw pages', async () => {
   const firstPage = Array.from({ length: 100 }, (_, index) => repo(`first-${index}`));
   const secondPage = [repo('second')];
