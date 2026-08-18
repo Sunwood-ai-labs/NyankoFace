@@ -287,6 +287,10 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     safePublicUrl('https://public.example/redirect?next=https://cdn.example/app'),
     'https://public.example/redirect?next=https://cdn.example/app',
   );
+  assert.equal(
+    safePublicUrl('https://github.com/search?q=language:typescript'),
+    'https://github.com/search?q=language:typescript',
+  );
   let deeplyEncodedPrivateTarget = 'http://forgejo:3000/private';
   for (let pass = 0; pass < 8; pass += 1) deeplyEncodedPrivateTarget = encodeURIComponent(deeplyEncodedPrivateTarget);
   assert.equal(
