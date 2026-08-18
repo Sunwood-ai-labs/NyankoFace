@@ -108,6 +108,7 @@ test('rejects protocol-relative avatar URLs that could target an internal host',
   assert.equal(safePublicUrl('https://[2001:1::3]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[2001:4:112::1]/avatar.png'), 'https://[2001:4:112::1]/avatar.png');
   assert.equal(safePublicUrl('https://cdn.example.com//avatar.png'), 'https://cdn.example.com//avatar.png');
+  assert.equal(safePublicUrl('https://cdn.example.com///avatar.png'), 'https://cdn.example.com///avatar.png');
   assert.equal(safePublicUrl('https://[fec0::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[3fff::1]/avatar.png'), undefined);
   assert.equal(safePublicUrl('https://[64:ff9b:1::1]/avatar.png'), undefined);
