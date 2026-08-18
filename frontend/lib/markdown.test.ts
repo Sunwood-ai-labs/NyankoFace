@@ -203,6 +203,21 @@ test('tracks fenced code nested under a list marker inside a Zenn block', () => 
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('tracks Zenn blocks nested immediately after a list marker', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- :::details Nested',
+    '  Nested body',
+    '  :::',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('closes a Zenn block when a blockquote fence container ends', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -228,4 +243,11 @@ test('does not treat backticks in a fence info string as a valid opener', () => 
 
   assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('does not rescan every unmatched Zenn opener', () => {
+  const source = Array.from({ length: 300 }, () => ':::message').join('\n');
+  const { bodyHtml } = parseReadme(source);
+
+  assert.match(bodyHtml, /:::message/);
 });

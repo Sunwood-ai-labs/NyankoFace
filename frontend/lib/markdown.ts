@@ -164,6 +164,13 @@ type ZennFenceMatch = {
   container?: ZennFenceContainer;
 };
 
+type ZennBoundary = { start: number; end: number };
+
+type ZennBoundaryIndex = {
+  sourceLength: number;
+  boundaries: Map<number, ZennBoundary>;
+};
+
 function matchZennFence(line: string): ZennFenceMatch | null {
   const blockquote = line.match(/^[ \t]{0,3}>[ \t]?(`{3,}|~{3,})/);
   if (blockquote) {
@@ -181,15 +188,21 @@ function matchZennFence(line: string): ZennFenceMatch | null {
   return plain ? { token: plain[1], end: plain[0].length } : null;
 }
 
+function stripZennContainerPrefix(line: string): string {
+  const prefix = line.match(/^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]+/);
+  return prefix ? line.slice(prefix[0].length) : line;
+}
+
 function continuesZennFenceContainer(line: string, container: ZennFenceContainer): boolean {
   if (!line.trim()) return true;
   if (container.kind === 'blockquote') return /^[ \t]{0,3}>[ \t]?/.test(line);
   return (line.match(/^[ \t]*/)![0].length >= container.contentIndent);
 }
 
-function findZennClosingLine(source: string): { start: number; end: number } | null {
+function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
+  const boundaries = new Map<number, ZennBoundary>();
+  const openings: number[] = [];
   let offset = 0;
-  let nestedBlocks = 0;
   let fenceChar: '`' | '~' | null = null;
   let fenceLength = 0;
   let fenceContainer: ZennFenceContainer | undefined;
@@ -225,18 +238,17 @@ function findZennClosingLine(source: string): { start: number; end: number } | n
         fenceLength = fence.token.length;
         fenceContainer = fence.container;
       }
-    } else if (parseZennOpeningLine(line)) {
-      nestedBlocks += 1;
+    } else if (parseZennOpeningLine(stripZennContainerPrefix(line))) {
+      openings.push(offset);
     } else if (/^[ \t]{0,3}:::[ \t]*$/.test(line)) {
-      if (nestedBlocks > 0) {
-        nestedBlocks -= 1;
-      } else {
-        return { start: offset, end };
+      const opening = openings.pop();
+      if (opening !== undefined) {
+        boundaries.set(opening, { start: offset, end });
       }
     }
     offset = end;
   }
-  return null;
+  return { sourceLength: source.length, boundaries };
 }
 
 function blockTokens(lexer: TokenizerThis['lexer'], source: string): Token[] {
@@ -273,20 +285,25 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   };
 }
 
-function tokenizeZennBlock(this: TokenizerThis, source: string): NyankofaceBlockToken | undefined {
+function tokenizeZennBlock(this: TokenizerThis, source: string, boundaryIndex: ZennBoundaryIndex): NyankofaceBlockToken | undefined {
   const firstLineEnd = source.search(/\r?\n/);
   const firstLine = firstLineEnd === -1 ? source : source.slice(0, firstLineEnd);
   const opening = parseZennOpeningLine(firstLine);
   if (!opening || firstLineEnd === -1) return undefined;
 
   const openingLength = firstLineEnd + (source[firstLineEnd] === '\r' ? 2 : 1);
-  const closing = findZennClosingLine(source.slice(openingLength));
-  if (!closing) return undefined;
+  const sourceOffset = boundaryIndex.sourceLength - source.length;
+  const absoluteClosing = boundaryIndex.boundaries.get(sourceOffset);
+  if (!absoluteClosing) return undefined;
+  const closing = {
+    start: absoluteClosing.start - sourceOffset,
+    end: absoluteClosing.end - sourceOffset,
+  };
 
   const bodyMarkdown = source
-    .slice(openingLength, openingLength + closing.start)
+    .slice(openingLength, closing.start)
     .replace(/\r?\n$/, '');
-  const raw = source.slice(0, openingLength + closing.end);
+  const raw = source.slice(0, closing.end);
   return {
     type: 'nyankoface-block',
     ...opening,
@@ -323,14 +340,14 @@ function renderNyankofaceBlock(this: RendererThis, token: Tokens.Generic, locale
   return `<aside class="my-5 rounded-lg border border-l-4 ${presentation.className} p-4" data-markdown-block="${block.blockType}"${dataType}${dataVariant} role="note"><div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide"><span aria-hidden="true">${presentation.icon}</span><span>${label}</span></div><div>${body}</div></aside>`;
 }
 
-function createMarkdownExtensions(locale: 'ja' | 'en'): MarkedExtension {
+function createMarkdownExtensions(locale: 'ja' | 'en', boundaryIndex: ZennBoundaryIndex): MarkedExtension {
   return {
     extensions: [{
       name: 'nyankoface-block',
       level: 'block',
       start: startMarkdownBlock,
       tokenizer(this: TokenizerThis, source: string): NyankofaceBlockToken | undefined {
-        return tokenizeGithubAlert.call(this, source) || tokenizeZennBlock.call(this, source);
+        return tokenizeGithubAlert.call(this, source) || tokenizeZennBlock.call(this, source, boundaryIndex);
       },
       renderer(this: RendererThis, token: Tokens.Generic): string {
         return renderNyankofaceBlock.call(this, token, locale);
@@ -370,10 +387,11 @@ function sanitizeRenderedMarkdown(html: string): string {
 
 function renderMarkdown(markdown: string, urls?: ReadmeRenderUrls): string {
   const locale = urls?.locale || 'en';
+  const boundaryIndex = buildZennBoundaryIndex(markdown);
   const parser = new Marked({
     gfm: true,
     breaks: false,
-    ...createMarkdownExtensions(locale),
+    ...createMarkdownExtensions(locale, boundaryIndex),
   });
   const rendered = parser.parse(markdown, { async: false, renderer: createMarkdownRenderer(locale) }) as string;
   return sanitizeRenderedMarkdown(resolveRelativeRepositoryUrls(rendered, urls));
