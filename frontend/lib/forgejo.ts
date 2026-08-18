@@ -492,11 +492,13 @@ export async function getCommits(
   owner: string,
   repo: string,
   path = '',
-  limit = 10
+  limit = 10,
+  ref?: string,
 ): Promise<CommitInfo[]> {
   const qs = new URLSearchParams();
   qs.set('limit', String(limit));
   if (path) qs.set('path', path.replace(/^\/+/, ''));
+  if (ref) qs.set('sha', ref);
   const res = await apiFetch(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?${qs.toString()}`
   );
@@ -723,9 +725,9 @@ export function nyankofaceDownloadUrl(
   return `/api/download/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}?${params.toString()}`;
 }
 
-export function forgejoCommitsUrl(owner: string, repo: string, path = '', branch = 'main'): string {
+export function forgejoCommitsUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
   const cleanPath = path.replace(/^\/+/, '');
-  return `${forgejoRepoUrl(owner, repo)}/commits/branch/${branch}${cleanPath ? `/${cleanPath}` : ''}`;
+  return `${forgejoRepoUrl(owner, repo)}/commits/${refKind}/${branch}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 
 const TYPE_TOPICS = new Set<string>(['model', 'dataset', 'space', 'skill', 'mcp', 'prompt', 'doc', 'character', 'benchmark', 'automation']);

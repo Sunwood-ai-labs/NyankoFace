@@ -25,6 +25,9 @@ test('repository detail resolves a case-insensitive root README and distinguishe
   assert.match(repoPageSource, /README\.md is too large to preview/);
   assert.match(repoPageSource, /README\.md could not be loaded/);
   assert.match(repoPageSource, /README\.md could not be parsed as Markdown/);
+  assert.match(repoPageSource, /tab=files&revision=\$\{encodeURIComponent\(revision\)\}/);
+  assert.match(repoPageSource, /getContents\(owner, repo, path, ref\)/);
+  assert.match(repoPageSource, /refKind = revision \? 'tag'/);
 });
 
 test('untyped repositories keep repository labels and avoid model-only actions', () => {
