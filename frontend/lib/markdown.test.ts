@@ -378,6 +378,23 @@ test('tracks nested Zenn closers after four-space list indentation', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('tracks Zenn blocks nested after ordered list markers', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '2) :::details Nested',
+    '   Ordered nested body',
+    '   :::',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /<details/);
+  assert.match(bodyHtml, /Ordered nested body/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not treat four-space indented directives as nested Zenn blocks', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
