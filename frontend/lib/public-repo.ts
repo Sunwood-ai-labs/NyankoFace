@@ -247,7 +247,8 @@ export function safePublicUrl(value: unknown): string | undefined {
     const url = new URL(trimmed);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
     if (url.username || url.password) return undefined;
-    if (containsUnsafeNestedUrl(`${url.pathname}${url.search}${url.hash}`)) return undefined;
+    const nestedPath = url.pathname.replace(/^\/\//, '/');
+    if (containsUnsafeNestedUrl(`${nestedPath}${url.search}${url.hash}`)) return undefined;
     return isPrivateHostname(url.hostname) ? undefined : url.href;
   } catch {
     return undefined;
