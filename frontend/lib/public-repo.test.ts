@@ -85,6 +85,21 @@ test('keeps an operational default branch separate from public metadata', () => 
   assert.doesNotMatch(JSON.stringify(sanitized), /forgejo:3000/);
 });
 
+test('preserves valid default-branch identifiers that resemble private hosts', () => {
+  const sanitized = sanitizePublicRepo({
+    id: 22,
+    name: 'branch-name',
+    full_name: 'alice/branch-name',
+    description: null,
+    owner: { login: 'alice' },
+    default_branch: 'docs.internal',
+    updated_at: '2026-08-16T00:00:00Z',
+  } as Repo);
+
+  assert.equal(sanitized.default_branch, 'docs.internal');
+  assert.equal(repoDefaultBranch(sanitized), 'docs.internal');
+});
+
 test('rejects protocol-relative avatar URLs that could target an internal host', () => {
   const repo = {
     id: 9,
@@ -444,11 +459,11 @@ test('scrubs private bare host paths while preserving public host paths', () => 
       id: 17,
       name: 'bare-host-paths',
       full_name: 'alice/bare-host-paths',
-      description: 'Private forgejo.ops.example.com/alice/demo and docs.internal/wiki; public github.com/alice/demo remains.',
+      description: 'Private forgejo.ops.example.com/alice/demo, forgejo.ops.example.com:repo, docs.internal/wiki, and docs.internal/; public github.com/alice/demo remains.',
       owner: { login: 'alice' },
       updated_at: '2026-08-16T00:00:00Z',
     } as Repo);
-    assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com\/alice\/demo|docs\.internal\/wiki/);
+    assert.doesNotMatch(sanitized.description || '', /forgejo\.ops\.example\.com\/alice\/demo|forgejo\.ops\.example\.com:repo|docs\.internal\/wiki|docs\.internal\//);
     assert.match(sanitized.description || '', /github\.com\/alice\/demo/);
   } finally {
     if (original === undefined) delete process.env.FORGEJO_API;
@@ -562,7 +577,7 @@ test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
     id: 13,
     name: 'demo',
     full_name: 'alice/demo',
-    description: 'Public git@github.com:org/repo.git and github.com:org/repo.git; private buildbox:org/repo.git, git@forgejo:org/repo.git, git@buildbox:org/repo.git, deploy!@forgejo:repo.git, and [fc00::1]:repo',
+    description: 'Public git@github.com:org/repo.git and github.com:org/repo.git; private docs.internal:repo, buildbox:org/repo.git, git@forgejo:org/repo.git, git@buildbox:org/repo.git, deploy!@forgejo:repo.git, and [fc00::1]:repo',
     owner: { login: 'alice' },
     updated_at: '2026-08-16T00:00:00Z',
   } as Repo;
@@ -570,6 +585,7 @@ test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
   const description = sanitizePublicRepo(repo).description || '';
   assert.match(description, /git@github\.com:org\/repo\.git/);
   assert.match(description, /github\.com:org\/repo\.git/);
+  assert.doesNotMatch(description, /docs\.internal:repo/);
   assert.doesNotMatch(description, /buildbox:org\/repo\.git/);
   assert.doesNotMatch(description, /git@forgejo:org\/repo\.git/);
   assert.doesNotMatch(description, /git@buildbox:org\/repo\.git/);

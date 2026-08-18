@@ -141,6 +141,18 @@ function isUnsafeScpHost(target: { host: string; hasUser: boolean }): boolean {
   return isEstablishedPrivateEndpointHost(target.host, undefined, true);
 }
 
+function isSafeGitRefIdentifier(value: string): boolean {
+  return Boolean(value)
+    && value !== '@'
+    && !value.includes('..')
+    && !value.includes('@{')
+    && !/[\u0000-\u0020~^:?*\[\]\\]/.test(value)
+    && !value.startsWith('/')
+    && !value.endsWith('/')
+    && !value.endsWith('.')
+    && !value.includes('//');
+}
+
 function externalTargetParameter(source: string, candidateStart: number): string | undefined {
   return source.slice(0, candidateStart).match(EXTERNAL_TARGET_PARAMETER_PATTERN)?.[1].toLowerCase();
 }
@@ -366,7 +378,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
   const scrubBareHostPath = (candidate: string): string => {
     const trailing = candidate.match(/[),.;!?]+$/)?.[0] || '';
     const hostPath = trailing ? candidate.slice(0, -trailing.length) : candidate;
-    const match = hostPath.match(/^([\p{L}\p{N}][\p{L}\p{N}_.-]*|\[[^\]\s<>'"`&]+\])\/[^\s<>'"`&]+$/iu);
+    const match = hostPath.match(/^([\p{L}\p{N}][\p{L}\p{N}_.-]*|\[[^\]\s<>'"`&]+\])\/[^\s<>'"`&]*$/iu);
     if (!match) return candidate;
     const host = normalizedHostnameForClassification(match[1]);
     if (!match[1].includes('.') && !match[1].startsWith('[') && configuredForgejoHostname() !== host) return candidate;
@@ -391,10 +403,12 @@ function sanitizePublicRepoTextOnce(value: string): string {
     .replace(/(?<![\p{L}\p{N}_.-])[\p{L}\p{N}][\p{L}\p{N}_.-]*\.[\p{L}\p{N}_.-]+\/[^\s<>"'`&]+/giu, scrubBareHostPath)
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
+    .replace(/(?<![\p{L}\p{N}_.-])[\p{L}\p{N}][\p{L}\p{N}_.-]*\//giu, scrubBareHostPath)
     .replace(/\b[^\s<>"'`&]+@(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(\[[^\]\s<>"'`]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
+    .replace(/(?<![\p{L}\p{N}_.-])[\p{L}\p{N}][\p{L}\p{N}_.-]*\.[\p{L}\p{N}_.-]+:[^\s]+/giu, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9_.-])(?:[^\s<>"'`&@:/?]+|\[[^\]\s<>"'`&]+\]):\d{1,5}(?:[/?#][^\s<>"'`]*)?/gi, scrubBareEndpoint)
     .replace(/(?<![\p{L}\p{N}_.-])(?:[\p{L}\p{N}][\p{L}\p{N}_.-]*|\[[^\]\s<>"'`&]+\])\/[^\s<>"'`&]+/giu, scrubBareHostPath);
 }
@@ -456,6 +470,7 @@ function sanitizePublicRepoValue(value: unknown, fieldName?: string, parentField
     if (fieldName === 'name' || fieldName === 'full_name' || (fieldName === 'repo' && parentFieldName === 'dependencies')) {
       return value;
     }
+    if (fieldName === 'default_branch' && isSafeGitRefIdentifier(value)) return value;
     if (fieldName?.endsWith('_at') && ISO_TIMESTAMP_PATTERN.test(value)) return value;
     const direct = safePublicUrl(value);
     return direct && !direct.startsWith('/') ? direct : sanitizePublicRepoText(value);
