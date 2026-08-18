@@ -184,7 +184,7 @@ function containsUnsafeNestedUrl(value: string): boolean {
     // original public-looking URL. Reject them before WHATWG URL parsing can
     // normalize them away.
     if (current.includes('\\') || /[\u0000-\u001f\u007f]/.test(current)) return true;
-    if (/(?:^|[?&#=\s([{<])https?:[\\/]{1,3}[^\s<>"`&]*['"][^\s<>"`&]*@/i.test(current)) return true;
+    if (/(?:^|[?&#=\s([{<])https?:[\\/]{1,3}[^/&#?]*@/i.test(current)) return true;
     for (const pattern of NESTED_URL_PATTERNS) {
       for (const match of current.matchAll(pattern)) {
         const candidate = (match[1] || '').replace(/[),.;!?]+$/, '');

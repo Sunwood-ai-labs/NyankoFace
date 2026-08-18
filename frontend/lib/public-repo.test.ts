@@ -426,6 +426,14 @@ test('rejects nested URLs with quoted userinfo before an internal host', () => {
     safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%27%40forgejo%3A3000%2Fapp'),
     undefined,
   );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%3C%40forgejo%3A3000%2Fapp'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=http%3A%2F%2Fpublic.example%E2%80%83%40forgejo%3A3000%2Fapp'),
+    undefined,
+  );
 });
 
 test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
