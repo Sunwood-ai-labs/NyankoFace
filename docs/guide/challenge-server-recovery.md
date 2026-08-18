@@ -109,23 +109,72 @@ unrelated challenge to force this step to pass.
 ## Prove the stable name is stopped
 
 The stable-name route must return the challenge's documented failure marker,
-not an HTML error page or a successful response from a different server. Keep
-the response body in memory and compare the exact marker.
+not an HTML error page or a successful response from a different server. Capture
+the body in a file so the exact byte sequence is compared without Bash
+command-substitution loss.
 
 ~~~bash
-failure_response="$(curl --silent --show-error --max-time 3 \
+content_type_matches() {
+  local actual="$1"
+  local expected="$2"
+  [[ "$actual" == "$expected" || "$actual" == "$expected;"* ]]
+}
+
+read_health_body_contract() {
+  local body_file="$1"
+  local content_type="$2"
+  case "$content_type" in
+    application/json|'application/json;'*)
+      "$VENV/bin/python" - "$body_file" <<'PY'
+import json
+import pathlib
+import sys
+
+try:
+    value = json.loads(pathlib.Path(sys.argv[1]).read_bytes())
+except (OSError, UnicodeError, ValueError):
+    print('invalid-json')
+else:
+    status = value.get('status') if isinstance(value, dict) else None
+    print(status if isinstance(status, str) else '')
+PY
+      ;;
+    text/plain|'text/plain;'*)
+      if printf '%s' 'OK' | cmp -s "$body_file" -; then
+        printf 'OK\n'
+      else
+        printf 'unexpected\n'
+      fi
+      ;;
+    *)
+      printf 'unexpected\n'
+      ;;
+  esac
+}
+
+failure_body_file="$(mktemp)"
+failure_metadata="$(curl --silent --show-error --max-time 3 \
   --header 'Accept: text/plain' \
-  --write-out $'\n%{http_code}\n%{content_type}' "$FAILURE_URL")" || exit 1
-failure_content_type="${failure_response##*$'\n'}"
-failure_status_and_body="${failure_response%$'\n'*}"
-failure_status="${failure_status_and_body##*$'\n'}"
-failure_body="${failure_status_and_body%$'\n'*}"
+  --output "$failure_body_file" \
+  --write-out $'%{http_code}\n%{content_type}' "$FAILURE_URL")" || { rm -f "$failure_body_file"; exit 1; }
+failure_status="${failure_metadata%%$'\n'*}"
+failure_content_type="${failure_metadata#*$'\n'}"
+failure_body_matches=1
+if printf '%s' '000FAIL' | cmp -s "$failure_body_file" -; then
+  failure_body_matches=0
+fi
+failure_content_type_matches=0
+if content_type_matches "$failure_content_type" "$FAILURE_CONTENT_TYPE"; then
+  failure_content_type_matches=1
+fi
 if [[ "$failure_status" != "$FAILURE_STATUS" \
-  || "$failure_content_type" != "$FAILURE_CONTENT_TYPE"* \
-  || "$failure_body" != '000FAIL' ]]; then
+  || "$failure_body_matches" -ne 0 \
+  || "$failure_content_type_matches" -ne 1 ]]; then
+  rm -f "$failure_body_file"
   echo "stable name did not return the expected stopped-state contract" >&2
   exit 1
 fi
+rm -f "$failure_body_file"
 ~~~
 
 Record the URL path, HTTP status, content type, and marker result, but redact
@@ -160,27 +209,18 @@ proof of the right service.
 
 ~~~bash
 check_health() {
-  local response content_type body status status_and_body http_status
-  response="$(curl --silent --show-error --max-time 3 \
+  local body_file metadata content_type body_contract http_status
+  body_file="$(mktemp)"
+  metadata="$(curl --silent --show-error --max-time 3 \
     --header 'Accept: application/json, text/plain' \
-    --write-out $'\n%{http_code}\n%{content_type}' "$HEALTH_URL")" || return 1
-  content_type="${response##*$'\n'}"
-  status_and_body="${response%$'\n'*}"
-  http_status="${status_and_body##*$'\n'}"
-  body="${status_and_body%$'\n'*}"
-  [[ "$http_status" == "$HEALTH_STATUS" ]] || return 1
-  case "$content_type" in
-    application/json*)
-      status="$(printf '%s' "$body" | "$VENV/bin/python" -c 'import json, sys; value = json.load(sys.stdin); status = value.get("status") if isinstance(value, dict) else None; print(status if isinstance(status, str) else "")')" || return 1
-      [[ "$status" == 'ok' || "$status" == 'healthy' ]]
-      ;;
-    text/plain*)
-      [[ "$body" == 'OK' ]]
-      ;;
-    *)
-      return 1
-      ;;
-  esac
+    --output "$body_file" \
+    --write-out $'%{http_code}\n%{content_type}' "$HEALTH_URL")" || { rm -f "$body_file"; return 1; }
+  http_status="${metadata%%$'\n'*}"
+  content_type="${metadata#*$'\n'}"
+  body_contract="$(read_health_body_contract "$body_file" "$content_type")"
+  rm -f "$body_file"
+  [[ "$http_status" == "$HEALTH_STATUS" \
+    && ( "$body_contract" == 'ok' || "$body_contract" == 'healthy' || "$body_contract" == 'OK' ) ]]
 }
 
 healthy=0
@@ -203,23 +243,16 @@ shape of the proof does not.
 ~~~bash
 record_stable_response() {
   local name="$1"
-  local response content_type body status_and_body http_status body_contract
-  response="$(curl --silent --show-error --max-time 3 \
+  local body_file metadata content_type body_contract http_status
+  body_file="$(mktemp)"
+  metadata="$(curl --silent --show-error --max-time 3 \
     --header 'Accept: application/json, text/plain' \
-    --write-out $'\n%{http_code}\n%{content_type}' "$HEALTH_URL")" || return 1
-  content_type="${response##*$'\n'}"
-  status_and_body="${response%$'\n'*}"
-  http_status="${status_and_body##*$'\n'}"
-  body="${status_and_body%$'\n'*}"
-  body_contract='unexpected'
-  case "$content_type" in
-    application/json*)
-      body_contract="$(printf '%s' "$body" | "$VENV/bin/python" -c 'import json, sys; value = json.load(sys.stdin); status = value.get("status") if isinstance(value, dict) else None; print(status if isinstance(status, str) else "")')" || body_contract='invalid-json'
-      ;;
-    text/plain*)
-      [[ "$body" == 'OK' ]] && body_contract='OK'
-      ;;
-  esac
+    --output "$body_file" \
+    --write-out $'%{http_code}\n%{content_type}' "$HEALTH_URL")" || { rm -f "$body_file"; return 1; }
+  http_status="${metadata%%$'\n'*}"
+  content_type="${metadata#*$'\n'}"
+  body_contract="$(read_health_body_contract "$body_file" "$content_type")"
+  rm -f "$body_file"
   printf 'stage=%s stable-name http_status=%s content_type=%s body_contract=%s\n' \
     "$name" "$http_status" "$content_type" "$body_contract"
   [[ "$http_status" == "$HEALTH_STATUS" \
