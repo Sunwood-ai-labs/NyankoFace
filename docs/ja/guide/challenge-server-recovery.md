@@ -36,7 +36,7 @@ set -euo pipefail
 CHALLENGE_DIR="${CHALLENGE_DIR:?challenge checkoutを指定}"
 SERVICE_NAME="${SERVICE_NAME:?stableなchallenge service名を指定}"
 APP_MODULE="${APP_MODULE:?Flask app moduleを指定}"
-SERVICE_MARKER="${SERVICE_MARKER:-$APP_MODULE}"
+SERVICE_MARKER="${SERVICE_MARKER:-nyankoface:$SERVICE_NAME}"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:?challenge portを指定}"
 HEALTH_URL="${HEALTH_URL:?stable nameのhealth URLを指定}"
@@ -57,21 +57,24 @@ challenge checkout、再構築したinterpreter、app/service markerを使って
 2回目までのbounded checkで正常停止か、停止不能かを判定します。
 
 ~~~bash
-old_pid="$(tr -d '[:space:]' < "$PID_FILE")"
+old_pid="$(cat "$PID_FILE")"
+[[ "$(wc -l < "$PID_FILE")" -le 1 ]]
 [[ "$old_pid" =~ ^[0-9]+$ && "$old_pid" -gt 1 ]]
 
 assert_pid_owner() {
   local pid="$1"
-  local expected_dir expected_python resolved_python process_dir command_line
+  local expected_dir expected_python resolved_python process_dir command_line process_env
   expected_dir="$(readlink -f "$CHALLENGE_DIR")"
   expected_python="$VENV/bin/python"
   resolved_python="$(readlink -f "$expected_python")"
   [[ -r "/proc/$pid/cwd" && -r "/proc/$pid/cmdline" ]]
   process_dir="$(readlink -f "/proc/$pid/cwd")"
   command_line="$(tr '\0' ' ' < "/proc/$pid/cmdline")"
+  process_env="$(tr '\0' '\n' < "/proc/$pid/environ")"
   [[ "$process_dir" == "$expected_dir" || "$process_dir" == "$expected_dir/"* ]]
   [[ "$command_line" == *"$expected_python"* || "$command_line" == *"$resolved_python"* ]]
-  [[ "$command_line" == *"$APP_MODULE"* || "$command_line" == *"$SERVICE_MARKER"* ]]
+  [[ "$command_line" == *"$APP_MODULE"* ]]
+  grep -Fqx -- "NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER" <<<"$process_env"
 }
 
 if kill -0 "$old_pid" 2>/dev/null; then
@@ -121,13 +124,14 @@ cd "$CHALLENGE_DIR"
 python3 -m venv --clear "$VENV"
 "$VENV/bin/python" -m pip install --requirement requirements.txt
 
-nohup "$VENV/bin/python" -m flask --app "$APP_MODULE" run \
+nohup env "NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER" "$VENV/bin/python" -m flask --app "$APP_MODULE" run \
   --host "$HOST" --port "$PORT" >"$LOG_FILE" 2>&1 &
 new_pid=$!
 printf '%s\n' "$new_pid" >"$PID_FILE"
 ~~~
 
-project固有のlauncherが必要なら、そのlauncherを同じstable nameで使い、boundedなlogとPID fileを残します。
+project固有のlauncherが必要なら、そのlauncherを同じstable nameで使い、
+`NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER`を引き継ぎ、boundedなlogとPID fileを残します。
 
 ## 固定回数でhealthを検証する
 

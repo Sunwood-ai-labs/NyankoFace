@@ -38,7 +38,7 @@ set -euo pipefail
 CHALLENGE_DIR="${CHALLENGE_DIR:?set this to the challenge checkout}"
 SERVICE_NAME="${SERVICE_NAME:?set the stable challenge service name}"
 APP_MODULE="${APP_MODULE:?set the Flask app module}"
-SERVICE_MARKER="${SERVICE_MARKER:-$APP_MODULE}"
+SERVICE_MARKER="${SERVICE_MARKER:-nyankoface:$SERVICE_NAME}"
 HOST="${HOST:-127.0.0.1}"
 PORT="${PORT:?set the challenge port}"
 HEALTH_URL="${HEALTH_URL:?set the stable-name health URL}"
@@ -61,21 +61,24 @@ the rebuilt interpreter, and the app/service marker. A second bounded check is
 enough to distinguish a clean stop from a stuck process.
 
 ~~~bash
-old_pid="$(tr -d '[:space:]' < "$PID_FILE")"
+old_pid="$(cat "$PID_FILE")"
+[[ "$(wc -l < "$PID_FILE")" -le 1 ]]
 [[ "$old_pid" =~ ^[0-9]+$ && "$old_pid" -gt 1 ]]
 
 assert_pid_owner() {
   local pid="$1"
-  local expected_dir expected_python resolved_python process_dir command_line
+  local expected_dir expected_python resolved_python process_dir command_line process_env
   expected_dir="$(readlink -f "$CHALLENGE_DIR")"
   expected_python="$VENV/bin/python"
   resolved_python="$(readlink -f "$expected_python")"
   [[ -r "/proc/$pid/cwd" && -r "/proc/$pid/cmdline" ]]
   process_dir="$(readlink -f "/proc/$pid/cwd")"
   command_line="$(tr '\0' ' ' < "/proc/$pid/cmdline")"
+  process_env="$(tr '\0' '\n' < "/proc/$pid/environ")"
   [[ "$process_dir" == "$expected_dir" || "$process_dir" == "$expected_dir/"* ]]
   [[ "$command_line" == *"$expected_python"* || "$command_line" == *"$resolved_python"* ]]
-  [[ "$command_line" == *"$APP_MODULE"* || "$command_line" == *"$SERVICE_MARKER"* ]]
+  [[ "$command_line" == *"$APP_MODULE"* ]]
+  grep -Fqx -- "NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER" <<<"$process_env"
 }
 
 if kill -0 "$old_pid" 2>/dev/null; then
@@ -128,7 +131,7 @@ cd "$CHALLENGE_DIR"
 python3 -m venv --clear "$VENV"
 "$VENV/bin/python" -m pip install --requirement requirements.txt
 
-nohup "$VENV/bin/python" -m flask --app "$APP_MODULE" run \
+nohup env "NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER" "$VENV/bin/python" -m flask --app "$APP_MODULE" run \
   --host "$HOST" --port "$PORT" >"$LOG_FILE" 2>&1 &
 new_pid=$!
 printf '%s\n' "$new_pid" >"$PID_FILE"
@@ -136,7 +139,8 @@ printf '%s\n' "$new_pid" >"$PID_FILE"
 
 Keep the launch command and PID file in the same recovery record. If the app
 needs a project-specific launcher, use that launcher with the same stable
-name and preserve the bounded output log.
+name, propagate `NYANKOFACE_SERVICE_MARKER=$SERVICE_MARKER`, and preserve the
+bounded output log.
 
 ## Prove health with a fixed budget
 
