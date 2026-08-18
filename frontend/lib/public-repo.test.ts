@@ -212,6 +212,18 @@ test('rejects private URLs nested in public query and fragment parameters', () =
     undefined,
   );
   assert.equal(
+    safePublicUrl('https://public.example/redirect?next=slack:open'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=tg:resolve'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?next=intent:launch'),
+    undefined,
+  );
+  assert.equal(
     safePublicUrl('https://public.example/redirect?next=ht%09tp%3A%2F%2Fforgejo%3A3000%2Fapp'),
     undefined,
   );
@@ -225,6 +237,10 @@ test('rejects private URLs nested in public query and fragment parameters', () =
   );
   assert.equal(
     safePublicUrl('https://public.example/redirect?clone=deploy+@forgejo:repo.git'),
+    undefined,
+  );
+  assert.equal(
+    safePublicUrl('https://public.example/redirect?clone=deploy!@forgejo:repo.git'),
     undefined,
   );
   assert.equal(
@@ -323,7 +339,7 @@ test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
     id: 13,
     name: 'demo',
     full_name: 'alice/demo',
-    description: 'Public git@github.com:org/repo.git; private git@forgejo:org/repo.git and [fc00::1]:repo',
+    description: 'Public git@github.com:org/repo.git; private git@forgejo:org/repo.git, deploy!@forgejo:repo.git, and [fc00::1]:repo',
     owner: { login: 'alice' },
     updated_at: '2026-08-16T00:00:00Z',
   } as Repo;
@@ -331,6 +347,7 @@ test('preserves public SCP remotes while scrubbing private SCP hosts', () => {
   const description = sanitizePublicRepo(repo).description || '';
   assert.match(description, /git@github\.com:org\/repo\.git/);
   assert.doesNotMatch(description, /git@forgejo:org\/repo\.git/);
+  assert.doesNotMatch(description, /deploy!@forgejo:repo\.git/);
   assert.doesNotMatch(description, /\[fc00::1\]:repo/);
 });
 

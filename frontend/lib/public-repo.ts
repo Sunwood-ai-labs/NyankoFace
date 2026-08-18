@@ -14,9 +14,9 @@ const NESTED_URL_PATTERNS = [
   /(?<=[?&#=\s([{<])(?=((?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'&]+\.git(?:[/?#][^\s<>"'&]*)?))/gi,
   /(?<![a-z0-9+.-])(?=([a-z][a-z0-9+.-]*:[\\/]{1,3}[^\s<>"'`&]+))/gi,
   /(?<![a-z0-9+.-])(?=(https?:(?![\\/])[^\s<>"'`&]+))/gi,
-  /(?<=[?&#=\s([{<])(?=((?:about|blob|data|file|ftp|git|gopher|javascript|mailto|ssh|tel|vbscript|ws|wss):[^\s<>"'`&]+))/gi,
+  /(?<=[?&#=\s([{<])(?=([a-z][a-z0-9+_-]*:[^\s<>"'`&]+))/gi,
   /(?<!:)(?=(\/[\/][^\s<>"'`&]+))/gi,
-  /(?=(\b[\w.+-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
+  /(?=(\b[^\s<>"'`&@]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`&]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`&]+\/[^\s<>"'`]+))/gi,
   /(?<=[?&#=\s([{<])(?=((?:\[[^\]\s<>"'`]+\]):[^\s<>"'`]+))/gi,
 ];
@@ -115,11 +115,11 @@ function isEstablishedPrivateEndpointHost(hostname: string, port?: string, allow
 }
 
 function parseScpTarget(value: string): { host: string } | undefined {
-  if (/^(?:about|blob|data|file|ftp|git|gopher|https?|javascript|mailto|ssh|tel|vbscript|ws|wss):/i.test(value)) {
-    return undefined;
-  }
-  const match = value.match(/^(?:[\w.+-]+@)?(\[[^\]\s<>"'&]+\]|[a-z0-9.-]+):[^\s<>"'&]+$/i);
-  return match ? { host: match[1] } : undefined;
+  const match = value.match(/^(?:[^@\s<>"'`&]+@)?(\[[^\]\s<>"'`&]+\]|[a-z0-9.-]+):[^\s<>"'`&]+$/i);
+  if (!match) return undefined;
+  const host = match[1];
+  if (/^[a-z][a-z0-9+.-]*:/i.test(value) && !host.startsWith('[') && !host.includes('.')) return undefined;
+  return { host };
 }
 
 function containsUnsafeNestedUrl(value: string): boolean {
@@ -262,7 +262,7 @@ function sanitizePublicRepoTextOnce(value: string): string {
   return value
     .replace(/(?!(?:[a-z]:[\\/]))(?:[a-z][a-z0-9+.-]*:[\\/]{1,3}|[\\/]{2})[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9+.-])(https?:(?![\\/])[^\s<>"'`]+)/gi, scrubSlashlessHttpTarget)
-    .replace(/\b[\w.+-]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
+    .replace(/\b[^\s<>"'`&@]+@(?:[a-z0-9.-]+|\[[0-9a-f:.]+\]):[^\s<>"'`]+/gi, scrub)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]*\/[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(?:[a-z0-9.-]+|\[[^\]\s<>"'`]+\]):[^\s<>"'`]+\.git(?:[/?#][^\s<>"'`]*)?/gi, scrubUsernameLessScpEndpoint)
     .replace(/(?<![a-z0-9.-])(\[[^\]\s<>"'`]+\]):[^\s<>"'`]+/gi, scrubUsernameLessScpEndpoint)
