@@ -292,7 +292,31 @@ function gfmTableCells(line: string | undefined): string[] | undefined {
   if (line === undefined) return undefined;
   const trimmed = line.trim();
   if (!trimmed.includes('|')) return undefined;
-  return trimmed.replace(/^\|/, '').replace(/\|$/, '').split('|');
+  const content = trimmed.replace(/^\|/, '').replace(/\|$/, '');
+  const cells: string[] = [];
+  let cellStart = 0;
+  let codeSpanLength = 0;
+  for (let index = 0; index < content.length; index += 1) {
+    const character = content[index];
+    if (!codeSpanLength && character === '\\') {
+      index += 1;
+      continue;
+    }
+    if (character === '`') {
+      let runLength = 1;
+      while (content[index + runLength] === '`') runLength += 1;
+      if (!codeSpanLength) codeSpanLength = runLength;
+      else if (codeSpanLength === runLength) codeSpanLength = 0;
+      index += runLength - 1;
+      continue;
+    }
+    if (character === '|' && !codeSpanLength) {
+      cells.push(content.slice(cellStart, index));
+      cellStart = index + 1;
+    }
+  }
+  cells.push(content.slice(cellStart));
+  return cells;
 }
 
 function isGfmTableDelimiter(line: string, headerLine?: string): boolean {
@@ -311,8 +335,10 @@ function startsMarkdownBlock(line: string, paragraphActive = false, previousLine
   const content = line.replace(/^ {0,3}/, '');
   const orderedList = content.match(/^(\d{1,9})[.)][ \t]+/);
   if (orderedList) return !paragraphActive || Number.parseInt(orderedList[1], 10) === 1;
+  const shortSetextUnderline = /^(?:-[ \t]*){1,2}$/.test(content);
   return isGfmTableDelimiter(content, previousLine)
-    || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){1,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-][ \t]+|>[ \t]?)/.test(content);
+    || (shortSetextUnderline && paragraphActive)
+    || /^(?:#{1,6}(?:[ \t]+|$)|={1,}[ \t]*$|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
@@ -325,19 +351,36 @@ function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: Zen
 function matchRawHtmlOpening(line: string): { tagName: string; raw: string } | undefined {
   const tag = line.match(/^<([A-Za-z][A-Za-z0-9-]*)/);
   if (!tag) return undefined;
-  let quote: '"' | "'" | undefined;
-  for (let index = tag[0].length; index < line.length; index += 1) {
-    const character = line[index];
+  let index = tag[0].length;
+  while (index < line.length) {
+    while (/[ \t]/.test(line[index] || '')) index += 1;
+    if (line[index] === '>') return { tagName: tag[1], raw: line.slice(0, index + 1) };
+    if (line[index] === '/') {
+      let closingIndex = index + 1;
+      while (/[ \t]/.test(line[closingIndex] || '')) closingIndex += 1;
+      if (line[closingIndex] === '>') {
+        return { tagName: tag[1], raw: line.slice(0, closingIndex + 1) };
+      }
+      return undefined;
+    }
+    const attribute = line.slice(index).match(/^[A-Za-z_:][A-Za-z0-9_.:-]*/);
+    if (!attribute) return undefined;
+    index += attribute[0].length;
+    while (/[ \t]/.test(line[index] || '')) index += 1;
+    if (line[index] !== '=') continue;
+    index += 1;
+    while (/[ \t]/.test(line[index] || '')) index += 1;
+    const quote = line[index] === '"' || line[index] === "'" ? line[index] : undefined;
     if (quote) {
-      if (character === quote) quote = undefined;
+      index += 1;
+      while (index < line.length && line[index] !== quote) index += 1;
+      if (line[index] !== quote) return undefined;
+      index += 1;
       continue;
     }
-    if (character === '"' || character === "'") {
-      quote = character;
-      continue;
-    }
-    if (character === '<') return undefined;
-    if (character === '>') return { tagName: tag[1], raw: line.slice(0, index + 1) };
+    const value = line.slice(index).match(/^[^\s"'=<>`]+/);
+    if (!value) return undefined;
+    index += value[0].length;
   }
   return undefined;
 }
@@ -539,7 +582,15 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
     if (line.trim() === '') break;
     const isQuoted = /^ {0,3}>/.test(line);
     const contentLine = isQuoted ? line.replace(/^[ \t]{0,3}>[ \t]?/, '') : line;
-    if (!isQuoted && (!paragraphActive || startsMarkdownBlock(line, paragraphActive) || parseZennOpeningLine(line))) break;
+    if (
+      !isQuoted
+      && (
+        !paragraphActive
+        || startsMarkdownBlock(line, paragraphActive)
+        || matchZennFence(line)
+        || parseZennOpeningLine(line)
+      )
+    ) break;
     cursor = end;
     paragraphActive = contentLine.trim() !== '' && !startsMarkdownBlock(contentLine, paragraphActive);
   }

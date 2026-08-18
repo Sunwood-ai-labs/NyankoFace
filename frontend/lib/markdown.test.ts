@@ -152,6 +152,24 @@ test('keeps non-one ordered lazy continuations inside GitHub alerts', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends a GitHub alert before an unquoted fenced code block', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    '```ts',
+    'const outside = true;',
+    '```',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /<pre[\s\S]*outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('requires at most one padding space before a GitHub alert marker', () => {
   const { bodyHtml } = parseReadme('>  [!NOTE]\n> This remains an ordinary blockquote.');
 
@@ -352,6 +370,20 @@ test('keeps quoted angle brackets inside custom HTML attributes', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('does not treat malformed custom HTML attributes as a raw block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<my-widget = >',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /&lt;my-widget = &gt;/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not let a type-7 HTML tag interrupt a paragraph', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -510,6 +542,20 @@ test('resets paragraph state after short hyphen setext underlines', () => {
   }
 });
 
+test('does not treat an orphan short setext line as a block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '--',
+    '<my-widget>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('resets paragraph state after GFM table delimiters', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
@@ -548,6 +594,24 @@ test('does not reset paragraph state for orphan or mismatched GFM delimiters', (
     assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
     assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
   }
+});
+
+test('counts GFM table cells outside escaped and code-span pipes', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '| header \\| value | `a\\|b` |',
+    '| --- | --- |',
+    '<my-widget>',
+    ':::',
+    '</my-widget>',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /<table>/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
 test('does not borrow a later closer for an unmatched Zenn opener', () => {
