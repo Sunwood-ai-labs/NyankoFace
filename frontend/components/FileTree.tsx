@@ -33,6 +33,8 @@ export default function FileTree({
   updatedAt,
   forgejoUrl,
   cloneUrl,
+  refKind = 'branch',
+  revision,
   locale,
 }: {
   owner: string;
@@ -44,6 +46,8 @@ export default function FileTree({
   updatedAt: string;
   forgejoUrl: string;
   cloneUrl: string;
+  refKind?: 'branch' | 'tag';
+  revision?: string | null;
   locale: Locale;
 }) {
   const sorted = [...entries].sort((a, b) => {
@@ -66,12 +70,15 @@ export default function FileTree({
     updatedAt;
   const shortSha = latestCommit?.sha?.slice(0, 7);
   const totalSize = sorted.reduce((sum, entry) => sum + (entry.type === 'file' ? entry.size || 0 : 0), 0);
+  const repositoryHref = revision
+    ? `/${owner}/${repo}?tab=files&revision=${encodeURIComponent(revision)}`
+    : `/${owner}/${repo}?tab=files`;
 
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <a
-          href={forgejoTreeUrl(owner, repo, currentPath, branch)}
+          href={forgejoTreeUrl(owner, repo, currentPath, branch, refKind)}
           className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm hover:border-amber-400"
           title={ui(locale, 'このブランチをForgejoで開く', 'Open this branch in Forgejo')}
         >
@@ -80,7 +87,7 @@ export default function FileTree({
         </a>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400">
-          <Link href={`/${owner}/${repo}?tab=files`} className="font-medium text-zinc-700 hover:underline">
+          <Link href={repositoryHref} className="font-medium text-zinc-700 hover:underline">
             {repo}
           </Link>
           {segments.map((seg, idx) => {
@@ -89,7 +96,7 @@ export default function FileTree({
               <span key={idx} className="flex items-center gap-1">
                 <span>/</span>
                 <a
-                  href={forgejoTreeUrl(owner, repo, pathSoFar, branch)}
+                  href={forgejoTreeUrl(owner, repo, pathSoFar, branch, refKind)}
                   className="hover:text-amber-700 hover:underline"
                   title={ui(locale, 'このフォルダをForgejoで開く', 'Open this folder in Forgejo')}
                 >
@@ -112,7 +119,7 @@ export default function FileTree({
             {sorted.length > 0 ? (
               sorted.map((entry) => {
                 const isDir = entry.type === 'dir';
-                const href = forgejoTreeUrl(owner, repo, entry.path, branch);
+                const href = forgejoTreeUrl(owner, repo, entry.path, branch, refKind);
                 return (
                   <a
                     key={`go-${entry.path}`}
@@ -132,7 +139,7 @@ export default function FileTree({
         </details>
 
         <a
-          href={forgejoCommitsUrl(owner, repo, currentPath, branch)}
+          href={forgejoCommitsUrl(owner, repo, currentPath, branch, refKind)}
           className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm"
         >
           <HfIcon name="clock" className="h-3.5 w-3.5" />
@@ -153,7 +160,7 @@ export default function FileTree({
                   <span className="min-w-0 flex-1 truncate font-mono text-xs text-zinc-600">{latestMessage}</span>
                   {shortSha && (
                     <a
-                      href={latestCommit?.html_url || forgejoCommitsUrl(owner, repo, currentPath, branch)}
+                      href={latestCommit?.html_url || forgejoCommitsUrl(owner, repo, currentPath, branch, refKind)}
                       className="rounded-md border border-zinc-200 bg-white px-2 py-1 font-mono text-xs text-zinc-600 hover:border-amber-400"
                     >
                       {shortSha}
@@ -165,9 +172,9 @@ export default function FileTree({
             </tr>
             {sorted.map((entry) => {
               const isDir = entry.type === 'dir';
-              const directForgejoUrl = forgejoTreeUrl(owner, repo, entry.path, branch);
+              const directForgejoUrl = forgejoTreeUrl(owner, repo, entry.path, branch, refKind);
               const href = directForgejoUrl;
-              const downloadUrl = !isDir ? nyankofaceDownloadUrl(owner, repo, entry.path, branch, 'raw') : null;
+              const downloadUrl = !isDir ? nyankofaceDownloadUrl(owner, repo, entry.path, branch, 'raw', refKind) : null;
               return (
                 <tr
                   key={entry.path}

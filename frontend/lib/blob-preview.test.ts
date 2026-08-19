@@ -23,3 +23,8 @@ test('uses the repository default branch for every blob preview reference', () =
     assert.match(blobPage, expression);
   }
 });
+
+test('preserves encoded repository path params without double-decoding', () => {
+  assert.match(blobPage, /const path = pathSegments\.join\('\/'\);/);
+  assert.doesNotMatch(blobPage, /pathSegments\.map\(decodeURIComponent\)/);
+});
