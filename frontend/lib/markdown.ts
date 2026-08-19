@@ -165,10 +165,10 @@ type ZennFenceMatch = {
 };
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
-const LINK_REFERENCE_DEFINITION = /^\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<([^>\n]*)>|([^\s<>]+))(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
-const LINK_REFERENCE_PENDING_DESTINATION = /^\[((?:\\.|[^\[\]\\])+)\]:[ \t]*$/;
-const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<([^>\n]*)>|([^\s<>]+))(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
-const LINK_REFERENCE_TITLE = /^[ \t]*(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\))[ \t]*$/;
+const LINK_REFERENCE_DEFINITION = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<([^>\n]*)>|([^\s<>]+))(?:[ \t]+(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\)))?[ \t]*$/;
+const LINK_REFERENCE_PENDING_DESTINATION = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*$/;
+const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<([^>\n]*)>|([^\s<>]+))(?:[ \t]+(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\)))?[ \t]*$/;
+const LINK_REFERENCE_TITLE = /^[ \t]*(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\))[ \t]*$/;
 
 function hasVisibleLinkReferenceLabel(label: string): boolean {
   return /\S/.test(label.replace(/\\(.)/g, '$1'));

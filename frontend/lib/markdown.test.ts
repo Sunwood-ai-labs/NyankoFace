@@ -314,6 +314,39 @@ test('ends a GitHub alert after a link reference definition with an escaped labe
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends a GitHub alert after a link reference definition with an escaped title delimiter', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> [label]: /target "a \\"title"',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('ends a GitHub alert after an indented pending link reference definition', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '>   [label]:',
+    '>   /target',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps definition-like lazy continuation inside an active paragraph', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
