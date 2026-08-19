@@ -693,9 +693,15 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         quotedHtmlBoundary = rawHtml;
         paragraphActive = false;
       } else {
-        const listItemWithContent = Boolean(contentLine.match(LIST_CONTAINER_PREFIX));
+        const listPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
+        const listItemContent = listPrefix
+          ? contentLine.slice(listPrefix[0].length)
+          : '';
+        const listItemParagraph = Boolean(listPrefix)
+          && listItemContent.trim() !== ''
+          && !startsMarkdownBlock(listItemContent, false, previousLine);
         paragraphActive = contentLine.trim() !== ''
-          && (listItemWithContent || !startsMarkdownBlock(contentLine, paragraphActive, previousLine));
+          && (listItemParagraph || !startsMarkdownBlock(contentLine, paragraphActive, previousLine));
       }
     }
     previousLine = contentLine;
