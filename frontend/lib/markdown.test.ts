@@ -550,6 +550,19 @@ test('keeps quoted angle brackets inside custom HTML attributes', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('does not treat adjacent custom HTML attributes as a raw block', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<my-widget a="b"c="d">',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps trailing content after a closing block tag inside raw HTML', () => {
   const { bodyHtml } = parseReadme([
     ':::message',

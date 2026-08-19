@@ -379,6 +379,7 @@ function matchRawHtmlOpening(line: string): { tagName: string; raw: string } | u
   if (!tag) return undefined;
   let index = tag[0].length;
   while (index < line.length) {
+    const whitespaceStart = index;
     while (/[ \t]/.test(line[index] || '')) index += 1;
     if (line[index] === '>') return { tagName: tag[1], raw: line.slice(0, index + 1) };
     if (line[index] === '/') {
@@ -389,6 +390,7 @@ function matchRawHtmlOpening(line: string): { tagName: string; raw: string } | u
       }
       return undefined;
     }
+    if (index === whitespaceStart) return undefined;
     const attribute = line.slice(index).match(/^[A-Za-z_:][A-Za-z0-9_.:-]*/);
     if (!attribute) return undefined;
     index += attribute[0].length;
