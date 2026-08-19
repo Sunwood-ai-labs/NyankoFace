@@ -632,7 +632,7 @@ function blockTokens(
 }
 
 function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlockToken | undefined {
-  const header = source.match(/^ {0,3}>[ \t]?\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\r?\n|$)/i);
+  const header = source.match(/^ {0,3}>[ \t]?\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\r?\n|$)/);
   if (!header) return undefined;
 
   let rawLength = header[0].length;

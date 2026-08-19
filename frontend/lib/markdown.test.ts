@@ -330,6 +330,14 @@ test('requires at most one padding space before a GitHub alert marker', () => {
   assert.doesNotMatch(tabIndented.bodyHtml, /data-markdown-block="github-alert"/);
 });
 
+test('keeps lowercase GitHub alert markers as ordinary blockquotes', () => {
+  const { bodyHtml } = parseReadme('> [!note]\n> This remains an ordinary blockquote.');
+
+  assert.doesNotMatch(bodyHtml, /data-markdown-block="github-alert"/);
+  assert.match(bodyHtml, /<blockquote>/);
+  assert.match(bodyHtml, /\[!note\]/);
+});
+
 test('does not retain list context for an ordered marker inside a paragraph', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
