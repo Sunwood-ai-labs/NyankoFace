@@ -728,6 +728,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   let previousLine: string | undefined;
   let quotedFenceChar: '`' | '~' | null = null;
   let quotedFenceLength = 0;
+  let quotedFenceContainer: ZennFenceContainer | undefined;
   let quotedHtmlBoundary: RawHtmlBlockBoundary | null = null;
   let quotedLinkReferenceDefinition = false;
   let quotedLinkReferenceNeedsDestination = false;
@@ -739,7 +740,13 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
     if (line.trim() === '') break;
     const isQuoted = /^ {0,3}>/.test(line);
     const contentLine = isQuoted ? line.replace(/^[ \t]{0,3}>[ \t]?/, '') : line;
-    const contentFence = isQuoted ? matchZennFence(contentLine) : null;
+    const contentFence = isQuoted
+      ? matchZennFence(
+        contentLine,
+        previousLine,
+        quotedFenceContainer?.kind === 'list' ? quotedFenceContainer.contentIndent : undefined,
+      )
+      : null;
     const unquotedFence = isQuoted ? null : matchZennFence(line);
     const validUnquotedFence = Boolean(unquotedFence && isValidZennFence(unquotedFence, line));
     if (
@@ -770,11 +777,13 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         contentFence
         && contentFence.token[0] === quotedFenceChar
         && contentFence.token.length >= quotedFenceLength
+        && sameZennFenceContainer(contentFence.container, quotedFenceContainer)
         && contentLine.slice(contentFence.end).trim() === '',
       );
       if (closesFence) {
         quotedFenceChar = null;
         quotedFenceLength = 0;
+        quotedFenceContainer = undefined;
       }
       paragraphActive = false;
     } else if (contentFence && isValidZennFence(contentFence, contentLine)) {
@@ -782,6 +791,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       quotedLinkReferenceNeedsDestination = false;
       quotedFenceChar = contentFence.token[0] as '`' | '~';
       quotedFenceLength = contentFence.token.length;
+      quotedFenceContainer = contentFence.container;
       paragraphActive = false;
     } else {
       const rawHtml = rawHtmlBlockEnd(contentLine);
