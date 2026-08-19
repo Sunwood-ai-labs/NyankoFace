@@ -629,6 +629,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   let previousLine: string | undefined;
   let quotedFenceChar: '`' | '~' | null = null;
   let quotedFenceLength = 0;
+  let quotedHtmlBoundary: RawHtmlBlockBoundary | null = null;
   while (cursor < source.length) {
     const newlineIndex = source.indexOf('\n', cursor);
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
@@ -641,6 +642,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       !isQuoted
       && (
         quotedFenceChar !== null
+        || quotedHtmlBoundary !== null
         || !paragraphActive
         || startsMarkdownBlock(line, paragraphActive)
         || matchZennFence(line)
@@ -649,7 +651,13 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       )
     ) break;
     cursor = end;
-    if (quotedFenceChar !== null) {
+    if (quotedHtmlBoundary !== null) {
+      const endsHtml = quotedHtmlBoundary.kind === 'blank'
+        ? contentLine.trim() === ''
+        : quotedHtmlBoundary.pattern.test(contentLine);
+      if (endsHtml) quotedHtmlBoundary = null;
+      paragraphActive = false;
+    } else if (quotedFenceChar !== null) {
       const closesFence = Boolean(
         contentFence
         && contentFence.token[0] === quotedFenceChar
@@ -667,9 +675,15 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       paragraphActive = false;
     } else {
       const rawHtml = rawHtmlBlockEnd(contentLine);
-      paragraphActive = contentLine.trim() !== ''
-        && !startsMarkdownBlock(contentLine, paragraphActive, previousLine)
-        && !rawHtml?.interruptsParagraph;
+      if (rawHtml?.kind === 'complete') {
+        paragraphActive = false;
+      } else if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph)) {
+        quotedHtmlBoundary = rawHtml;
+        paragraphActive = false;
+      } else {
+        paragraphActive = contentLine.trim() !== ''
+          && !startsMarkdownBlock(contentLine, paragraphActive, previousLine);
+      }
     }
     previousLine = contentLine;
   }
