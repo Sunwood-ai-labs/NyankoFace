@@ -165,6 +165,7 @@ type ZennFenceMatch = {
 };
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
+const LINK_REFERENCE_DEFINITION = /^\[[^\]\n]+\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+.*)?$/;
 
 const RAW_HTML_BLOCK_TAGS = new Set([
   'address', 'article', 'aside', 'base', 'basefont', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup',
@@ -275,10 +276,15 @@ function matchZennFence(line: string, previousLine?: string, listContentIndent?:
   const continuation = line.match(/^[ \t]+(`{3,}|~{3,})/);
   const continuationContentIndent = listContentIndent
     ?? (previousListPrefix ? textColumns(previousListPrefix[0]) : undefined);
+  const continuationIndent = continuation
+    ? leadingIndentColumns(continuation[0].slice(0, -continuation[1].length))
+    : undefined;
   if (
     continuation
     && continuationContentIndent !== undefined
-    && leadingIndentColumns(continuation[0].slice(0, -continuation[1].length)) >= continuationContentIndent
+    && continuationIndent !== undefined
+    && continuationIndent >= continuationContentIndent
+    && continuationIndent < continuationContentIndent + 4
   ) {
     return {
       token: continuation[1],
@@ -288,6 +294,11 @@ function matchZennFence(line: string, previousLine?: string, listContentIndent?:
   }
   const plain = line.match(/^ {0,3}(`{3,}|~{3,})/);
   return plain ? { token: plain[1], end: plain[0].length } : null;
+}
+
+function isValidZennFence(fence: ZennFenceMatch, line: string): boolean {
+  const suffix = line.slice(fence.end);
+  return fence.token[0] !== '`' || !suffix.includes('`');
 }
 
 function stripZennContainerPrefix(line: string): string {
@@ -363,6 +374,7 @@ function startsMarkdownBlock(line: string, paragraphActive = false, previousLine
   return isGfmTableDelimiter(content, previousLine)
     || (shortSetextUnderline && paragraphActive)
     || (equalsSetextUnderline && paragraphActive)
+    || LINK_REFERENCE_DEFINITION.test(content)
     || thematicBreak.test(content)
     || /^(?:#{1,6}(?:[ \t]+|$)|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
@@ -508,20 +520,6 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     const line = source.slice(offset, end).replace(/\r?\n$/, '');
     const indentation = leadingIndentColumns(line);
 
-    if (line.trim() !== '') {
-      while (listContentIndents.length && indentation < listContentIndents.at(-1)!) {
-        listContentIndents.pop();
-      }
-      const listPrefix = line.match(LIST_CONTAINER_PREFIX);
-      if (listPrefix && (!paragraphActive || startsMarkdownBlock(line, paragraphActive, previousLine))) {
-        const contentIndent = textColumns(listPrefix[0]);
-        while (listContentIndents.length && contentIndent <= listContentIndents.at(-1)!) {
-          listContentIndents.pop();
-        }
-        listContentIndents.push(contentIndent);
-      }
-    }
-
     if (!fenceChar) {
       if (htmlBlockEnd) {
         const endsListContainer = htmlBlockEnd.listContentIndent !== undefined
@@ -577,6 +575,20 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
       fenceContainer = undefined;
     }
 
+    if (!fenceChar && line.trim() !== '') {
+      while (listContentIndents.length && indentation < listContentIndents.at(-1)!) {
+        listContentIndents.pop();
+      }
+      const listPrefix = line.match(LIST_CONTAINER_PREFIX);
+      if (listPrefix && (!paragraphActive || startsMarkdownBlock(line, paragraphActive, previousLine))) {
+        const contentIndent = textColumns(listPrefix[0]);
+        while (listContentIndents.length && contentIndent <= listContentIndents.at(-1)!) {
+          listContentIndents.pop();
+        }
+        listContentIndents.push(contentIndent);
+      }
+    }
+
     if (fenceChar) {
       const closesFence = Boolean(
         fence
@@ -591,14 +603,11 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         fenceContainer = undefined;
         paragraphActive = false;
       }
-    } else if (fence) {
-      const suffix = line.slice(fence.end);
-      if (fence.token[0] !== '`' || !suffix.includes('`')) {
-        fenceChar = fence.token[0] as '`' | '~';
-        fenceLength = fence.token.length;
-        fenceContainer = fence.container;
-        paragraphActive = false;
-      }
+    } else if (fence && isValidZennFence(fence, line)) {
+      fenceChar = fence.token[0] as '`' | '~';
+      fenceLength = fence.token.length;
+      fenceContainer = fence.container;
+      paragraphActive = false;
     } else if (
       parseZennOpeningLine(stripZennContainerPrefix(line))
       && (!line.match(LIST_CONTAINER_PREFIX) || startsMarkdownBlock(line, paragraphActive, previousLine))
@@ -674,6 +683,8 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
     const isQuoted = /^ {0,3}>/.test(line);
     const contentLine = isQuoted ? line.replace(/^[ \t]{0,3}>[ \t]?/, '') : line;
     const contentFence = isQuoted ? matchZennFence(contentLine) : null;
+    const unquotedFence = isQuoted ? null : matchZennFence(line);
+    const validUnquotedFence = Boolean(unquotedFence && isValidZennFence(unquotedFence, line));
     if (
       !isQuoted
       && (
@@ -681,7 +692,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         || quotedHtmlBoundary !== null
         || !paragraphActive
         || startsMarkdownBlock(line, paragraphActive)
-        || matchZennFence(line)
+        || validUnquotedFence
         || parseZennOpeningLine(line)
         || rawHtmlBlockEnd(line)?.interruptsParagraph
       )
