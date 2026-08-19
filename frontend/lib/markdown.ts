@@ -173,7 +173,7 @@ const RAW_HTML_BLOCK_TAGS = new Set([
   'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer',
   'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html',
   'iframe', 'legend', 'li', 'link', 'main', 'menu', 'menuitem', 'nav', 'ol', 'optgroup', 'option',
-  'p', 'param', 'pre', 'script', 'section', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead',
+  'p', 'param', 'pre', 'script', 'search', 'section', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead',
   'textarea', 'title', 'tr', 'track', 'ul', 'style', 'noframes',
 ]);
 const RAW_HTML_TAGS_WITH_EXPLICIT_END = new Set(['pre', 'script', 'style', 'textarea']);
@@ -473,7 +473,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
     const partialExplicitOpening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?=\s|$)/);
     if (partialExplicitOpening && RAW_HTML_TAGS_WITH_EXPLICIT_END.has(partialExplicitOpening[1].toLowerCase())) {
       const tagName = partialExplicitOpening[1].toLowerCase();
-      return { kind: 'closing', pattern: new RegExp(`</${tagName}\\s*>`, 'i'), interruptsParagraph: true };
+      return { kind: 'closing', pattern: new RegExp(`</${tagName}>`, 'i'), interruptsParagraph: true };
     }
     if (partialExplicitOpening && RAW_HTML_BLOCK_TAGS.has(partialExplicitOpening[1].toLowerCase())) {
       return { kind: 'blank', interruptsParagraph: true };
@@ -720,7 +720,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         quotedFenceLength = 0;
       }
       paragraphActive = false;
-    } else if (contentFence) {
+    } else if (contentFence && isValidZennFence(contentFence, contentLine)) {
       quotedLinkReferenceDefinition = false;
       quotedFenceChar = contentFence.token[0] as '`' | '~';
       quotedFenceLength = contentFence.token.length;

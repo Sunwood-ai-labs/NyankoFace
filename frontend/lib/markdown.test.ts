@@ -252,6 +252,22 @@ test('keeps invalid fenced-code info as lazy alert content', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps quoted invalid fenced-code info as lazy alert content', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> ``` foo ```',
+    'continuation',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /foo/);
+  assert.match(bodyHtml.slice(0, alertEnd), /continuation/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends a GitHub alert after a quoted link reference definition', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
@@ -1268,7 +1284,7 @@ test('recognizes whitespace before custom closing tag brackets', () => {
 });
 
 test('keeps omitted type-6 HTML tags inside a Zenn block', () => {
-  for (const tagName of ['option', 'optgroup', 'param', 'frame', 'frameset']) {
+  for (const tagName of ['option', 'optgroup', 'param', 'frame', 'frameset', 'search']) {
     const { bodyHtml } = parseReadme([
       ':::message',
       'paragraph',
@@ -1285,6 +1301,25 @@ test('keeps omitted type-6 HTML tags inside a Zenn block', () => {
     assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1, tagName);
     assert.match(bodyHtml, /data-markdown-block="zenn-message"[\s\S]*<p>inside<\/p>[\s\S]*<h1[^>]*>After<\/h1>/, tagName);
   }
+});
+
+test('requires exact closers for split explicit-end HTML', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre',
+    'class="x">',
+    '</pre >',
+    ':::',
+    '</pre>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const panelEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(panelEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(panelEnd), /:::/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
 test('closes declaration HTML at its first angle bracket', () => {
