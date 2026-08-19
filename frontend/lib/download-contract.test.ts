@@ -39,3 +39,8 @@ test('does not advertise compressed upstream bytes as the decoded stream length'
   assert.match(downloadRoute, /headers: \{ 'Accept-Encoding': 'identity' \}/);
   assert.match(downloadRoute, /const contentEncoding = upstream\.headers\.get\('content-encoding'\);[\s\S]*if \(length && !contentEncoding\) headers\.set\('Content-Length', length\)/);
 });
+
+test('encodes slash-bearing refs as one upstream path segment', () => {
+  assert.match(downloadRoute, /media\/\$\{encodeURIComponent\(refKind\)\}\/\$\{encodeURIComponent\(branch\)\}/);
+  assert.match(downloadRoute, /raw\/\$\{encodeURIComponent\(refKind\)\}\/\$\{encodeURIComponent\(branch\)\}/);
+});

@@ -106,6 +106,24 @@ class SharedNavigationContractTests(unittest.TestCase):
         self.assertIn(f"/css/nyankoface.css?v={STYLESHEET_VERSION}", HEADER)
         self.assertNotIn(PREVIOUS_STYLESHEET_VERSION, HEADER)
 
+    def test_forgejo_fallback_keeps_repositories_separate_from_models(self):
+        fallback_icons = HEADER[HEADER.index("const navIcon = {"):HEADER.index("const navItems", HEADER.index("const navIcon = {"))]
+        self.assertIn('folder: fontAwesomeIcon("folder"', fallback_icons)
+        self.assertIn('models.className = "item nyankoface-nav-models"', HEADER)
+        self.assertIn('models.href = "/models"', HEADER)
+        self.assertIn('setText(explore, "Repositories")', HEADER)
+        self.assertIn('explore.href = "/git/explore/repos"', HEADER)
+        self.assertIn('if (query === "space") return "space";', HEADER)
+        self.assertIn('if (query === "dataset") return "dataset";', HEADER)
+        self.assertIn('if (query === "model") return "model";', HEADER)
+        self.assertIn('return null;', HEADER[HEADER.index('const currentExploreKind'):HEADER.index('const enhanceExploreRepos')])
+        self.assertIn('document.querySelector(".nyankoface-nav-models")?.classList.add("active")', HEADER)
+        self.assertIn('href="/models">Models</a>', HEADER)
+        self.assertIn('<a class="active" href="/models">Main</a>', HEADER)
+        self.assertIn('kind === "model" ? "/models"', HEADER)
+        self.assertIn('<li><a href="/models">Models</a></li>', HEADER)
+        self.assertNotIn('explore.href = "/models"', HEADER)
+
 
 if __name__ == "__main__":
     unittest.main()

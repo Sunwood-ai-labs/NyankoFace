@@ -67,8 +67,8 @@ export async function GET(
   }
 
   const upstreamPath = source === 'lfs'
-    ? `/${encodePath(owner)}/${encodePath(repo)}/media/${encodeURIComponent(refKind)}/${encodePath(branch)}/${encodePath(path)}`
-    : `/${encodePath(owner)}/${encodePath(repo)}/raw/${encodeURIComponent(refKind)}/${encodePath(branch)}/${encodePath(path)}`;
+    ? `/${encodePath(owner)}/${encodePath(repo)}/media/${encodeURIComponent(refKind)}/${encodeURIComponent(branch)}/${encodePath(path)}`
+    : `/${encodePath(owner)}/${encodePath(repo)}/raw/${encodeURIComponent(refKind)}/${encodeURIComponent(branch)}/${encodePath(path)}`;
   let upstream: Response;
   try {
     upstream = await fetch(`${FORGEJO_WEB}${upstreamPath}`, {

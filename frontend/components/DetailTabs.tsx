@@ -46,6 +46,8 @@ export default function DetailTabs({
             ? ui(locale, 'ベンチマークカード', 'Benchmark card')
           : kind === 'automation'
             ? ui(locale, 'Automationカード', 'Automation card')
+          : kind == null
+            ? ui(locale, 'リポジトリ', 'Repository')
           : ui(locale, 'モデルカード', 'Model card');
   const tabClass = (tab: string) =>
     `inline-flex min-h-12 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2 text-sm font-semibold max-sm:gap-1 max-sm:px-2 max-sm:text-xs ${
@@ -57,7 +59,7 @@ export default function DetailTabs({
   return (
     <div className="flex min-w-0 max-w-full shrink-0 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-sm:w-full max-sm:justify-start max-sm:gap-0">
       <Link href={cardHref} className={tabClass('card')}>
-        <HfIcon name={isSpace ? 'space' : kind === 'character' ? 'character' : kind === 'benchmark' ? 'benchmark' : kind === 'automation' ? 'automation' : 'file'} className="h-3.5 w-3.5" />
+        <HfIcon name={isSpace ? 'space' : kind === 'character' ? 'character' : kind === 'benchmark' ? 'benchmark' : kind === 'automation' ? 'automation' : kind == null ? 'folder' : 'file'} className="h-3.5 w-3.5" />
         {cardLabel}
       </Link>
       <a href={filesHref} className={tabClass('files')}>

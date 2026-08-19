@@ -167,6 +167,7 @@ function enNav() {
         { text: 'Automated maintenance', link: '/guide/automated-maintenance' },
         { text: 'Visual QA', link: '/guide/visual-qa' },
         { text: 'Operations', link: '/guide/operations' },
+        { text: 'Challenge server recovery', link: '/guide/challenge-server-recovery' },
         { text: 'Upgrade and data retention', link: '/guide/upgrading' },
         { text: 'Troubleshooting', link: '/guide/troubleshooting' }
       ]
@@ -198,6 +199,7 @@ function jaNav() {
         { text: '自動メンテナンス', link: '/ja/guide/automated-maintenance' },
         { text: 'Visual QA', link: '/ja/guide/visual-qa' },
         { text: '運用', link: '/ja/guide/operations' },
+        { text: 'Challenge serverの復旧', link: '/ja/guide/challenge-server-recovery' },
         { text: 'Upgradeとデータ保持', link: '/ja/guide/upgrading' },
         { text: 'トラブルシューティング', link: '/ja/guide/troubleshooting' }
       ]
@@ -292,6 +294,7 @@ function guideSidebar(prefix: string, ja = false) {
       { text: 'Visual QA', link: `${prefix}/guide/visual-qa` },
       { text: ja ? '自動メンテナンス' : 'Automated maintenance', link: `${prefix}/guide/automated-maintenance` },
       { text: ja ? '運用' : 'Operations', link: `${prefix}/guide/operations` },
+      { text: ja ? 'Challenge serverの復旧' : 'Challenge server recovery', link: `${prefix}/guide/challenge-server-recovery` },
       { text: ja ? 'Upgradeとデータ保持' : 'Upgrade and data retention', link: `${prefix}/guide/upgrading` },
       { text: ja ? 'トラブルシューティング' : 'Troubleshooting', link: `${prefix}/guide/troubleshooting` }
     ]

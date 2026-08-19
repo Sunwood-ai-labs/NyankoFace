@@ -1,5 +1,7 @@
 import fs from 'fs';
 import matter from 'gray-matter';
+import { resolvePublicOrigin, sanitizePublicUrlRecord } from './public-origin';
+import { safePublicUrl, sanitizePublicRepo } from './public-repo';
 
 // ---------------------------------------------------------------------------
 // Configuration (固定契約: PLAN.md)
@@ -11,6 +13,9 @@ const README_CACHE_TTL_MS = Math.max(
   60,
   Number.parseInt(process.env.README_CACHE_TTL_SECONDS || '300', 10) || 300,
 ) * 1000;
+export const SKILL_MAX_BYTES = 256 * 1024;
+const SKILL_ROOT_PATH = 'SKILL.md';
+const SKILL_ROOT_MAX_BYTES = 256 * 1024;
 export const PUBLIC_BASE_URL =
   process.env.PUBLIC_BASE_URL || 'http://localhost:8090';
 
@@ -59,6 +64,34 @@ export interface Repo {
   private?: boolean;
 }
 
+const OPERATIONAL_DEFAULT_BRANCH = '__nyankofaceOperationalDefaultBranch';
+type RepoWithOperationalDefaultBranch = Repo & {
+  [key: string]: unknown;
+};
+
+function attachOperationalDefaultBranch(repo: Repo, branch: unknown): Repo {
+  if (typeof branch !== 'string' || !branch.trim()) return repo;
+  Object.defineProperty(repo, OPERATIONAL_DEFAULT_BRANCH, {
+    configurable: true,
+    enumerable: false,
+    value: branch.trim(),
+    writable: false,
+  });
+  return repo;
+}
+
+export function repoDefaultBranch(repo: Pick<Repo, 'default_branch'> | null | undefined): string {
+  if (!repo) return 'main';
+  const operational = (repo as RepoWithOperationalDefaultBranch)[OPERATIONAL_DEFAULT_BRANCH];
+  if (typeof operational === 'string' && operational) return operational;
+  const visible = repo.default_branch?.trim();
+  return visible && visible !== '[internal URL omitted]' ? visible : 'main';
+}
+
+export function copyOperationalDefaultBranch<T extends Repo>(source: Pick<Repo, 'default_branch'>, target: T): T {
+  return attachOperationalDefaultBranch(target, repoDefaultBranch(source)) as T;
+}
+
 export type SkillDependencyType = 'required' | 'recommended';
 
 export interface SkillDependency {
@@ -76,13 +109,21 @@ export interface SkillRelationships {
 export interface SearchReposResult {
   ok: boolean;
   data: Repo[];
+  /** Public repositories returned after visibility filtering. */
   total_count: number;
+  /** Raw Forgejo count used only to decide whether another upstream page exists. */
+  upstream_total_count?: number;
+  /** Number of raw repositories returned before private visibility filtering. */
+  raw_page_size?: number;
+  /** Number of raw Forgejo rows inspected before the public filter was applied. */
+  upstream_inspected_count?: number;
 }
 
 export interface ContentEntry {
   name: string;
   path: string;
   type: 'file' | 'dir' | 'symlink' | 'submodule';
+  target?: string | null;
   size: number;
   sha: string;
   download_url?: string | null;
@@ -93,6 +134,13 @@ export interface ContentEntry {
 export interface GetContentsResult {
   ok: boolean;
   data: ContentEntry[] | ContentEntry | null;
+}
+
+type SkillRootStatus = 'valid' | 'invalid' | 'unavailable';
+
+interface SkillEnrichmentResult {
+  repos: Repo[];
+  unavailable: boolean;
 }
 
 export interface PagesInspectionCheck {
@@ -195,7 +243,7 @@ export interface SearchReposParams {
   signal?: AbortSignal;
 }
 
-export async function searchRepos(params: SearchReposParams): Promise<SearchReposResult> {
+async function fetchRepoSearchPage(params: SearchReposParams): Promise<SearchReposResult> {
   const { topic, q, sort = 'updated', limit = 20, page = 1, signal } = params;
 
   const qs = new URLSearchParams();
@@ -225,22 +273,94 @@ export async function searchRepos(params: SearchReposParams): Promise<SearchRepo
 
   const res = await apiFetch(`/repos/search?${qs.toString()}`, signal);
   if (!res.ok || !res.json) {
-    return { ok: false, data: [], total_count: 0 };
+    return { ok: false, data: [], total_count: 0, upstream_total_count: 0 };
   }
   // This server-side client uses the seed admin token to read repository
   // metadata. Never let that privileged token turn private Forgejo assets into
   // public NyankoFace catalog entries.
-  const data = (Array.isArray(res.json.data) ? res.json.data as Repo[] : []).filter((repo) => !repo.private);
-  const enrichedData = topic === 'space'
-    ? await enrichSpaceMetadata(data)
-    : topic === 'skill'
-      ? await enrichSkillMetadata(data)
-      : data;
+  const upstreamData = Array.isArray(res.json.data) ? res.json.data as Repo[] : [];
+  const data = upstreamData
+    .filter((repo) => !repo.private)
+    .map(sanitizePublicRepo);
   const headerTotal = Number.parseInt(res.headers?.get('x-total-count') || '', 10);
   return {
     ok: true,
-    data: enrichedData,
-    total_count: Number.isFinite(headerTotal) ? headerTotal : data.length,
+    data,
+    total_count: data.length,
+    upstream_total_count: Number.isFinite(headerTotal) ? headerTotal : upstreamData.length,
+    raw_page_size: upstreamData.length,
+    upstream_inspected_count: upstreamData.length,
+  };
+}
+
+function rawSearchPageBudget(rawTotal: number, rawPageSize: number): number {
+  if (rawTotal <= 0) return 1;
+  if (rawPageSize <= 0) return 0;
+  return Math.max(1, Math.ceil(rawTotal / rawPageSize));
+}
+
+async function searchSkillRepos(params: SearchReposParams): Promise<SearchReposResult> {
+  const limit = Math.max(1, params.limit || 20);
+  const requestedPage = Math.max(1, params.page || 1);
+  const firstAdmittedIndex = (requestedPage - 1) * limit;
+  const targetAdmittedCount = firstAdmittedIndex + limit;
+  const admitted: Repo[] = [];
+  let rawTotal = 0;
+  let rawFetched = 0;
+  let rawExhausted = false;
+  let maxRawPages = 1;
+
+  for (let rawPage = 1; rawPage <= maxRawPages; rawPage += 1) {
+    const result = await fetchRepoSearchPage({ ...params, limit, page: rawPage });
+    if (!result.ok) return result;
+    rawTotal = result.upstream_total_count ?? result.total_count;
+    const rawPageSize = result.upstream_inspected_count ?? result.raw_page_size ?? result.data.length;
+    if (rawPage === 1) maxRawPages = rawSearchPageBudget(rawTotal, rawPageSize);
+    rawFetched += rawPageSize;
+
+    // A paged listing only needs enough admitted Skills for the requested
+    // page. The complete catalog path below remains responsible for exact
+    // totals and full relationship enrichment.
+    const skillResult = await enrichSkillMetadata(result.data, targetAdmittedCount - admitted.length);
+    if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
+    admitted.push(...skillResult.repos);
+
+    if (admitted.length >= targetAdmittedCount) {
+      return {
+        ok: true,
+        data: admitted.slice(firstAdmittedIndex, targetAdmittedCount),
+        total_count: admitted.length,
+      };
+    }
+    if (rawFetched >= rawTotal) {
+      rawExhausted = true;
+      break;
+    }
+    if (rawPageSize === 0) break;
+  }
+
+  if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
+
+  return {
+    ok: true,
+    data: admitted.slice(firstAdmittedIndex, firstAdmittedIndex + limit),
+    total_count: admitted.length,
+  };
+}
+
+export async function searchRepos(params: SearchReposParams): Promise<SearchReposResult> {
+  const { topic } = params;
+  if (topic === 'skill') return searchSkillRepos(params);
+
+  const result = await fetchRepoSearchPage(params);
+  if (!result.ok) return result;
+  let enrichedData = result.data;
+  if (topic === 'space') {
+    enrichedData = await enrichSpaceMetadata(result.data);
+  }
+  return {
+    ...result,
+    data: enrichedData.map(sanitizePublicRepo),
   };
 }
 
@@ -255,23 +375,75 @@ export async function searchAllReposByTopicAndQuery(
   topic: RepoKind | undefined,
   q?: string,
 ): Promise<SearchReposResult> {
+  if (topic === 'skill') return searchAllSkillReposByTopicAndQuery(q);
+
   const pageSize = 100;
   let page = 1;
   let expectedTotal = Number.POSITIVE_INFINITY;
+  let rawFetched = 0;
+  let rawExhausted = false;
+  let maxRawPages = 1;
   const repos: Repo[] = [];
 
-  while ((page - 1) * pageSize < expectedTotal) {
+  for (page = 1; page <= maxRawPages && rawFetched < expectedTotal; page += 1) {
     const result = await searchRepos({ topic, q: topic ? undefined : q, sort: 'updated', limit: pageSize, page });
     if (!result.ok) return { ok: false, data: [], total_count: 0 };
     repos.push(...result.data);
-    expectedTotal = result.total_count;
+    expectedTotal = result.upstream_total_count ?? result.total_count;
+    const rawPageSize = result.upstream_inspected_count ?? result.raw_page_size ?? result.data.length;
+    if (page === 1) maxRawPages = rawSearchPageBudget(expectedTotal, rawPageSize);
+    rawFetched += rawPageSize;
     // `data` excludes private repositories, while Forgejo's total still
     // describes the raw result set. Do not stop just because a page became
     // shorter after that safety filter; otherwise a later public page could
     // be omitted from the global metric ranking.
-    if (page * pageSize >= expectedTotal || result.data.length === 0 && expectedTotal === 0) break;
-    page += 1;
+    if (rawFetched >= expectedTotal) {
+      rawExhausted = true;
+      break;
+    }
+    if (rawPageSize === 0) break;
   }
+
+  if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
+
+  const needle = q?.toLowerCase();
+  const filtered = needle
+    ? repos.filter((repo) =>
+        repo.name.toLowerCase().includes(needle) ||
+        (repo.description || '').toLowerCase().includes(needle) ||
+        repo.full_name.toLowerCase().includes(needle) ||
+        (repo.topics || []).some((repoTopic) => repoTopic.toLowerCase().includes(needle)),
+      )
+    : repos;
+  return { ok: true, data: filtered, total_count: filtered.length };
+}
+
+async function searchAllSkillReposByTopicAndQuery(q?: string): Promise<SearchReposResult> {
+  const pageSize = 100;
+  const repos: Repo[] = [];
+  let rawTotal = Number.POSITIVE_INFINITY;
+  let rawFetched = 0;
+  let rawExhausted = false;
+  let maxRawPages = 1;
+
+  for (let page = 1; page <= maxRawPages; page += 1) {
+    const result = await fetchRepoSearchPage({ topic: 'skill', sort: 'updated', limit: pageSize, page });
+    if (!result.ok) return result;
+    rawTotal = result.upstream_total_count ?? result.total_count;
+    const rawPageSize = result.upstream_inspected_count ?? result.raw_page_size ?? result.data.length;
+    if (page === 1) maxRawPages = rawSearchPageBudget(rawTotal, rawPageSize);
+    rawFetched += rawPageSize;
+    const skillResult = await enrichSkillMetadata(result.data);
+    if (skillResult.unavailable) return { ok: false, data: [], total_count: 0 };
+    repos.push(...skillResult.repos);
+    if (rawFetched >= rawTotal) {
+      rawExhausted = true;
+      break;
+    }
+    if (rawPageSize === 0) break;
+  }
+
+  if (!rawExhausted) return { ok: false, data: [], total_count: 0 };
 
   const needle = q?.toLowerCase();
   const filtered = needle
@@ -309,7 +481,14 @@ export async function searchReposByTopicAndQuery(
       (r.topics || []).some((repoTopic) => repoTopic.toLowerCase().includes(needle))
     );
   });
-  return { ok: res.ok, data: filtered, total_count: filtered.length };
+  return {
+    ok: res.ok,
+    data: filtered,
+    total_count: filtered.length,
+    upstream_total_count: res.upstream_total_count,
+    raw_page_size: res.raw_page_size,
+    upstream_inspected_count: res.upstream_inspected_count,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -318,10 +497,14 @@ export async function searchReposByTopicAndQuery(
 export async function getRepo(owner: string, repo: string): Promise<Repo | null> {
   const res = await apiFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`);
   if (!res.ok || !res.json || res.json.private) return null;
-  const repoInfo = res.json as Repo;
+  const repoInfo = sanitizePublicRepo(res.json as Repo);
   const kind = repoKind(repoInfo.topics);
-  if (kind === 'space') return (await enrichSpaceMetadata([repoInfo]))[0];
-  if (kind === 'skill') return (await enrichSkillMetadata([repoInfo]))[0];
+  if (kind === 'space') return sanitizePublicRepo((await enrichSpaceMetadata([repoInfo]))[0]);
+  if (kind === 'skill') {
+    const skillResult = await enrichSkillMetadata([repoInfo]);
+    const enriched = skillResult.repos[0];
+    return skillResult.unavailable || !enriched ? null : sanitizePublicRepo(enriched);
+  }
   return repoInfo;
 }
 
@@ -364,8 +547,12 @@ export async function resolvePublicRepoRevision(
   const encodedRepo = encodeURIComponent(repo);
   const repoResponse = await publicApiFetch(`/repos/${encodedOwner}/${encodedRepo}`);
   if (!repoResponse.ok || !repoResponse.json || repoResponse.json.private) return null;
-  const repoInfo = repoResponse.json as Repo;
-  const ref = requestedRef?.trim() || repoInfo.default_branch || 'main';
+  const rawRepoInfo = repoResponse.json as Repo;
+  const repoInfo = sanitizePublicRepo(rawRepoInfo);
+  const rawDefaultBranch = typeof rawRepoInfo.default_branch === 'string'
+    ? rawRepoInfo.default_branch.trim()
+    : '';
+  const ref = requestedRef?.trim() || rawDefaultBranch || 'main';
   const commitResponse = await publicApiFetch(
     `/repos/${encodedOwner}/${encodedRepo}/git/commits/${encodeURIComponent(ref)}`,
   );
@@ -425,7 +612,7 @@ export async function getPagesInspection(
       `${RUNNER_API}/pages/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/status`,
       { cache: 'no-store', headers: { Accept: 'application/json' }, signal },
     );
-    if (response.ok) return await response.json() as PagesInspection;
+    if (response.ok) return sanitizePublicUrlRecord(await response.json()) as PagesInspection;
     return {
       owner,
       repo,
@@ -461,13 +648,21 @@ export async function getPagesInspection(
 // ---------------------------------------------------------------------------
 // Directory / file listing
 // ---------------------------------------------------------------------------
+export function encodeRepositoryPath(path: string): string {
+  return path
+    .replace(/^\/+/, '')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
 export async function getContents(
   owner: string,
   repo: string,
   path: string = '',
   ref?: string,
 ): Promise<GetContentsResult> {
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = encodeRepositoryPath(path);
   const query = ref ? `?ref=${encodeURIComponent(ref)}` : '';
   const res = await apiFetch(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${cleanPath}${query}`
@@ -476,6 +671,21 @@ export async function getContents(
     return { ok: false, data: null };
   }
   return { ok: true, data: res.json };
+}
+
+export async function getContentMetadata(
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string,
+): Promise<ContentEntry | null> {
+  const cleanPath = path.replace(/^\/+|\/+$/g, '');
+  if (!cleanPath) return null;
+  const separator = cleanPath.lastIndexOf('/');
+  const parentPath = separator === -1 ? '' : cleanPath.slice(0, separator);
+  const listing = await getContents(owner, repo, parentPath, ref);
+  if (!listing.ok || !Array.isArray(listing.data)) return null;
+  return listing.data.find((entry) => entry.path.replace(/^\/+|\/+$/g, '') === cleanPath) || null;
 }
 
 export async function getRepoTags(owner: string, repo: string): Promise<RepoTag[]> {
@@ -492,11 +702,13 @@ export async function getCommits(
   owner: string,
   repo: string,
   path = '',
-  limit = 10
+  limit = 10,
+  ref?: string,
 ): Promise<CommitInfo[]> {
   const qs = new URLSearchParams();
   qs.set('limit', String(limit));
   if (path) qs.set('path', path.replace(/^\/+/, ''));
+  if (ref) qs.set('sha', ref);
   const res = await apiFetch(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?${qs.toString()}`
   );
@@ -516,7 +728,7 @@ export async function getRawFile(
   const token = getToken();
   const headers: Record<string, string> = {};
   if (token) headers['Authorization'] = `token ${token}`;
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = encodeRepositoryPath(path);
   const url = `${FORGEJO_API}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
     repo
   )}/raw/${cleanPath}${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`;
@@ -615,13 +827,8 @@ function normalizeExternalSpaceUrl(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
   if (!trimmed || trimmed.length > 2048) return undefined;
-  try {
-    const url = new URL(trimmed);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
-    return url.href;
-  } catch {
-    return undefined;
-  }
+  const safe = safePublicUrl(trimmed);
+  return safe && !safe.startsWith('/') ? safe : undefined;
 }
 
 function inferredSpaceEmoji(repo: Repo): string {
@@ -643,6 +850,7 @@ function inferredSpaceEmoji(repo: Repo): string {
 async function enrichSpaceMetadata(repos: Repo[]): Promise<Repo[]> {
   return Promise.all(repos.map(async (repo) => {
     const owner = repo.owner?.login ?? repo.full_name.split('/')[0];
+    const branch = repoDefaultBranch(repo);
     const readme = await getReadme(owner, repo.name);
     let configuredEmoji: string | undefined;
     let configuredExternalUrl: string | undefined;
@@ -656,19 +864,125 @@ async function enrichSpaceMetadata(repos: Repo[]): Promise<Repo[]> {
         configuredExternalUrl = undefined;
       }
     }
-    return {
+    return attachOperationalDefaultBranch({
       ...repo,
       space_emoji: configuredEmoji || inferredSpaceEmoji(repo),
       ...(configuredExternalUrl ? { space_url: configuredExternalUrl } : {}),
-    };
+    }, branch);
   }));
 }
 
-async function enrichSkillMetadata(repos: Repo[]): Promise<Repo[]> {
-  return Promise.all(repos.map(async (repo) => {
+function isSkillRootUnavailable(status: number): boolean {
+  return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500;
+}
+
+function decodeSkillRootContent(entry: unknown): string | null {
+  if (
+    !entry
+    || typeof entry !== 'object'
+    || Array.isArray(entry)
+  ) {
+    return null;
+  }
+  const candidate = entry as Partial<ContentEntry>;
+  const size = candidate.size;
+  if (
+    candidate.name !== SKILL_ROOT_PATH
+    || candidate.path !== SKILL_ROOT_PATH
+    || candidate.type !== 'file'
+    || typeof size !== 'number'
+    || !Number.isSafeInteger(size)
+    || size <= 0
+    || size > SKILL_ROOT_MAX_BYTES
+    || typeof candidate.content !== 'string'
+    || !candidate.content
+    || typeof candidate.encoding !== 'string'
+    || candidate.encoding.toLowerCase() !== 'base64'
+  ) {
+    return null;
+  }
+
+  const encoded = candidate.content.replace(/\s+/g, '');
+  if (
+    !encoded
+    || encoded.length % 4 !== 0
+    || encoded.length > Math.ceil(SKILL_MAX_BYTES / 3) * 4
+    || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded)
+  ) {
+    return null;
+  }
+
+  const bytes = Buffer.from(encoded, 'base64');
+  if (
+    bytes.byteLength !== size
+    || bytes.byteLength > SKILL_ROOT_MAX_BYTES
+    || bytes.toString('base64') !== encoded
+  ) {
+    return null;
+  }
+
+  try {
+    const content = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    return content.trim() ? content : null;
+  } catch {
+    return null;
+  }
+}
+
+function hasRequiredSkillFrontmatter(content: string): boolean {
+  try {
+    const data = matter(content).data as Record<string, unknown>;
+    return (
+      typeof data.name === 'string'
+      && Boolean(data.name.trim())
+      && typeof data.description === 'string'
+      && Boolean(data.description.trim())
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function getSkillRootStatus(owner: string, repo: string): Promise<SkillRootStatus> {
+  const res = await apiFetch(
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${SKILL_ROOT_PATH}`,
+  );
+  if (!res.ok) return isSkillRootUnavailable(res.status) ? 'unavailable' : 'invalid';
+  const content = decodeSkillRootContent(res.json as ContentEntry);
+  return content && hasRequiredSkillFrontmatter(content) ? 'valid' : 'invalid';
+}
+
+async function enrichSkillMetadata(repos: Repo[], maxAdmitted = Number.POSITIVE_INFINITY): Promise<SkillEnrichmentResult> {
+  const enrichOne = async (repo: Repo): Promise<{ repo: Repo | null; unavailable: boolean }> => {
     const owner = repo.owner?.login ?? repo.full_name.split('/')[0];
-    return { ...repo, skill_relationships: await getSkillRelationships(owner, repo.name) };
-  }));
+    const rootStatus = await getSkillRootStatus(owner, repo.name);
+    if (rootStatus === 'unavailable') return { repo: null, unavailable: true };
+    if (rootStatus !== 'valid') return { repo: null, unavailable: false };
+    const enriched = attachOperationalDefaultBranch({
+      ...repo,
+      skill_relationships: await getSkillRelationships(owner, repo.name),
+    }, repoDefaultBranch(repo));
+    return {
+      repo: sanitizePublicRepo(enriched),
+      unavailable: false,
+    };
+  };
+  if (Number.isFinite(maxAdmitted)) {
+    const admitted: Repo[] = [];
+    for (const repo of repos) {
+      if (admitted.length >= maxAdmitted) break;
+      const result = await enrichOne(repo);
+      if (result.unavailable) return { repos: [], unavailable: true };
+      if (result.repo) admitted.push(result.repo);
+    }
+    return { repos: admitted, unavailable: false };
+  }
+
+  const results = await Promise.all(repos.map(enrichOne));
+  return {
+    repos: results.flatMap((result) => result.repo ? [result.repo] : []),
+    unavailable: results.some((result) => result.unavailable),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -687,8 +1001,18 @@ export function lfsMediaUrl(owner: string, repo: string, path: string, branch = 
 // ---------------------------------------------------------------------------
 // Misc helpers
 // ---------------------------------------------------------------------------
-export function cloneUrl(owner: string, repo: string): string {
-  return `${PUBLIC_BASE_URL}/git/${owner}/${repo}.git`;
+export function cloneUrl(owner: string, repo: string, requestOrigin?: string): string {
+  const publicOrigin = resolvePublicOrigin(PUBLIC_BASE_URL, requestOrigin);
+  if (publicOrigin) return `${publicOrigin}/git/${owner}/${repo}.git`;
+  try {
+    const localOrigin = new URL(requestOrigin || '');
+    if ((localOrigin.protocol === 'http:' || localOrigin.protocol === 'https:') && !localOrigin.username && !localOrigin.password) {
+      return `${localOrigin.origin}/git/${owner}/${repo}.git`;
+    }
+  } catch {
+    // Fall back to the portal-relative path when no usable request origin exists.
+  }
+  return `/git/${owner}/${repo}.git`;
 }
 
 export function forgejoRepoUrl(owner: string, repo: string): string {
@@ -696,12 +1020,12 @@ export function forgejoRepoUrl(owner: string, repo: string): string {
 }
 
 export function forgejoTreeUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
-  const cleanPath = path.replace(/^\/+/, '');
-  return `${forgejoRepoUrl(owner, repo)}/src/${refKind}/${branch}${cleanPath ? `/${cleanPath}` : ''}`;
+  const cleanPath = encodeRepositoryPath(path);
+  return `${forgejoRepoUrl(owner, repo)}/src/${refKind}/${encodeURIComponent(branch)}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 
 export function forgejoRawUrl(owner: string, repo: string, path: string, branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
-  return `${forgejoRepoUrl(owner, repo)}/raw/${refKind}/${branch}/${path.replace(/^\/+/, '')}`;
+  return `${forgejoRepoUrl(owner, repo)}/raw/${refKind}/${encodeURIComponent(branch)}/${encodeRepositoryPath(path)}`;
 }
 
 export type DownloadSource = 'raw' | 'lfs' | 'automation';
@@ -723,9 +1047,9 @@ export function nyankofaceDownloadUrl(
   return `/api/download/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}?${params.toString()}`;
 }
 
-export function forgejoCommitsUrl(owner: string, repo: string, path = '', branch = 'main'): string {
-  const cleanPath = path.replace(/^\/+/, '');
-  return `${forgejoRepoUrl(owner, repo)}/commits/branch/${branch}${cleanPath ? `/${cleanPath}` : ''}`;
+export function forgejoCommitsUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
+  const cleanPath = encodeRepositoryPath(path);
+  return `${forgejoRepoUrl(owner, repo)}/commits/${refKind}/${encodeURIComponent(branch)}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 
 const TYPE_TOPICS = new Set<string>(['model', 'dataset', 'space', 'skill', 'mcp', 'prompt', 'doc', 'character', 'benchmark', 'automation']);
