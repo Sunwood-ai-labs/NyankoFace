@@ -152,6 +152,21 @@ test('keeps non-one ordered lazy continuations inside GitHub alerts', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps lazy continuations after alert list markers', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> - item',
+    'continuation',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /continuation/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps empty list markers inside an active GitHub alert paragraph', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
