@@ -258,12 +258,11 @@ type ZennBoundaryContext = {
 // root boundary index with adjusted source offsets instead of rescanning the
 // remaining README for every recursive block.
 const zennBoundaryStacks = new WeakMap<object, ZennBoundaryContext[]>();
-type MarkdownStartScanState = {
-  source: string;
-  markdownStarts: number[];
+type MarkdownLexerState = {
+  originalBlockTokens: TokenizerThis['lexer']['blockTokens'];
 };
 
-const markdownStartScanStates = new WeakMap<object, MarkdownStartScanState>();
+const markdownLexerStates = new WeakMap<object, MarkdownLexerState>();
 
 function leadingIndentColumns(line: string): number {
   let columns = 0;
@@ -714,6 +713,24 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   return { source, sourceLength: source.length, boundaries, markdownStarts };
 }
 
+function installMarkdownBlockTokens(lexer: TokenizerThis['lexer']): void {
+  if (markdownLexerStates.has(lexer)) return;
+  const originalBlockTokens = lexer.blockTokens.bind(lexer);
+  markdownLexerStates.set(lexer, { originalBlockTokens });
+  lexer.blockTokens = ((source: string, tokens?: Token[]) => {
+    const boundaryIndex = buildZennBoundaryIndex(source);
+    const stack = zennBoundaryStacks.get(lexer) || [];
+    stack.push({ boundaryIndex, sourceStart: 0, sourceLength: source.length });
+    zennBoundaryStacks.set(lexer, stack);
+    try {
+      return originalBlockTokens(source, tokens);
+    } finally {
+      stack.pop();
+      if (stack.length === 0) zennBoundaryStacks.delete(lexer);
+    }
+  }) as typeof lexer.blockTokens;
+}
+
 function blockTokens(
   lexer: TokenizerThis['lexer'],
   source: string,
@@ -726,7 +743,8 @@ function blockTokens(
   const previousTop = lexer.state.top;
   lexer.state.top = true;
   try {
-    return lexer.blockTokens(source);
+    const state = markdownLexerStates.get(lexer);
+    return state ? state.originalBlockTokens(source) : lexer.blockTokens(source);
   } finally {
     lexer.state.top = previousTop;
     stack.pop();
@@ -928,18 +946,6 @@ function findNextMarkdownStart(
   return nextStart;
 }
 
-function localMarkdownStartState(lexer: object, source: string): MarkdownStartScanState {
-  const previous = markdownStartScanStates.get(lexer);
-  if (previous && previous.source.endsWith(source)) return previous;
-  const localBoundaryIndex = buildZennBoundaryIndex(source);
-  const state = {
-    source,
-    markdownStarts: localBoundaryIndex.markdownStarts,
-  };
-  markdownStartScanStates.set(lexer, state);
-  return state;
-}
-
 function startMarkdownBlock(
   this: { lexer?: TokenizerThis['lexer'] },
   source: string,
@@ -963,30 +969,15 @@ function startMarkdownBlock(
   }
 
   const remainingLength = source.length + 1;
-  const rootOffset = rootBoundaryIndex.sourceLength - remainingLength;
-  const isRootSuffix = lexer.state.top !== false
-    && rootOffset >= 0
-    && rootBoundaryIndex.source.startsWith(source, rootOffset + 1);
-  if (isRootSuffix) {
-    const sourceEnd = rootBoundaryIndex.sourceLength;
-    const nextStart = findNextMarkdownStart(
-      rootBoundaryIndex.markdownStarts,
-      rootOffset,
-      sourceEnd,
-      false,
-    );
-    return nextStart === undefined ? undefined : nextStart - rootOffset - 1;
-  }
-
-  const localState = localMarkdownStartState(lexer, source);
-  const currentOffset = localState.source.length - source.length;
+  if (remainingLength > rootBoundaryIndex.sourceLength) return undefined;
+  const currentOffset = rootBoundaryIndex.sourceLength - remainingLength;
   const nextStart = findNextMarkdownStart(
-    localState.markdownStarts,
+    rootBoundaryIndex.markdownStarts,
     currentOffset,
-    localState.source.length,
-    true,
+    rootBoundaryIndex.sourceLength,
+    false,
   );
-  return nextStart === undefined ? undefined : nextStart - currentOffset;
+  return nextStart === undefined ? undefined : nextStart - currentOffset - 1;
 }
 
 function renderNyankofaceBlock(this: RendererThis, token: Tokens.Generic, locale: 'ja' | 'en'): string {
@@ -1016,6 +1007,7 @@ function createMarkdownExtensions(locale: 'ja' | 'en', boundaryIndex: ZennBounda
         return startMarkdownBlock.call(this, source, boundaryIndex);
       },
       tokenizer(this: TokenizerThis, source: string): NyankofaceBlockToken | undefined {
+        installMarkdownBlockTokens(this.lexer);
         return tokenizeGithubAlert.call(this, source) || tokenizeZennBlock.call(this, source, boundaryIndex);
       },
       renderer(this: RendererThis, token: Tokens.Generic): string {
