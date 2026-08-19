@@ -165,7 +165,7 @@ type ZennFenceMatch = {
 };
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
-const LINK_REFERENCE_DEFINITION = /^\[[^\]\n]+\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
+const LINK_REFERENCE_DEFINITION = /^\[(?:\\.|[^\[\]\\])+\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
 const LINK_REFERENCE_TITLE = /^[ \t]*(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\))[ \t]*$/;
 
 const RAW_HTML_BLOCK_TAGS = new Set([
