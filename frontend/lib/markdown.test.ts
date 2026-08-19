@@ -285,7 +285,6 @@ test('keeps quoted invalid fenced-code info as lazy alert content', () => {
 test('ends a GitHub alert after a quoted link reference definition', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
-    '> paragraph',
     '> [label]: /target',
     'outside',
     '',
@@ -302,7 +301,6 @@ test('ends a GitHub alert after a quoted link reference definition', () => {
 test('ends a GitHub alert after a link reference definition with an escaped label bracket', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
-    '> paragraph',
     '> [foo\\]]: /target',
     'outside',
     '',
@@ -350,7 +348,6 @@ test('keeps lazy continuation after an invalid link reference suffix', () => {
 test('ends a GitHub alert after a multiline quoted link reference definition', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
-    '> paragraph',
     '> [label]: /target',
     '>   "title"',
     'outside',
@@ -368,7 +365,6 @@ test('ends a GitHub alert after a multiline quoted link reference definition', (
 test('ends a GitHub alert after a link reference destination on the next quoted line', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
-    '> paragraph',
     '> [label]:',
     '>   /target',
     'outside',
@@ -380,6 +376,22 @@ test('ends a GitHub alert after a link reference destination on the next quoted 
   assert.ok(alertEnd >= 0);
   assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
   assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps a quoted definition-like continuation inside an active paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    '> [label]: /target',
+    'continuation',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /continuation/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 

@@ -748,10 +748,14 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         paragraphActive = false;
       } else {
         const paragraphContent = startsParagraphContent(contentLine, previousLine);
-        const linkReferenceTitle = quotedLinkReferenceDefinition && LINK_REFERENCE_TITLE.test(contentLine);
-        const linkReferenceDestination = quotedLinkReferenceNeedsDestination && LINK_REFERENCE_DESTINATION.test(contentLine);
-        const linkReferenceDefinition = isQuoted && LINK_REFERENCE_DEFINITION.test(contentLine);
-        const linkReferencePendingDestination = isQuoted && LINK_REFERENCE_PENDING_DESTINATION.test(contentLine);
+        const linkReferenceTitle: boolean = quotedLinkReferenceDefinition && LINK_REFERENCE_TITLE.test(contentLine);
+        const linkReferenceDestination: boolean = quotedLinkReferenceNeedsDestination && LINK_REFERENCE_DESTINATION.test(contentLine);
+        const linkReferenceDefinition: boolean = isQuoted
+          && (!paragraphActive || !hasAlertBody)
+          && LINK_REFERENCE_DEFINITION.test(contentLine);
+        const linkReferencePendingDestination: boolean = isQuoted
+          && (!paragraphActive || !hasAlertBody)
+          && LINK_REFERENCE_PENDING_DESTINATION.test(contentLine);
         paragraphActive = contentLine.trim() !== ''
           && !linkReferenceTitle
           && !linkReferenceDestination
