@@ -165,9 +165,9 @@ type ZennFenceMatch = {
 };
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
-const LINK_REFERENCE_DEFINITION = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<([^>\n]*)>|([^\s<>]+))(?:[ \t]+(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\)))?[ \t]*$/;
+const LINK_REFERENCE_DEFINITION = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<((?:\\.|[^>\\\n])*)>|([^\s<>]+))(?:[ \t]+(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\)))?[ \t]*$/;
 const LINK_REFERENCE_PENDING_DESTINATION = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*$/;
-const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<([^>\n]*)>|([^\s<>]+))(?:[ \t]+(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\)))?[ \t]*$/;
+const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<((?:\\.|[^>\\\n])*)>|([^\s<>]+))(?:[ \t]+(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\)))?[ \t]*$/;
 const LINK_REFERENCE_TITLE = /^[ \t]*(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\))[ \t]*$/;
 
 function hasVisibleLinkReferenceLabel(label: string): boolean {
@@ -244,6 +244,7 @@ type ZennBoundaryIndex = {
   source: string;
   sourceLength: number;
   boundaries: Map<number, ZennBoundary>;
+  markdownStarts: number[];
 };
 
 type ZennBoundaryContext = {
@@ -390,7 +391,7 @@ function gfmTableCells(line: string | undefined): string[] | undefined {
       index += runLength - 1;
       continue;
     }
-    if (character === '|' && !codeSpanLength) {
+    if (character === '|') {
       cells.push(content.slice(cellStart, index));
       cellStart = index + 1;
     }
@@ -558,6 +559,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
 
 function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
   const boundaries = new Map<number, ZennBoundary>();
+  const markdownStarts: number[] = [];
   const openings: Array<{ offset: number; listContentIndent?: number }> = [];
   let offset = 0;
   let fenceChar: '`' | '~' | null = null;
@@ -573,6 +575,18 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
     const line = source.slice(offset, end).replace(/\r?\n$/, '');
     const indentation = leadingIndentColumns(line);
+    if (
+      /^ {0,3}>[ \t]?\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i.test(line)
+      || parseZennOpeningLine(line)
+    ) {
+      markdownStarts.push(offset);
+    }
+
+    if (!fenceChar && line.trim() !== '') {
+      while (listContentIndents.length && indentation < listContentIndents.at(-1)!) {
+        listContentIndents.pop();
+      }
+    }
 
     if (!fenceChar) {
       if (htmlBlockEnd) {
@@ -630,9 +644,6 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     }
 
     if (!fenceChar && line.trim() !== '') {
-      while (listContentIndents.length && indentation < listContentIndents.at(-1)!) {
-        listContentIndents.pop();
-      }
       const listPrefix = line.match(LIST_CONTAINER_PREFIX);
       if (listPrefix && (!paragraphActive || startsMarkdownBlock(line, paragraphActive, previousLine))) {
         const contentIndent = textColumns(listPrefix[0]);
@@ -695,7 +706,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     previousLine = line;
     offset = end;
   }
-  return { source, sourceLength: source.length, boundaries };
+  return { source, sourceLength: source.length, boundaries, markdownStarts };
 }
 
 function blockTokens(
@@ -890,14 +901,29 @@ function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryInde
   };
 }
 
-function startMarkdownBlock(source: string): number | undefined {
-  const starts = [
-    source.search(/(?:^|\n)(?=[ \t]{0,3}>[ \t]?\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\])/i),
-    source.search(/(?:^|\n)(?=[ \t]{0,3}:::(?:message(?:[ \t]+alert)?|details(?:[ \t]+[^\r\n]*)?)[ \t]*(?:\r?\n|$))/i),
-  ].filter((index) => index >= 0);
-  if (starts.length === 0) return undefined;
-  const start = Math.min(...starts);
-  return source[start] === '\n' ? start + 1 : start;
+function startMarkdownBlock(
+  this: { lexer?: TokenizerThis['lexer'] },
+  source: string,
+  rootBoundaryIndex: ZennBoundaryIndex,
+): number | undefined {
+  const context = this.lexer ? zennBoundaryStacks.get(this.lexer)?.at(-1) : undefined;
+  const boundaryIndex = context?.boundaryIndex || rootBoundaryIndex;
+  const sourceStart = context?.sourceStart ?? 0;
+  const sourceLength = context?.sourceLength ?? boundaryIndex.sourceLength;
+  const remainingLength = source.length + 1;
+  if (remainingLength > sourceLength) return undefined;
+  const currentOffset = sourceStart + sourceLength - remainingLength;
+  const sourceEnd = sourceStart + sourceLength;
+  let low = 0;
+  let high = boundaryIndex.markdownStarts.length;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (boundaryIndex.markdownStarts[middle] <= currentOffset) low = middle + 1;
+    else high = middle;
+  }
+  const nextStart = boundaryIndex.markdownStarts[low];
+  if (nextStart === undefined || nextStart >= sourceEnd) return undefined;
+  return nextStart - currentOffset - 1;
 }
 
 function renderNyankofaceBlock(this: RendererThis, token: Tokens.Generic, locale: 'ja' | 'en'): string {
@@ -923,7 +949,9 @@ function createMarkdownExtensions(locale: 'ja' | 'en', boundaryIndex: ZennBounda
     extensions: [{
       name: 'nyankoface-block',
       level: 'block',
-      start: startMarkdownBlock,
+      start(source: string): number | undefined {
+        return startMarkdownBlock.call(this, source, boundaryIndex);
+      },
       tokenizer(this: TokenizerThis, source: string): NyankofaceBlockToken | undefined {
         return tokenizeGithubAlert.call(this, source) || tokenizeZennBlock.call(this, source, boundaryIndex);
       },

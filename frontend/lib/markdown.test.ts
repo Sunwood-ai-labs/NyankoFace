@@ -330,6 +330,22 @@ test('ends a GitHub alert after a link reference definition with an escaped titl
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends a GitHub alert after a link reference definition with an escaped angle closer', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> [label]: <foo\\>bar>',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends a GitHub alert after an indented pending link reference definition', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
@@ -525,6 +541,23 @@ test('ends a GitHub alert before an unquoted table delimiter', () => {
   const alertEnd = bodyHtml.indexOf('</aside>');
   assert.ok(alertEnd >= 0);
   assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /<table/);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('ends a GitHub alert after a table with an unescaped code-span pipe', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> `a|b` | c',
+    '> --- | --- | ---',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
   assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
   assert.match(bodyHtml, /outside/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
@@ -1407,6 +1440,26 @@ test('ends list-nested raw HTML when a Zenn closer deindents', () => {
 
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /list HTML/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps a top-level HTML block inside a Zenn block after a list', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- item',
+    '<div>',
+    ':::',
+    'still in block',
+    '',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  const blockEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(blockEnd >= 0);
+  assert.match(bodyHtml.slice(0, blockEnd), /still in block/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
