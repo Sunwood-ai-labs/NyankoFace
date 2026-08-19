@@ -752,6 +752,27 @@ function blockTokens(
   }
 }
 
+function hasQuotedZennCloser(source: string, cursor: number): boolean {
+  let depth = 1;
+  let offset = cursor;
+  while (offset < source.length) {
+    const newlineIndex = source.indexOf('\n', offset);
+    const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
+    const line = source.slice(offset, end).replace(/\r?\n$/, '');
+    if (line.trim() === '') return false;
+    const isQuoted = /^ {0,3}>/.test(line);
+    const contentLine = isQuoted ? line.replace(/^[ \t]{0,3}>[ \t]?/, '') : line;
+    if (parseZennOpeningLine(stripZennContainerPrefix(contentLine))) {
+      depth += 1;
+    } else if (isZennClosingLine(contentLine)) {
+      depth -= 1;
+      if (depth === 0) return true;
+    }
+    offset = end;
+  }
+  return false;
+}
+
 function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlockToken | undefined {
   const header = source.match(/^ {0,3}>[ \t]?\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\r?\n|$)/);
   if (!header) return undefined;
@@ -849,7 +870,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
           quotedLinkReferenceDefinition = false;
           quotedLinkReferenceNeedsDestination = false;
           paragraphActive = false;
-        } else if (zennOpening && (!paragraphActive || !hasAlertBody)) {
+        } else if (zennOpening && hasQuotedZennCloser(source, cursor)) {
           const listPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
           quotedZennOpenings = [
             ...quotedZennOpenings,

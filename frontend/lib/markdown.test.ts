@@ -215,6 +215,38 @@ test('ends an alert after a quoted Zenn block', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends an alert after a quoted Zenn block following alert text', () => {
+  for (const lines of [
+    [
+      '> [!NOTE]',
+      '> intro',
+      '> :::message',
+      '> inner',
+      '> :::',
+      'outside',
+      '',
+      '# After',
+    ],
+    [
+      '> [!NOTE]',
+      '> - intro',
+      '>   :::message',
+      '>   inner',
+      '>   :::',
+      'outside',
+      '',
+      '# After',
+    ],
+  ]) {
+    const { bodyHtml } = parseReadme(lines.join('\n'));
+    const alertEnd = bodyHtml.indexOf('</aside>');
+    assert.ok(alertEnd >= 0);
+    assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+    assert.match(bodyHtml, /outside/);
+    assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+  }
+});
+
 test('keeps lazy continuations inside nested alert containers', () => {
   for (const nestedLine of ['> > nested', '> > - item']) {
     const { bodyHtml } = parseReadme([
