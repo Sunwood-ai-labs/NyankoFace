@@ -360,8 +360,21 @@ function isValidZennFence(fence: ZennFenceMatch, line: string): boolean {
 }
 
 function stripZennContainerPrefix(line: string): string {
-  const prefix = line.match(LIST_CONTAINER_PREFIX);
-  return prefix ? line.slice(prefix[0].length) : line;
+  let content = line;
+  for (let depth = 0; depth < 16; depth += 1) {
+    const blockquotePrefix = content.match(/^ {0,3}>[ \t]?/);
+    if (blockquotePrefix) {
+      content = content.slice(blockquotePrefix[0].length);
+      continue;
+    }
+    const listPrefix = content.match(LIST_CONTAINER_PREFIX);
+    if (listPrefix) {
+      content = content.slice(listPrefix[0].length);
+      continue;
+    }
+    break;
+  }
+  return content;
 }
 
 function isZennClosingLine(line: string, listContentIndent?: number): boolean {
@@ -765,6 +778,11 @@ function blockTokens(
 function hasQuotedZennCloser(source: string, cursor: number, listContentIndent?: number): boolean {
   let depth = 1;
   const listContentIndents: Array<number | undefined> = [listContentIndent];
+  let fenceChar: '`' | '~' | null = null;
+  let fenceLength = 0;
+  let fenceContainer: ZennFenceContainer | undefined;
+  let htmlBoundary: RawHtmlBlockBoundary | null = null;
+  let previousLine: string | undefined;
   let offset = cursor;
   while (offset < source.length) {
     const newlineIndex = source.indexOf('\n', offset);
@@ -772,16 +790,53 @@ function hasQuotedZennCloser(source: string, cursor: number, listContentIndent?:
     const line = source.slice(offset, end).replace(/\r?\n$/, '');
     if (line.trim() === '') return false;
     const isQuoted = /^ {0,3}>/.test(line);
+    if (!isQuoted) return false;
     const contentLine = isQuoted ? line.replace(/^[ \t]{0,3}>[ \t]?/, '') : line;
-    if (parseZennOpeningLine(stripZennContainerPrefix(contentLine))) {
-      depth += 1;
-      const listPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
-      listContentIndents.push(listPrefix ? textColumns(listPrefix[0]) : undefined);
-    } else if (isZennClosingLine(contentLine, listContentIndents.at(-1))) {
-      depth -= 1;
-      listContentIndents.pop();
-      if (depth === 0) return true;
+    const contentFence = matchZennFence(
+      contentLine,
+      previousLine,
+      fenceContainer?.kind === 'list' ? fenceContainer.contentIndent : listContentIndents.at(-1),
+    );
+    if (htmlBoundary !== null) {
+      const endsHtml = htmlBoundary.kind === 'blank'
+        ? contentLine.trim() === ''
+        : htmlBoundary.pattern.test(contentLine);
+      if (endsHtml) htmlBoundary = null;
+    } else if (fenceChar !== null) {
+      const closesFence = Boolean(
+        contentFence
+        && contentFence.token[0] === fenceChar
+        && contentFence.token.length >= fenceLength
+        && sameZennFenceContainer(contentFence.container, fenceContainer)
+        && contentLine.slice(contentFence.end).trim() === '',
+      );
+      if (closesFence) {
+        fenceChar = null;
+        fenceLength = 0;
+        fenceContainer = undefined;
+      }
+    } else {
+      const normalizedLine = stripZennContainerPrefix(contentLine);
+      const rawHtml = rawHtmlBlockEnd(normalizedLine);
+      if (rawHtml?.kind === 'complete') {
+        // The line is entirely HTML; directives inside it do not nest.
+      } else if (rawHtml) {
+        htmlBoundary = rawHtml;
+      } else if (contentFence && isValidZennFence(contentFence, contentLine)) {
+        fenceChar = contentFence.token[0] as '`' | '~';
+        fenceLength = contentFence.token.length;
+        fenceContainer = contentFence.container;
+      } else if (parseZennOpeningLine(normalizedLine)) {
+        const listPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
+        depth += 1;
+        listContentIndents.push(listPrefix ? textColumns(listPrefix[0]) : undefined);
+      } else if (isZennClosingLine(normalizedLine, listContentIndents.at(-1))) {
+        depth -= 1;
+        listContentIndents.pop();
+        if (depth === 0) return true;
+      }
     }
+    previousLine = contentLine;
     offset = end;
   }
   return false;
@@ -864,7 +919,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       quotedFenceContainer = contentFence.container;
       paragraphActive = false;
     } else {
-      const rawHtml = rawHtmlBlockEnd(contentLine);
+      const rawHtml = rawHtmlBlockEnd(stripZennContainerPrefix(contentLine));
       if (rawHtml?.kind === 'complete') {
         quotedLinkReferenceDefinition = false;
         quotedLinkReferenceNeedsDestination = false;
@@ -880,7 +935,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         const zennListPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
         const zennListContentIndent = zennListPrefix ? textColumns(zennListPrefix[0]) : undefined;
         const zennClosing = quotedZennOpenings.length > 0
-          && isZennClosingLine(contentLine, quotedZennOpenings.at(-1)?.listContentIndent);
+          && isZennClosingLine(zennContentLine, quotedZennOpenings.at(-1)?.listContentIndent);
         if (zennClosing) {
           quotedZennOpenings = quotedZennOpenings.slice(0, -1);
           quotedLinkReferenceDefinition = false;

@@ -259,6 +259,38 @@ test('ends an alert after a padded list-nested quoted Zenn block', () => {
   assert.match(bodyHtml, /<\/aside><p>outside<\/p>/);
 });
 
+test('ignores fenced Zenn directives while searching for a quoted closer', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> :::message',
+    '> ```',
+    '> :::details',
+    '> ```',
+    '> :::',
+    'outside',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /<p>outside<\/p>/);
+});
+
+test('ends an alert after a quoted Zenn block nested in a blockquote', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> > :::message',
+    '> > body',
+    '> > :::',
+    'outside',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /<p>outside<\/p>/);
+});
+
 test('keeps lazy continuations inside nested alert containers', () => {
   for (const nestedLine of ['> > nested', '> > - item']) {
     const { bodyHtml } = parseReadme([
