@@ -30,6 +30,8 @@ class DeployHomeContractTests(unittest.TestCase):
         self.assertIn("'<(title|h1)[^>]*>[[:space:]]*(simplehttp|tideline)", SCRIPT)
         self.assertIn("tr -d '\\r\\n' < \"$body\"", SCRIPT)
         self.assertNotIn('grep -Eqi "SimpleHTTP|TIDELINE" "$body"', SCRIPT)
+        self.assertIn('Per-request smoke-check timeout (default: 30)', SCRIPT)
+        self.assertIn('${NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS:-30}', SCRIPT)
         self.assertIn('PUBLIC_BASE_URL or NYANKOFACE_DEPLOY_SMOKE_BASE_URL is required', SCRIPT)
         self.assertNotIn('base_url:-https://localhost:8443', SCRIPT)
 
