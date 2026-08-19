@@ -166,6 +166,7 @@ type ZennFenceMatch = {
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
 const LINK_REFERENCE_DEFINITION = /^\[[^\]\n]+\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+.*)?$/;
+const LINK_REFERENCE_TITLE = /^[ \t]*(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\))[ \t]*$/;
 
 const RAW_HTML_BLOCK_TAGS = new Set([
   'address', 'article', 'aside', 'base', 'basefont', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup',
@@ -675,6 +676,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   let quotedFenceChar: '`' | '~' | null = null;
   let quotedFenceLength = 0;
   let quotedHtmlBoundary: RawHtmlBlockBoundary | null = null;
+  let quotedLinkReferenceDefinition = false;
   while (cursor < source.length) {
     const newlineIndex = source.indexOf('\n', cursor);
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
@@ -699,12 +701,14 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
     ) break;
     cursor = end;
     if (quotedHtmlBoundary !== null) {
+      quotedLinkReferenceDefinition = false;
       const endsHtml = quotedHtmlBoundary.kind === 'blank'
         ? contentLine.trim() === ''
         : quotedHtmlBoundary.pattern.test(contentLine);
       if (endsHtml) quotedHtmlBoundary = null;
       paragraphActive = false;
     } else if (quotedFenceChar !== null) {
+      quotedLinkReferenceDefinition = false;
       const closesFence = Boolean(
         contentFence
         && contentFence.token[0] === quotedFenceChar
@@ -717,20 +721,27 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       }
       paragraphActive = false;
     } else if (contentFence) {
+      quotedLinkReferenceDefinition = false;
       quotedFenceChar = contentFence.token[0] as '`' | '~';
       quotedFenceLength = contentFence.token.length;
       paragraphActive = false;
     } else {
       const rawHtml = rawHtmlBlockEnd(contentLine);
       if (rawHtml?.kind === 'complete') {
+        quotedLinkReferenceDefinition = false;
         paragraphActive = false;
       } else if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph)) {
+        quotedLinkReferenceDefinition = false;
         quotedHtmlBoundary = rawHtml;
         paragraphActive = false;
       } else {
         const paragraphContent = startsParagraphContent(contentLine, previousLine);
+        const linkReferenceTitle = quotedLinkReferenceDefinition && LINK_REFERENCE_TITLE.test(contentLine);
+        const linkReferenceDefinition = LINK_REFERENCE_DEFINITION.test(contentLine);
         paragraphActive = contentLine.trim() !== ''
+          && !linkReferenceTitle
           && (paragraphContent || !startsMarkdownBlock(contentLine, paragraphActive, previousLine));
+        quotedLinkReferenceDefinition = linkReferenceDefinition;
       }
     }
     previousLine = contentLine;
