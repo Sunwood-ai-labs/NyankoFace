@@ -165,18 +165,50 @@ type ZennFenceMatch = {
 };
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
-const LINK_REFERENCE_DEFINITION = /^\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
+const LINK_REFERENCE_DEFINITION = /^\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<([^>\n]*)>|([^\s<>]+))(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
 const LINK_REFERENCE_PENDING_DESTINATION = /^\[((?:\\.|[^\[\]\\])+)\]:[ \t]*$/;
-const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
+const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<([^>\n]*)>|([^\s<>]+))(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
 const LINK_REFERENCE_TITLE = /^[ \t]*(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\))[ \t]*$/;
 
 function hasVisibleLinkReferenceLabel(label: string): boolean {
   return /\S/.test(label.replace(/\\(.)/g, '$1'));
 }
 
+function hasBalancedLinkReferenceDestination(destination: string): boolean {
+  let depth = 0;
+  for (let index = 0; index < destination.length; index += 1) {
+    if (destination[index] === '\\') {
+      index += 1;
+      continue;
+    }
+    if (destination[index] === '(') {
+      depth += 1;
+    } else if (destination[index] === ')') {
+      depth -= 1;
+      if (depth < 0) return false;
+    }
+  }
+  return depth === 0;
+}
+
 function isLinkReferenceDefinition(line: string): boolean {
   const match = line.match(LINK_REFERENCE_DEFINITION);
-  return Boolean(match?.[1] && hasVisibleLinkReferenceLabel(match[1]));
+  const destination = match?.[2] ?? match?.[3];
+  return Boolean(
+    match?.[1]
+      && destination !== undefined
+      && hasVisibleLinkReferenceLabel(match[1])
+      && (match[2] !== undefined || hasBalancedLinkReferenceDestination(destination)),
+  );
+}
+
+function isLinkReferenceDestination(line: string): boolean {
+  const match = line.match(LINK_REFERENCE_DESTINATION);
+  const destination = match?.[1] ?? match?.[2];
+  return Boolean(
+    destination !== undefined
+      && (match?.[1] !== undefined || hasBalancedLinkReferenceDestination(destination)),
+  );
 }
 
 function isLinkReferencePendingDestination(line: string): boolean {
@@ -765,7 +797,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       } else {
         const paragraphContent = startsParagraphContent(contentLine, previousLine);
         const linkReferenceTitle: boolean = quotedLinkReferenceDefinition && LINK_REFERENCE_TITLE.test(contentLine);
-        const linkReferenceDestination: boolean = quotedLinkReferenceNeedsDestination && LINK_REFERENCE_DESTINATION.test(contentLine);
+        const linkReferenceDestination: boolean = quotedLinkReferenceNeedsDestination && isLinkReferenceDestination(contentLine);
         const linkReferenceDefinition: boolean = isQuoted
           && (!paragraphActive || !hasAlertBody)
           && isLinkReferenceDefinition(contentLine);

@@ -410,6 +410,21 @@ test('keeps lazy continuation after a whitespace-only link reference label', () 
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps lazy continuation after an unbalanced bare link reference destination', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> [label]: /target)',
+    'continuation',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /continuation/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends a GitHub alert after a quoted fenced code block', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
