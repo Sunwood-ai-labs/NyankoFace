@@ -482,7 +482,6 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
   }
   const tagName = opening.tagName.toLowerCase();
   const isBlockTag = RAW_HTML_BLOCK_TAGS.has(tagName);
-  if (/\/\s+>$/.test(opening.raw)) return null;
   const isCompactSelfClosing = /[^ \t]\/>$/.test(opening.raw);
   if (isCompactSelfClosing) {
     if (!isBlockTag && trimmed.slice(opening.raw.length).trim() !== '') return null;
@@ -494,6 +493,7 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
       ? { kind: 'complete', interruptsParagraph: true }
       : { kind: 'closing', pattern: closing, interruptsParagraph: true };
   }
+  if (/\/\s+>$/.test(opening.raw)) return null;
   const isSelfClosing = /\/>$/.test(opening.raw);
   if (isSelfClosing) {
     if (!isBlockTag && trimmed.slice(opening.raw.length).trim() !== '') return null;
@@ -693,7 +693,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         quotedFenceChar !== null
         || quotedHtmlBoundary !== null
         || !paragraphActive
-        || startsMarkdownBlock(line, paragraphActive)
+        || startsMarkdownBlock(line, paragraphActive, previousLine)
         || validUnquotedFence
         || parseZennOpeningLine(line)
         || rawHtmlBlockEnd(line)?.interruptsParagraph

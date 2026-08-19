@@ -338,6 +338,24 @@ test('ends a GitHub alert after a quoted GFM table', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends a GitHub alert before an unquoted table delimiter', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> a | b',
+    '--- | ---',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /<table/);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends a GitHub alert after quoted raw HTML', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
@@ -1309,6 +1327,23 @@ test('requires exact closers for split explicit-end HTML', () => {
     '<pre',
     'class="x">',
     '</pre >',
+    ':::',
+    '</pre>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const panelEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(panelEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(panelEnd), /:::/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('prioritizes type-1 HTML over malformed slash rejection', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre / >',
     ':::',
     '</pre>',
     ':::',
