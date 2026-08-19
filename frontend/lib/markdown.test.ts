@@ -365,6 +365,24 @@ test('ends a GitHub alert after a multiline quoted link reference definition', (
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends a GitHub alert after a link reference destination on the next quoted line', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    '> [label]:',
+    '>   /target',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends a GitHub alert after a quoted fenced code block', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',

@@ -166,6 +166,8 @@ type ZennFenceMatch = {
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
 const LINK_REFERENCE_DEFINITION = /^\[(?:\\.|[^\[\]\\])+\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
+const LINK_REFERENCE_PENDING_DESTINATION = /^\[(?:\\.|[^\[\]\\])+\]:[ \t]*$/;
+const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
 const LINK_REFERENCE_TITLE = /^[ \t]*(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\))[ \t]*$/;
 
 const RAW_HTML_BLOCK_TAGS = new Set([
@@ -680,6 +682,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   let quotedFenceLength = 0;
   let quotedHtmlBoundary: RawHtmlBlockBoundary | null = null;
   let quotedLinkReferenceDefinition = false;
+  let quotedLinkReferenceNeedsDestination = false;
   let hasAlertBody = false;
   while (cursor < source.length) {
     const newlineIndex = source.indexOf('\n', cursor);
@@ -696,7 +699,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       && (
         quotedFenceChar !== null
         || quotedHtmlBoundary !== null
-        || !paragraphActive
+        || (!paragraphActive && !quotedLinkReferenceNeedsDestination)
         || startsMarkdownBlock(line, paragraphActive, previousLine)
         || validUnquotedFence
         || parseZennOpeningLine(line)
@@ -706,6 +709,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
     cursor = end;
     if (quotedHtmlBoundary !== null) {
       quotedLinkReferenceDefinition = false;
+      quotedLinkReferenceNeedsDestination = false;
       const endsHtml = quotedHtmlBoundary.kind === 'blank'
         ? contentLine.trim() === ''
         : quotedHtmlBoundary.pattern.test(contentLine);
@@ -713,6 +717,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       paragraphActive = false;
     } else if (quotedFenceChar !== null) {
       quotedLinkReferenceDefinition = false;
+      quotedLinkReferenceNeedsDestination = false;
       const closesFence = Boolean(
         contentFence
         && contentFence.token[0] === quotedFenceChar
@@ -726,6 +731,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       paragraphActive = false;
     } else if (contentFence && isValidZennFence(contentFence, contentLine)) {
       quotedLinkReferenceDefinition = false;
+      quotedLinkReferenceNeedsDestination = false;
       quotedFenceChar = contentFence.token[0] as '`' | '~';
       quotedFenceLength = contentFence.token.length;
       paragraphActive = false;
@@ -733,20 +739,27 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       const rawHtml = rawHtmlBlockEnd(contentLine);
       if (rawHtml?.kind === 'complete') {
         quotedLinkReferenceDefinition = false;
+        quotedLinkReferenceNeedsDestination = false;
         paragraphActive = false;
       } else if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph || !hasAlertBody)) {
         quotedLinkReferenceDefinition = false;
+        quotedLinkReferenceNeedsDestination = false;
         quotedHtmlBoundary = rawHtml;
         paragraphActive = false;
       } else {
         const paragraphContent = startsParagraphContent(contentLine, previousLine);
         const linkReferenceTitle = quotedLinkReferenceDefinition && LINK_REFERENCE_TITLE.test(contentLine);
+        const linkReferenceDestination = quotedLinkReferenceNeedsDestination && LINK_REFERENCE_DESTINATION.test(contentLine);
         const linkReferenceDefinition = isQuoted && LINK_REFERENCE_DEFINITION.test(contentLine);
+        const linkReferencePendingDestination = isQuoted && LINK_REFERENCE_PENDING_DESTINATION.test(contentLine);
         paragraphActive = contentLine.trim() !== ''
           && !linkReferenceTitle
+          && !linkReferenceDestination
           && !linkReferenceDefinition
+          && !linkReferencePendingDestination
           && (paragraphContent || !startsMarkdownBlock(contentLine, paragraphActive, previousLine));
-        quotedLinkReferenceDefinition = linkReferenceDefinition;
+        quotedLinkReferenceDefinition = linkReferenceDestination || linkReferenceDefinition;
+        quotedLinkReferenceNeedsDestination = linkReferencePendingDestination;
       }
     }
     hasAlertBody = true;
