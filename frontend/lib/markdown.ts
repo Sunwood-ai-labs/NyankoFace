@@ -165,13 +165,16 @@ type ZennFenceMatch = {
 };
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
+const LINK_REFERENCE_LABEL_MAX_LENGTH = 999;
 const LINK_REFERENCE_DEFINITION = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<((?:\\.|[^>\\\n])*)>|([^\s<>]+))(?:[ \t]+(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\)))?[ \t]*$/;
 const LINK_REFERENCE_PENDING_DESTINATION = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*$/;
 const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<((?:\\.|[^>\\\n])*)>|([^\s<>]+))(?:[ \t]+(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\)))?[ \t]*$/;
 const LINK_REFERENCE_TITLE = /^[ \t]*(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\))[ \t]*$/;
 
 function hasVisibleLinkReferenceLabel(label: string): boolean {
-  return /\S/.test(label.replace(/\\(.)/g, '$1'));
+  const normalizedLabel = label.replace(/\\(.)/g, '$1');
+  return Array.from(normalizedLabel).length <= LINK_REFERENCE_LABEL_MAX_LENGTH
+    && /\S/.test(normalizedLabel);
 }
 
 function hasBalancedLinkReferenceDestination(destination: string): boolean {
@@ -525,6 +528,10 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
       interruptsParagraph: RAW_HTML_BLOCK_TAGS.has(tagName),
     };
   }
+  const partialExplicitClosing = trimmed.match(/^<\/([A-Za-z][A-Za-z0-9-]*)(?=\s|$)/);
+  if (partialExplicitClosing && RAW_HTML_BLOCK_TAGS.has(partialExplicitClosing[1].toLowerCase())) {
+    return { kind: 'blank', interruptsParagraph: true };
+  }
   const opening = matchRawHtmlOpening(trimmed);
   if (!opening) {
     const partialExplicitOpening = trimmed.match(/^<([A-Za-z][A-Za-z0-9-]*)(?=\s|$)/);
@@ -752,8 +759,9 @@ function blockTokens(
   }
 }
 
-function hasQuotedZennCloser(source: string, cursor: number): boolean {
+function hasQuotedZennCloser(source: string, cursor: number, listContentIndent?: number): boolean {
   let depth = 1;
+  const listContentIndents: Array<number | undefined> = [listContentIndent];
   let offset = cursor;
   while (offset < source.length) {
     const newlineIndex = source.indexOf('\n', offset);
@@ -764,8 +772,11 @@ function hasQuotedZennCloser(source: string, cursor: number): boolean {
     const contentLine = isQuoted ? line.replace(/^[ \t]{0,3}>[ \t]?/, '') : line;
     if (parseZennOpeningLine(stripZennContainerPrefix(contentLine))) {
       depth += 1;
-    } else if (isZennClosingLine(contentLine)) {
+      const listPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
+      listContentIndents.push(listPrefix ? textColumns(listPrefix[0]) : undefined);
+    } else if (isZennClosingLine(contentLine, listContentIndents.at(-1))) {
       depth -= 1;
+      listContentIndents.pop();
       if (depth === 0) return true;
     }
     offset = end;
@@ -863,6 +874,8 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       } else {
         const zennContentLine = stripZennContainerPrefix(contentLine);
         const zennOpening = parseZennOpeningLine(zennContentLine);
+        const zennListPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
+        const zennListContentIndent = zennListPrefix ? textColumns(zennListPrefix[0]) : undefined;
         const zennClosing = quotedZennOpenings.length > 0
           && isZennClosingLine(contentLine, quotedZennOpenings.at(-1)?.listContentIndent);
         if (zennClosing) {
@@ -870,11 +883,10 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
           quotedLinkReferenceDefinition = false;
           quotedLinkReferenceNeedsDestination = false;
           paragraphActive = false;
-        } else if (zennOpening && hasQuotedZennCloser(source, cursor)) {
-          const listPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
+        } else if (zennOpening && hasQuotedZennCloser(source, cursor, zennListContentIndent)) {
           quotedZennOpenings = [
             ...quotedZennOpenings,
-            { listContentIndent: listPrefix ? textColumns(listPrefix[0]) : undefined },
+            { listContentIndent: zennListContentIndent },
           ];
           quotedLinkReferenceDefinition = false;
           quotedLinkReferenceNeedsDestination = false;

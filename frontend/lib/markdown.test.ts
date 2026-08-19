@@ -247,6 +247,18 @@ test('ends an alert after a quoted Zenn block following alert text', () => {
   }
 });
 
+test('ends an alert after a padded list-nested quoted Zenn block', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> -    :::message',
+    '>      inner',
+    '>      :::',
+    'outside',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /<\/aside><p>outside<\/p>/);
+});
+
 test('keeps lazy continuations inside nested alert containers', () => {
   for (const nestedLine of ['> > nested', '> > - item']) {
     const { bodyHtml } = parseReadme([
@@ -378,6 +390,19 @@ test('ends a GitHub alert after a link reference definition with an escaped titl
   assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
   assert.match(bodyHtml, /outside/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps lazy continuation after an overlong link reference label', () => {
+  const label = 'a'.repeat(1000);
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    `> [${label}]: /target "title"`,
+    'outside',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /outside/);
 });
 
 test('ends a GitHub alert after a link reference definition with an escaped angle closer', () => {
@@ -643,6 +668,19 @@ test('ends a GitHub alert after quoted raw HTML', () => {
   assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
   assert.match(bodyHtml, /outside/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('ends a GitHub alert before a partial closing type-6 HTML tag continuation', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> </div x>',
+    'outside',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /<p>outside<\/p>/);
 });
 
 test('ends a GitHub alert before an unclosed quoted fence can continue lazily', () => {
