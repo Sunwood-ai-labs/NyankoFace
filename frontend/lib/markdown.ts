@@ -646,9 +646,11 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
     ) break;
     cursor = end;
     const quotedFence = matchZennFence(contentLine);
+    const rawHtml = rawHtmlBlockEnd(contentLine);
     paragraphActive = contentLine.trim() !== ''
       && !startsMarkdownBlock(contentLine, paragraphActive, previousLine)
-      && !quotedFence;
+      && !quotedFence
+      && !rawHtml?.interruptsParagraph;
     previousLine = contentLine;
   }
   rawLength = cursor;
