@@ -123,6 +123,7 @@ export interface ContentEntry {
   name: string;
   path: string;
   type: 'file' | 'dir' | 'symlink' | 'submodule';
+  target?: string | null;
   size: number;
   sha: string;
   download_url?: string | null;
@@ -647,13 +648,21 @@ export async function getPagesInspection(
 // ---------------------------------------------------------------------------
 // Directory / file listing
 // ---------------------------------------------------------------------------
+export function encodeRepositoryPath(path: string): string {
+  return path
+    .replace(/^\/+/, '')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
 export async function getContents(
   owner: string,
   repo: string,
   path: string = '',
   ref?: string,
 ): Promise<GetContentsResult> {
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = encodeRepositoryPath(path);
   const query = ref ? `?ref=${encodeURIComponent(ref)}` : '';
   const res = await apiFetch(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${cleanPath}${query}`
@@ -662,6 +671,21 @@ export async function getContents(
     return { ok: false, data: null };
   }
   return { ok: true, data: res.json };
+}
+
+export async function getContentMetadata(
+  owner: string,
+  repo: string,
+  path: string,
+  ref?: string,
+): Promise<ContentEntry | null> {
+  const cleanPath = path.replace(/^\/+|\/+$/g, '');
+  if (!cleanPath) return null;
+  const separator = cleanPath.lastIndexOf('/');
+  const parentPath = separator === -1 ? '' : cleanPath.slice(0, separator);
+  const listing = await getContents(owner, repo, parentPath, ref);
+  if (!listing.ok || !Array.isArray(listing.data)) return null;
+  return listing.data.find((entry) => entry.path.replace(/^\/+|\/+$/g, '') === cleanPath) || null;
 }
 
 export async function getRepoTags(owner: string, repo: string): Promise<RepoTag[]> {
@@ -678,11 +702,13 @@ export async function getCommits(
   owner: string,
   repo: string,
   path = '',
-  limit = 10
+  limit = 10,
+  ref?: string,
 ): Promise<CommitInfo[]> {
   const qs = new URLSearchParams();
   qs.set('limit', String(limit));
   if (path) qs.set('path', path.replace(/^\/+/, ''));
+  if (ref) qs.set('sha', ref);
   const res = await apiFetch(
     `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?${qs.toString()}`
   );
@@ -702,7 +728,7 @@ export async function getRawFile(
   const token = getToken();
   const headers: Record<string, string> = {};
   if (token) headers['Authorization'] = `token ${token}`;
-  const cleanPath = path.replace(/^\/+/, '');
+  const cleanPath = encodeRepositoryPath(path);
   const url = `${FORGEJO_API}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(
     repo
   )}/raw/${cleanPath}${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`;
@@ -994,12 +1020,12 @@ export function forgejoRepoUrl(owner: string, repo: string): string {
 }
 
 export function forgejoTreeUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
-  const cleanPath = path.replace(/^\/+/, '');
-  return `${forgejoRepoUrl(owner, repo)}/src/${refKind}/${branch}${cleanPath ? `/${cleanPath}` : ''}`;
+  const cleanPath = encodeRepositoryPath(path);
+  return `${forgejoRepoUrl(owner, repo)}/src/${refKind}/${encodeURIComponent(branch)}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 
 export function forgejoRawUrl(owner: string, repo: string, path: string, branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
-  return `${forgejoRepoUrl(owner, repo)}/raw/${refKind}/${branch}/${path.replace(/^\/+/, '')}`;
+  return `${forgejoRepoUrl(owner, repo)}/raw/${refKind}/${encodeURIComponent(branch)}/${encodeRepositoryPath(path)}`;
 }
 
 export type DownloadSource = 'raw' | 'lfs' | 'automation';
@@ -1021,9 +1047,9 @@ export function nyankofaceDownloadUrl(
   return `/api/download/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}?${params.toString()}`;
 }
 
-export function forgejoCommitsUrl(owner: string, repo: string, path = '', branch = 'main'): string {
-  const cleanPath = path.replace(/^\/+/, '');
-  return `${forgejoRepoUrl(owner, repo)}/commits/branch/${branch}${cleanPath ? `/${cleanPath}` : ''}`;
+export function forgejoCommitsUrl(owner: string, repo: string, path = '', branch = 'main', refKind: 'branch' | 'tag' = 'branch'): string {
+  const cleanPath = encodeRepositoryPath(path);
+  return `${forgejoRepoUrl(owner, repo)}/commits/${refKind}/${encodeURIComponent(branch)}${cleanPath ? `/${cleanPath}` : ''}`;
 }
 
 const TYPE_TOPICS = new Set<string>(['model', 'dataset', 'space', 'skill', 'mcp', 'prompt', 'doc', 'character', 'benchmark', 'automation']);
