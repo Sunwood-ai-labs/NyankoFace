@@ -258,6 +258,12 @@ type ZennBoundaryContext = {
 // root boundary index with adjusted source offsets instead of rescanning the
 // remaining README for every recursive block.
 const zennBoundaryStacks = new WeakMap<object, ZennBoundaryContext[]>();
+type MarkdownStartScanState = {
+  source: string;
+  markdownStarts: number[];
+};
+
+const markdownStartScanStates = new WeakMap<object, MarkdownStartScanState>();
 
 function leadingIndentColumns(line: string): number {
   let columns = 0;
@@ -575,10 +581,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
     const line = source.slice(offset, end).replace(/\r?\n$/, '');
     const indentation = leadingIndentColumns(line);
-    if (
-      /^ {0,3}>[ \t]?\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i.test(line)
-      || parseZennOpeningLine(line)
-    ) {
+    if (/^ {0,3}>[ \t]?\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/i.test(line)) {
       markdownStarts.push(offset);
     }
 
@@ -696,6 +699,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
       const opening = openings.pop();
       if (opening !== undefined) {
         boundaries.set(opening.offset, { start: offset, end });
+        markdownStarts.push(opening.offset);
       }
       paragraphActive = false;
     } else if (line.trim() === '') {
@@ -706,6 +710,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
     previousLine = line;
     offset = end;
   }
+  markdownStarts.sort((left, right) => left - right);
   return { source, sourceLength: source.length, boundaries, markdownStarts };
 }
 
@@ -901,29 +906,87 @@ function tokenizeZennBlock(this: TokenizerThis, source: string, rootBoundaryInde
   };
 }
 
+function findNextMarkdownStart(
+  markdownStarts: number[],
+  currentOffset: number,
+  sourceEnd: number,
+  includeCurrent: boolean,
+): number | undefined {
+  let low = 0;
+  let high = markdownStarts.length;
+  while (low < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (includeCurrent
+      ? markdownStarts[middle] < currentOffset
+      : markdownStarts[middle] <= currentOffset) {
+      low = middle + 1;
+    }
+    else high = middle;
+  }
+  const nextStart = markdownStarts[low];
+  if (nextStart === undefined || nextStart >= sourceEnd) return undefined;
+  return nextStart;
+}
+
+function localMarkdownStartState(lexer: object, source: string): MarkdownStartScanState {
+  const previous = markdownStartScanStates.get(lexer);
+  if (previous && previous.source.endsWith(source)) return previous;
+  const localBoundaryIndex = buildZennBoundaryIndex(source);
+  const state = {
+    source,
+    markdownStarts: localBoundaryIndex.markdownStarts,
+  };
+  markdownStartScanStates.set(lexer, state);
+  return state;
+}
+
 function startMarkdownBlock(
   this: { lexer?: TokenizerThis['lexer'] },
   source: string,
   rootBoundaryIndex: ZennBoundaryIndex,
 ): number | undefined {
-  const context = this.lexer ? zennBoundaryStacks.get(this.lexer)?.at(-1) : undefined;
-  const boundaryIndex = context?.boundaryIndex || rootBoundaryIndex;
-  const sourceStart = context?.sourceStart ?? 0;
-  const sourceLength = context?.sourceLength ?? boundaryIndex.sourceLength;
-  const remainingLength = source.length + 1;
-  if (remainingLength > sourceLength) return undefined;
-  const currentOffset = sourceStart + sourceLength - remainingLength;
-  const sourceEnd = sourceStart + sourceLength;
-  let low = 0;
-  let high = boundaryIndex.markdownStarts.length;
-  while (low < high) {
-    const middle = Math.floor((low + high) / 2);
-    if (boundaryIndex.markdownStarts[middle] <= currentOffset) low = middle + 1;
-    else high = middle;
+  const lexer = this.lexer;
+  if (!lexer) return undefined;
+  const context = zennBoundaryStacks.get(lexer)?.at(-1);
+  if (context) {
+    const remainingLength = source.length + 1;
+    if (remainingLength > context.sourceLength) return undefined;
+    const currentOffset = context.sourceStart + context.sourceLength - remainingLength;
+    const sourceEnd = context.sourceStart + context.sourceLength;
+    const nextStart = findNextMarkdownStart(
+      context.boundaryIndex.markdownStarts,
+      currentOffset,
+      sourceEnd,
+      false,
+    );
+    return nextStart === undefined ? undefined : nextStart - currentOffset - 1;
   }
-  const nextStart = boundaryIndex.markdownStarts[low];
-  if (nextStart === undefined || nextStart >= sourceEnd) return undefined;
-  return nextStart - currentOffset - 1;
+
+  const remainingLength = source.length + 1;
+  const rootOffset = rootBoundaryIndex.sourceLength - remainingLength;
+  const isRootSuffix = lexer.state.top !== false
+    && rootOffset >= 0
+    && rootBoundaryIndex.source.startsWith(source, rootOffset + 1);
+  if (isRootSuffix) {
+    const sourceEnd = rootBoundaryIndex.sourceLength;
+    const nextStart = findNextMarkdownStart(
+      rootBoundaryIndex.markdownStarts,
+      rootOffset,
+      sourceEnd,
+      false,
+    );
+    return nextStart === undefined ? undefined : nextStart - rootOffset - 1;
+  }
+
+  const localState = localMarkdownStartState(lexer, source);
+  const currentOffset = localState.source.length - source.length;
+  const nextStart = findNextMarkdownStart(
+    localState.markdownStarts,
+    currentOffset,
+    localState.source.length,
+    true,
+  );
+  return nextStart === undefined ? undefined : nextStart - currentOffset;
 }
 
 function renderNyankofaceBlock(this: RendererThis, token: Tokens.Generic, locale: 'ja' | 'en'): string {

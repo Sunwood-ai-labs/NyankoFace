@@ -763,6 +763,18 @@ test('renders Zenn message and details blocks through the shared safe Markdown p
   assert.doesNotMatch(bodyHtml, /<script|javascript:/i);
 });
 
+test('renders a Zenn block nested inside a native Markdown list item', () => {
+  const { bodyHtml } = parseReadme([
+    '- intro',
+    '  :::message',
+    '  body',
+    '  :::',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /body/);
+});
+
 test('keeps Zenn block boundaries aligned when README input uses CRLF', () => {
   const { bodyHtml } = parseReadme(':::message\r\nCRLF body\r\n:::\r\n\r\n# After\r\n');
 
@@ -1283,6 +1295,17 @@ test('does not borrow a later closer for an unmatched Zenn opener', () => {
 
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<p>:::message\s*unclosed<\/p>/);
+});
+
+test('keeps an unmatched Zenn opener inside ordinary paragraph content', () => {
+  const { bodyHtml } = parseReadme([
+    'intro',
+    ':::message',
+    'more',
+  ].join('\n'));
+
+  assert.doesNotMatch(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /intro[\s\S]*:::message[\s\S]*more/);
 });
 
 test('does not treat incomplete inline HTML as a raw block', () => {
