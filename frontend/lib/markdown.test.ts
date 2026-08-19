@@ -152,6 +152,20 @@ test('keeps non-one ordered lazy continuations inside GitHub alerts', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps lazy continuation after the alert marker', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    'continued without a quote marker',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /continued without a quote marker/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps lazy continuations after alert list markers', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
@@ -282,6 +296,21 @@ test('ends a GitHub alert after a quoted link reference definition', () => {
   assert.ok(alertEnd >= 0);
   assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
   assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps lazy continuation after an invalid link reference suffix', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> [label]: /target garbage',
+    'continuation',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /continuation/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 

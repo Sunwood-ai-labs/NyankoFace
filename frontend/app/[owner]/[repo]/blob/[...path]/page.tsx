@@ -52,7 +52,7 @@ export default async function FileViewPage({
 }) {
   const { owner, repo, path: pathSegments } = await params;
   const locale = await getLocale();
-  const path = pathSegments.map(decodeURIComponent).join('/');
+  const path = pathSegments.join('/');
   const repoInfo = await getRepo(owner, repo);
   const branch = repoDefaultBranch(repoInfo);
 

@@ -165,7 +165,7 @@ type ZennFenceMatch = {
 };
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
-const LINK_REFERENCE_DEFINITION = /^\[[^\]\n]+\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+.*)?$/;
+const LINK_REFERENCE_DEFINITION = /^\[[^\]\n]+\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
 const LINK_REFERENCE_TITLE = /^[ \t]*(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\))[ \t]*$/;
 
 const RAW_HTML_BLOCK_TAGS = new Set([
@@ -674,12 +674,13 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
 
   let rawLength = header[0].length;
   let cursor = rawLength;
-  let paragraphActive = false;
+  let paragraphActive = true;
   let previousLine: string | undefined;
   let quotedFenceChar: '`' | '~' | null = null;
   let quotedFenceLength = 0;
   let quotedHtmlBoundary: RawHtmlBlockBoundary | null = null;
   let quotedLinkReferenceDefinition = false;
+  let hasAlertBody = false;
   while (cursor < source.length) {
     const newlineIndex = source.indexOf('\n', cursor);
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
@@ -733,7 +734,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       if (rawHtml?.kind === 'complete') {
         quotedLinkReferenceDefinition = false;
         paragraphActive = false;
-      } else if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph)) {
+      } else if (rawHtml && (!paragraphActive || rawHtml.interruptsParagraph || !hasAlertBody)) {
         quotedLinkReferenceDefinition = false;
         quotedHtmlBoundary = rawHtml;
         paragraphActive = false;
@@ -747,6 +748,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         quotedLinkReferenceDefinition = linkReferenceDefinition;
       }
     }
+    hasAlertBody = true;
     previousLine = contentLine;
   }
   rawLength = cursor;
