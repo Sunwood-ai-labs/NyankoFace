@@ -441,7 +441,7 @@ PY
   [[ "$status" == "200" ]] || die "public smoke check: portal returned HTTP $status"
   grep -Fqi "NyankoFace" "$body" || die "public smoke check: portal identity is missing"
   if grep -Eqi '^(server|x-powered-by):[[:space:]]*(simplehttp|tideline)([/:[:space:]]|$)' "$headers" \
-    || grep -Eqi '<(title|h1)[^>]*>[[:space:]]*(simplehttp|tideline)[[:space:]]*<' "$body"; then
+    || tr -d '\r\n' < "$body" | grep -Eqi '<(title|h1)[^>]*>[[:space:]]*(simplehttp|tideline)[[:space:]]*<'; then
     die "public smoke check: unexpected static server identity"
   fi
 
