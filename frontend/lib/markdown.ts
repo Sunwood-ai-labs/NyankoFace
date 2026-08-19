@@ -172,7 +172,7 @@ const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<((?:\\.|[^>\\\n])*)>|([^\s<>]+))(
 const LINK_REFERENCE_TITLE = /^[ \t]*(?:"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|\((?:\\.|[^()\\\n])*\))[ \t]*$/;
 
 function hasVisibleLinkReferenceLabel(label: string): boolean {
-  const normalizedLabel = label.replace(/\\(.)/g, '$1');
+  const normalizedLabel = label.replace(/\\([!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~])/g, '$1');
   return Array.from(normalizedLabel).length <= LINK_REFERENCE_LABEL_MAX_LENGTH
     && /\S/.test(normalizedLabel);
 }
