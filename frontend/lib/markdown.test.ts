@@ -287,6 +287,38 @@ test('ends a GitHub alert before an interrupting raw HTML block', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps thematic-break prefix text inside a GitHub alert', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    '---not-a-rule',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /---not-a-rule/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('ends a GitHub alert before a completed HTML comment', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    '<!-- completed -->',
+    'after',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /after/);
+  assert.match(bodyHtml, /after/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('requires at most one padding space before a GitHub alert marker', () => {
   const { bodyHtml } = parseReadme('>  [!NOTE]\n> This remains an ordinary blockquote.');
 

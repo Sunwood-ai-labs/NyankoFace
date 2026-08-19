@@ -359,10 +359,12 @@ function startsMarkdownBlock(line: string, paragraphActive = false, previousLine
   if (orderedList) return !paragraphActive || Number.parseInt(orderedList[1], 10) === 1;
   const shortSetextUnderline = /^(?:-[ \t]*){1,2}$/.test(content);
   const equalsSetextUnderline = /^={1,}[ \t]*$/.test(content);
+  const thematicBreak = /^(?:(?:-[ \t]*){3,}|(?:\*[ \t]*){3,}|(?:_[ \t]*){3,})$/;
   return isGfmTableDelimiter(content, previousLine)
     || (shortSetextUnderline && paragraphActive)
     || (equalsSetextUnderline && paragraphActive)
-    || /^(?:#{1,6}(?:[ \t]+|$)|(?:-[ \t]*){3,}$|(?:\*[ \t]*){3,}$|(?:_[ \t]*){3,}$|[*+-][ \t]+|>[ \t]?)/.test(content);
+    || thematicBreak.test(content)
+    || /^(?:#{1,6}(?:[ \t]+|$)|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
 
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
@@ -411,10 +413,18 @@ function matchRawHtmlOpening(line: string): { tagName: string; raw: string } | u
 
 function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
   const trimmed = line.replace(/^[ \t]{0,3}/, '');
-  if (trimmed.startsWith('<!--')) return trimmed.includes('-->') ? null : { kind: 'closing', pattern: /-->/, interruptsParagraph: true };
-  if (trimmed.startsWith('<?')) return trimmed.includes('?>') ? null : { kind: 'closing', pattern: /\?>/, interruptsParagraph: true };
-  if (/^<!\[CDATA\[/.test(trimmed)) return trimmed.includes(']]>') ? null : { kind: 'closing', pattern: /\]\]>/, interruptsParagraph: true };
-  if (/^<![A-Z]/.test(trimmed)) return trimmed.includes('>') ? null : { kind: 'closing', pattern: />/, interruptsParagraph: true };
+  if (trimmed.startsWith('<!--')) return trimmed.includes('-->')
+    ? { kind: 'complete', interruptsParagraph: true }
+    : { kind: 'closing', pattern: /-->/, interruptsParagraph: true };
+  if (trimmed.startsWith('<?')) return trimmed.includes('?>')
+    ? { kind: 'complete', interruptsParagraph: true }
+    : { kind: 'closing', pattern: /\?>/, interruptsParagraph: true };
+  if (/^<!\[CDATA\[/.test(trimmed)) return trimmed.includes(']]>')
+    ? { kind: 'complete', interruptsParagraph: true }
+    : { kind: 'closing', pattern: /\]\]>/, interruptsParagraph: true };
+  if (/^<![A-Z]/.test(trimmed)) return trimmed.includes('>')
+    ? { kind: 'complete', interruptsParagraph: true }
+    : { kind: 'closing', pattern: />/, interruptsParagraph: true };
   const closingTag = trimmed.match(/^<\/([A-Za-z][A-Za-z0-9-]*)\s*>/);
   if (closingTag) {
     const tagName = closingTag[1].toLowerCase();
