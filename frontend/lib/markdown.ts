@@ -439,22 +439,25 @@ function startsMarkdownBlock(line: string, paragraphActive = false, previousLine
 
 function startsParagraphContent(line: string, previousLine?: string): boolean {
   let content = line;
+  let hadContainerPrefix = false;
   for (let depth = 0; depth < 16; depth += 1) {
     const normalized = content.replace(/^ {0,3}/, '');
     const listPrefix = normalized.match(LIST_CONTAINER_PREFIX);
     if (listPrefix) {
+      hadContainerPrefix = true;
       content = normalized.slice(listPrefix[0].length);
       continue;
     }
     const blockquotePrefix = normalized.match(/^>[ \t]?/);
     if (blockquotePrefix) {
+      hadContainerPrefix = true;
       content = normalized.slice(blockquotePrefix[0].length);
       continue;
     }
     const rawHtml = rawHtmlBlockEnd(content);
     return content.trim() !== ''
       && !startsMarkdownBlock(content, false, previousLine)
-      && !rawHtml?.interruptsParagraph;
+      && !(rawHtml && (rawHtml.interruptsParagraph || hadContainerPrefix));
   }
   return false;
 }
