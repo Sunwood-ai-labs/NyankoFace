@@ -440,7 +440,10 @@ PY
   smoke_request "/"
   [[ "$status" == "200" ]] || die "public smoke check: portal returned HTTP $status"
   grep -Fqi "NyankoFace" "$body" || die "public smoke check: portal identity is missing"
-  grep -Eqi "SimpleHTTP|TIDELINE" "$body" && die "public smoke check: unexpected static server identity"
+  if grep -Eqi '^(server|x-powered-by):[[:space:]]*(simplehttp|tideline)([/:[:space:]]|$)' "$headers" \
+    || grep -Eqi '<(title|h1)[^>]*>[[:space:]]*(simplehttp|tideline)[[:space:]]*<' "$body"; then
+    die "public smoke check: unexpected static server identity"
+  fi
 
   smoke_request "/git/api/v1/version"
   [[ "$status" == "200" ]] || die "public smoke check: Forgejo API returned HTTP $status"

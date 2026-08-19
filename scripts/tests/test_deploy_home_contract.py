@@ -26,7 +26,9 @@ class DeployHomeContractTests(unittest.TestCase):
         self.assertIn('"/git/api/v1/version"', SCRIPT)
         self.assertIn('"/api/catalog/repositories?limit=1"', SCRIPT)
         self.assertIn('"NyankoFace"', SCRIPT)
-        self.assertIn('"SimpleHTTP|TIDELINE"', SCRIPT)
+        self.assertIn("'^(server|x-powered-by):[[:space:]]*(simplehttp|tideline)", SCRIPT)
+        self.assertIn("'<(title|h1)[^>]*>[[:space:]]*(simplehttp|tideline)", SCRIPT)
+        self.assertNotIn('grep -Eqi "SimpleHTTP|TIDELINE" "$body"', SCRIPT)
         self.assertIn('PUBLIC_BASE_URL or NYANKOFACE_DEPLOY_SMOKE_BASE_URL is required', SCRIPT)
         self.assertNotIn('base_url:-https://localhost:8443', SCRIPT)
 
@@ -115,7 +117,7 @@ else:
 url = args[-1]
 path = url.split("public.example", 1)[-1].split("?", 1)[0]
 if path == "/":
-    code, headers, body = 200, "content-type: text/html\\n", "<title>NyankoFace</title>"
+    code, headers, body = 200, "content-type: text/html\\n", "<title>NyankoFace</title><p>TIDELINE resident build skill</p>"
 elif path == "/git/api/v1/version":
     code, headers, body = 200, "content-type: application/json\\n", '{"version":"fixture"}'
 elif path == "/api/catalog/repositories":
