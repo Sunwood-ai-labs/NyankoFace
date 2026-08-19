@@ -395,6 +395,21 @@ test('keeps a quoted definition-like continuation inside an active paragraph', (
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps lazy continuation after a whitespace-only link reference label', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> [   ]: /target',
+    'continuation',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /continuation/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('ends a GitHub alert after a quoted fenced code block', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
@@ -1262,6 +1277,19 @@ test('keeps compact explicit-end self-closing tags open until a blank line', () 
 
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /inside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('rejects malformed compact explicit-end openers', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre/ >',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 

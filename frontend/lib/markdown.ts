@@ -165,10 +165,24 @@ type ZennFenceMatch = {
 };
 
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
-const LINK_REFERENCE_DEFINITION = /^\[(?:\\.|[^\[\]\\])+\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
-const LINK_REFERENCE_PENDING_DESTINATION = /^\[(?:\\.|[^\[\]\\])+\]:[ \t]*$/;
+const LINK_REFERENCE_DEFINITION = /^\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
+const LINK_REFERENCE_PENDING_DESTINATION = /^\[((?:\\.|[^\[\]\\])+)\]:[ \t]*$/;
 const LINK_REFERENCE_DESTINATION = /^[ \t]*(?:<[^>\n]*>|[^\s<>]+)(?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\)))?[ \t]*$/;
 const LINK_REFERENCE_TITLE = /^[ \t]*(?:"[^"\n]*"|'[^'\n]*'|\([^\)\n]*\))[ \t]*$/;
+
+function hasVisibleLinkReferenceLabel(label: string): boolean {
+  return /\S/.test(label.replace(/\\(.)/g, '$1'));
+}
+
+function isLinkReferenceDefinition(line: string): boolean {
+  const match = line.match(LINK_REFERENCE_DEFINITION);
+  return Boolean(match?.[1] && hasVisibleLinkReferenceLabel(match[1]));
+}
+
+function isLinkReferencePendingDestination(line: string): boolean {
+  const match = line.match(LINK_REFERENCE_PENDING_DESTINATION);
+  return Boolean(match?.[1] && hasVisibleLinkReferenceLabel(match[1]));
+}
 
 const RAW_HTML_BLOCK_TAGS = new Set([
   'address', 'article', 'aside', 'base', 'basefont', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup',
@@ -377,7 +391,7 @@ function startsMarkdownBlock(line: string, paragraphActive = false, previousLine
   return isGfmTableDelimiter(content, previousLine)
     || (shortSetextUnderline && paragraphActive)
     || (equalsSetextUnderline && paragraphActive)
-    || (!paragraphActive && LINK_REFERENCE_DEFINITION.test(content))
+    || (!paragraphActive && isLinkReferenceDefinition(content))
     || thematicBreak.test(content)
     || /^(?:#{1,6}(?:[ \t]+|$)|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
@@ -486,6 +500,8 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
     return null;
   }
   const tagName = opening.tagName.toLowerCase();
+  const tagSuffix = opening.raw.slice(1 + opening.tagName.length);
+  if (tagSuffix.startsWith('/') && !tagSuffix.endsWith('/>')) return null;
   const isBlockTag = RAW_HTML_BLOCK_TAGS.has(tagName);
   const isCompactSelfClosing = /[^ \t]\/>$/.test(opening.raw);
   if (isCompactSelfClosing) {
@@ -752,10 +768,10 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         const linkReferenceDestination: boolean = quotedLinkReferenceNeedsDestination && LINK_REFERENCE_DESTINATION.test(contentLine);
         const linkReferenceDefinition: boolean = isQuoted
           && (!paragraphActive || !hasAlertBody)
-          && LINK_REFERENCE_DEFINITION.test(contentLine);
+          && isLinkReferenceDefinition(contentLine);
         const linkReferencePendingDestination: boolean = isQuoted
           && (!paragraphActive || !hasAlertBody)
-          && LINK_REFERENCE_PENDING_DESTINATION.test(contentLine);
+          && isLinkReferencePendingDestination(contentLine);
         paragraphActive = contentLine.trim() !== ''
           && !linkReferenceTitle
           && !linkReferenceDestination
