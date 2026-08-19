@@ -513,19 +513,23 @@ test('does not parse Zenn delimiters inside CDATA raw HTML blocks', () => {
 });
 
 test('keeps type-6 HTML blocks open until a blank line', () => {
-  const { bodyHtml } = parseReadme([
-    ':::message',
-    '<div>raw</div>',
-    ':::',
-    '',
-    ':::',
-    '',
-    '# After',
-  ].join('\n'));
+  for (const tag of ['<div>raw</div>', '<basefont>raw</basefont>', '<noframes>raw</noframes>']) {
+    const { bodyHtml } = parseReadme([
+      ':::message',
+      tag,
+      ':::',
+      '',
+      ':::',
+      '',
+      '# After',
+    ].join('\n'));
 
-  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
-  assert.match(bodyHtml, /<div>raw<\/div>\n:::/);
-  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+    assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1, tag);
+    const alertEnd = bodyHtml.indexOf('</aside>');
+    assert.ok(alertEnd >= 0, tag);
+    assert.match(bodyHtml.slice(0, alertEnd), /:::/, tag);
+    assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/, tag);
+  }
 });
 
 test('keeps type-7 custom HTML blocks open until a blank line', () => {

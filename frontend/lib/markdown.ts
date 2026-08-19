@@ -167,12 +167,12 @@ type ZennFenceMatch = {
 const LIST_CONTAINER_PREFIX = /^[ \t]{0,3}(?:[*+-]|\d+[.)])[ \t]{1,4}(?=\S)/;
 
 const RAW_HTML_BLOCK_TAGS = new Set([
-  'address', 'article', 'aside', 'base', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup',
+  'address', 'article', 'aside', 'base', 'basefont', 'blockquote', 'body', 'caption', 'center', 'col', 'colgroup',
   'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer',
   'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html',
   'iframe', 'legend', 'li', 'link', 'main', 'menu', 'menuitem', 'nav', 'ol', 'optgroup', 'option',
   'p', 'param', 'pre', 'script', 'section', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead',
-  'textarea', 'title', 'tr', 'track', 'ul', 'style',
+  'textarea', 'title', 'tr', 'track', 'ul', 'style', 'noframes',
 ]);
 const RAW_HTML_TAGS_WITH_EXPLICIT_END = new Set(['pre', 'script', 'style', 'textarea']);
 
