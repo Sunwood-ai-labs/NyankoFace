@@ -197,6 +197,24 @@ test('ends an alert before lazy text after a list block', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends an alert after a quoted Zenn block', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> :::message',
+    '> inner',
+    '> :::',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps lazy continuations inside nested alert containers', () => {
   for (const nestedLine of ['> > nested', '> > - item']) {
     const { bodyHtml } = parseReadme([
@@ -563,6 +581,22 @@ test('ends a GitHub alert after a table with an unescaped code-span pipe', () =>
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends an alert after a table with an escaped code-span pipe', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> `a\\|b` | c',
+    '> --- | ---',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
 test('ends a GitHub alert after quoted raw HTML', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
