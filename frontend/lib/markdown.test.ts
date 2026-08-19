@@ -777,6 +777,19 @@ test('ends a GitHub alert before list-nested type-7 HTML can continue lazily', (
   assert.match(bodyHtml, /<p>outside<\/p>/);
 });
 
+test('keeps an unmatched unquoted Zenn opener inside an active alert', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> paragraph',
+    ':::message',
+    'more',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /more/);
+});
+
 test('ends a GitHub alert before an interrupting raw HTML block', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',

@@ -846,6 +846,11 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   const header = source.match(/^ {0,3}>[ \t]?\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\r?\n|$)/);
   if (!header) return undefined;
 
+  const boundaryContext = zennBoundaryStacks.get(this.lexer)?.at(-1);
+  const zennBoundaryIndex = boundaryContext?.boundaryIndex || buildZennBoundaryIndex(source);
+  const zennSourceOffset = boundaryContext
+    ? boundaryContext.sourceStart + boundaryContext.sourceLength - source.length
+    : 0;
   let rawLength = header[0].length;
   let cursor = rawLength;
   let paragraphActive = true;
@@ -882,7 +887,7 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         || (!paragraphActive && !quotedLinkReferenceNeedsDestination)
         || startsMarkdownBlock(line, paragraphActive, previousLine)
         || validUnquotedFence
-        || parseZennOpeningLine(line)
+        || (parseZennOpeningLine(line) && zennBoundaryIndex.boundaries.has(zennSourceOffset + cursor))
         || rawHtmlBlockEnd(line)?.interruptsParagraph
       )
     ) break;
