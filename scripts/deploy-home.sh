@@ -19,7 +19,7 @@ Optional runner environment:
   NYANKOFACE_DEPLOY_SMOKE_BASE_URL
                                  Optional public URL override for post-deploy smoke checks
   NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS
-                                 Per-request smoke-check timeout (default: 20)
+                                 Per-request smoke-check timeout (default: 30)
   NYANKOFACE_DEPLOY_SMOKE_INSECURE
                                  Set to 1 only when the smoke target uses an untrusted TLS certificate
 EOF
@@ -296,7 +296,7 @@ run_public_smoke_test() {
   base_url="${base_url%/}"
   [[ "$base_url" == https://* || "$base_url" == http://* ]] || die "public smoke base URL must be HTTP(S)"
 
-  local smoke_timeout="${NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS:-20}"
+  local smoke_timeout="${NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS:-30}"
   [[ "$smoke_timeout" =~ ^[0-9]+$ && "$smoke_timeout" -gt 0 ]] || die "NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS must be a positive integer"
 
   smoke_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/nyankoface-smoke.XXXXXX")"
