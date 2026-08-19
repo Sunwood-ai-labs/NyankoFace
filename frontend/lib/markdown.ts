@@ -367,6 +367,25 @@ function startsMarkdownBlock(line: string, paragraphActive = false, previousLine
     || /^(?:#{1,6}(?:[ \t]+|$)|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
 
+function startsParagraphContent(line: string, previousLine?: string): boolean {
+  let content = line;
+  for (let depth = 0; depth < 16; depth += 1) {
+    const normalized = content.replace(/^ {0,3}/, '');
+    const listPrefix = normalized.match(LIST_CONTAINER_PREFIX);
+    if (listPrefix) {
+      content = normalized.slice(listPrefix[0].length);
+      continue;
+    }
+    const blockquotePrefix = normalized.match(/^>[ \t]?/);
+    if (blockquotePrefix) {
+      content = normalized.slice(blockquotePrefix[0].length);
+      continue;
+    }
+    return content.trim() !== '' && !startsMarkdownBlock(content, false, previousLine);
+  }
+  return false;
+}
+
 function sameZennFenceContainer(left: ZennFenceContainer | undefined, right: ZennFenceContainer | undefined): boolean {
   if (!left || !right) return left === right;
   if (left.kind !== right.kind) return false;
@@ -451,6 +470,11 @@ function rawHtmlBlockEnd(line: string): RawHtmlBlockResult | null {
   const tagName = opening.tagName.toLowerCase();
   const isBlockTag = RAW_HTML_BLOCK_TAGS.has(tagName);
   if (/\/\s+>$/.test(opening.raw)) return null;
+  const isCompactSelfClosing = /[^ \t]\/>$/.test(opening.raw);
+  if (isCompactSelfClosing) {
+    if (!isBlockTag && trimmed.slice(opening.raw.length).trim() !== '') return null;
+    return { kind: 'blank', interruptsParagraph: isBlockTag };
+  }
   const closing = new RegExp(`</${tagName}>`, 'i');
   if (RAW_HTML_TAGS_WITH_EXPLICIT_END.has(tagName)) {
     return closing.test(trimmed.slice(opening.raw.length))
@@ -693,15 +717,9 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
         quotedHtmlBoundary = rawHtml;
         paragraphActive = false;
       } else {
-        const listPrefix = contentLine.match(LIST_CONTAINER_PREFIX);
-        const listItemContent = listPrefix
-          ? contentLine.slice(listPrefix[0].length)
-          : '';
-        const listItemParagraph = Boolean(listPrefix)
-          && listItemContent.trim() !== ''
-          && !startsMarkdownBlock(listItemContent, false, previousLine);
+        const paragraphContent = startsParagraphContent(contentLine, previousLine);
         paragraphActive = contentLine.trim() !== ''
-          && (listItemParagraph || !startsMarkdownBlock(contentLine, paragraphActive, previousLine));
+          && (paragraphContent || !startsMarkdownBlock(contentLine, paragraphActive, previousLine));
       }
     }
     previousLine = contentLine;

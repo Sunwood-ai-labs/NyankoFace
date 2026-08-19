@@ -183,6 +183,23 @@ test('ends an alert before lazy text after a list block', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps lazy continuations inside nested alert containers', () => {
+  for (const nestedLine of ['> > nested', '> > - item']) {
+    const { bodyHtml } = parseReadme([
+      '> [!NOTE]',
+      nestedLine,
+      'continuation',
+      '',
+      '# After',
+    ].join('\n'));
+
+    const alertEnd = bodyHtml.indexOf('</aside>');
+    assert.ok(alertEnd >= 0, nestedLine);
+    assert.match(bodyHtml.slice(0, alertEnd), /continuation/, nestedLine);
+    assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/, nestedLine);
+  }
+});
+
 test('keeps empty list markers inside an active GitHub alert paragraph', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
@@ -1030,6 +1047,23 @@ test('keeps explicit-end self-closing tags open until their exact closing tag', 
 
   assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
   assert.match(bodyHtml, /<pre/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
+test('keeps compact explicit-end self-closing tags open until a blank line', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '<pre/>',
+    ':::',
+    '',
+    'inside',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.equal((bodyHtml.match(/data-markdown-block="zenn-message"/g) || []).length, 1);
+  assert.match(bodyHtml, /inside/);
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
