@@ -1584,6 +1584,23 @@ test('tracks fences started on a later list-item continuation line', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps list-following type-6 HTML inside Zenn after a blank line', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    '- item',
+    '<div>',
+    ':::',
+    '',
+    'still in block',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.match(bodyHtml, /<aside[^>]*data-markdown-block="zenn-message"[\s\S]*still in block[\s\S]*<\/aside>/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('does not treat custom closing tags with trailing text as raw HTML blocks', () => {
   const { bodyHtml } = parseReadme([
     ':::message',
