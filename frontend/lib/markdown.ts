@@ -627,6 +627,8 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
   let cursor = rawLength;
   let paragraphActive = false;
   let previousLine: string | undefined;
+  let quotedFenceChar: '`' | '~' | null = null;
+  let quotedFenceLength = 0;
   while (cursor < source.length) {
     const newlineIndex = source.indexOf('\n', cursor);
     const end = newlineIndex === -1 ? source.length : newlineIndex + 1;
@@ -634,10 +636,12 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
     if (line.trim() === '') break;
     const isQuoted = /^ {0,3}>/.test(line);
     const contentLine = isQuoted ? line.replace(/^[ \t]{0,3}>[ \t]?/, '') : line;
+    const contentFence = isQuoted ? matchZennFence(contentLine) : null;
     if (
       !isQuoted
       && (
-        !paragraphActive
+        quotedFenceChar !== null
+        || !paragraphActive
         || startsMarkdownBlock(line, paragraphActive)
         || matchZennFence(line)
         || parseZennOpeningLine(line)
@@ -645,12 +649,28 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       )
     ) break;
     cursor = end;
-    const quotedFence = matchZennFence(contentLine);
-    const rawHtml = rawHtmlBlockEnd(contentLine);
-    paragraphActive = contentLine.trim() !== ''
-      && !startsMarkdownBlock(contentLine, paragraphActive, previousLine)
-      && !quotedFence
-      && !rawHtml?.interruptsParagraph;
+    if (quotedFenceChar !== null) {
+      const closesFence = Boolean(
+        contentFence
+        && contentFence.token[0] === quotedFenceChar
+        && contentFence.token.length >= quotedFenceLength
+        && contentLine.slice(contentFence.end).trim() === '',
+      );
+      if (closesFence) {
+        quotedFenceChar = null;
+        quotedFenceLength = 0;
+      }
+      paragraphActive = false;
+    } else if (contentFence) {
+      quotedFenceChar = contentFence.token[0] as '`' | '~';
+      quotedFenceLength = contentFence.token.length;
+      paragraphActive = false;
+    } else {
+      const rawHtml = rawHtmlBlockEnd(contentLine);
+      paragraphActive = contentLine.trim() !== ''
+        && !startsMarkdownBlock(contentLine, paragraphActive, previousLine)
+        && !rawHtml?.interruptsParagraph;
+    }
     previousLine = contentLine;
   }
   rawLength = cursor;
