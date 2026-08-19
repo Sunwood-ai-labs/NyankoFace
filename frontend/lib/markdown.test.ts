@@ -299,6 +299,22 @@ test('ends a GitHub alert after a quoted link reference definition', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('keeps definition-like lazy continuation inside an active paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> text',
+    '[label]: /target',
+    'continuation',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.match(bodyHtml.slice(0, alertEnd), /continuation/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps lazy continuation after an invalid link reference suffix', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
@@ -1347,7 +1363,7 @@ test('recognizes whitespace before custom closing tag brackets', () => {
 });
 
 test('keeps omitted type-6 HTML tags inside a Zenn block', () => {
-  for (const tagName of ['option', 'optgroup', 'param', 'frame', 'frameset', 'search']) {
+  for (const tagName of ['option', 'optgroup', 'param', 'frame', 'frameset', 'search', 'hgroup']) {
     const { bodyHtml } = parseReadme([
       ':::message',
       'paragraph',

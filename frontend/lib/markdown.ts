@@ -173,7 +173,7 @@ const RAW_HTML_BLOCK_TAGS = new Set([
   'dd', 'details', 'dialog', 'dir', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer',
   'form', 'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html',
   'iframe', 'legend', 'li', 'link', 'main', 'menu', 'menuitem', 'nav', 'ol', 'optgroup', 'option',
-  'p', 'param', 'pre', 'script', 'search', 'section', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead',
+  'p', 'param', 'pre', 'script', 'search', 'section', 'summary', 'table', 'tbody', 'td', 'tfoot', 'th', 'thead', 'hgroup',
   'textarea', 'title', 'tr', 'track', 'ul', 'style', 'noframes',
 ]);
 const RAW_HTML_TAGS_WITH_EXPLICIT_END = new Set(['pre', 'script', 'style', 'textarea']);
@@ -375,7 +375,7 @@ function startsMarkdownBlock(line: string, paragraphActive = false, previousLine
   return isGfmTableDelimiter(content, previousLine)
     || (shortSetextUnderline && paragraphActive)
     || (equalsSetextUnderline && paragraphActive)
-    || LINK_REFERENCE_DEFINITION.test(content)
+    || (!paragraphActive && LINK_REFERENCE_DEFINITION.test(content))
     || thematicBreak.test(content)
     || /^(?:#{1,6}(?:[ \t]+|$)|[*+-][ \t]+|>[ \t]?)/.test(content);
 }
@@ -741,9 +741,10 @@ function tokenizeGithubAlert(this: TokenizerThis, source: string): NyankofaceBlo
       } else {
         const paragraphContent = startsParagraphContent(contentLine, previousLine);
         const linkReferenceTitle = quotedLinkReferenceDefinition && LINK_REFERENCE_TITLE.test(contentLine);
-        const linkReferenceDefinition = LINK_REFERENCE_DEFINITION.test(contentLine);
+        const linkReferenceDefinition = isQuoted && LINK_REFERENCE_DEFINITION.test(contentLine);
         paragraphActive = contentLine.trim() !== ''
           && !linkReferenceTitle
+          && !linkReferenceDefinition
           && (paragraphContent || !startsMarkdownBlock(contentLine, paragraphActive, previousLine));
         quotedLinkReferenceDefinition = linkReferenceDefinition;
       }
