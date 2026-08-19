@@ -487,7 +487,7 @@ function buildZennBoundaryIndex(source: string): ZennBoundaryIndex {
         listContentIndents.pop();
       }
       const listPrefix = line.match(LIST_CONTAINER_PREFIX);
-      if (listPrefix) {
+      if (listPrefix && (!paragraphActive || startsMarkdownBlock(line, paragraphActive, previousLine))) {
         const contentIndent = textColumns(listPrefix[0]);
         while (listContentIndents.length && contentIndent <= listContentIndents.at(-1)!) {
           listContentIndents.pop();

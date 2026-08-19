@@ -330,6 +330,24 @@ test('requires at most one padding space before a GitHub alert marker', () => {
   assert.doesNotMatch(tabIndented.bodyHtml, /data-markdown-block="github-alert"/);
 });
 
+test('does not retain list context for an ordered marker inside a paragraph', () => {
+  const { bodyHtml } = parseReadme([
+    ':::message',
+    'paragraph',
+    '2. not a list',
+    '',
+    '   <my-widget>',
+    ':::',
+    '',
+    '# After',
+  ].join('\n'));
+
+  assert.doesNotMatch(bodyHtml, /data-markdown-block="zenn-message"/);
+  assert.match(bodyHtml, /:::message/);
+  assert.match(bodyHtml, /2\. not a list/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('renders Zenn message and details blocks through the shared safe Markdown pipeline', () => {
   const source = [
     ':::message',
