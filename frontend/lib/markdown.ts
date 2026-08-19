@@ -394,7 +394,10 @@ function startsParagraphContent(line: string, previousLine?: string): boolean {
       content = normalized.slice(blockquotePrefix[0].length);
       continue;
     }
-    return content.trim() !== '' && !startsMarkdownBlock(content, false, previousLine);
+    const rawHtml = rawHtmlBlockEnd(content);
+    return content.trim() !== ''
+      && !startsMarkdownBlock(content, false, previousLine)
+      && !rawHtml?.interruptsParagraph;
   }
   return false;
 }

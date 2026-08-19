@@ -421,6 +421,22 @@ test('ends a GitHub alert before an interrupting raw HTML block', () => {
   assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
 });
 
+test('ends a GitHub alert before list-nested raw HTML', () => {
+  const { bodyHtml } = parseReadme([
+    '> [!NOTE]',
+    '> - <div>',
+    'outside',
+    '',
+    '# After',
+  ].join('\n'));
+
+  const alertEnd = bodyHtml.indexOf('</aside>');
+  assert.ok(alertEnd >= 0);
+  assert.doesNotMatch(bodyHtml.slice(0, alertEnd), /outside/);
+  assert.match(bodyHtml, /outside/);
+  assert.match(bodyHtml, /<h1[^>]*>After<\/h1>/);
+});
+
 test('keeps thematic-break prefix text inside a GitHub alert', () => {
   const { bodyHtml } = parseReadme([
     '> [!NOTE]',
