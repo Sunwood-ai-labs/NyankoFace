@@ -93,7 +93,7 @@ jobs:
           test "$(docker image inspect "nyankoface-mcp:$PACKAGE_VERSION" --format '{{ index .Config.Labels "org.opencontainers.image.version" }}')" = "$PACKAGE_VERSION"
           test "$(docker run --rm "nyankoface-mcp:$PACKAGE_VERSION" nyankoface-mcp --version)" = "nyankoface-mcp $PACKAGE_VERSION"
       - name: Upload wheel, sdist, and checksums
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nyankoface-mcp-${{ steps.package.outputs.version }}
           path: nyankoface-mcp/dist/
