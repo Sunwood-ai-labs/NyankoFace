@@ -20,7 +20,11 @@
 
 ## Git worktree policy
 
-- ファイル変更を伴うIssueは、原則としてIssue専用branchと専用worktreeで開始してください。例: `git worktree add ../NyankoFace-issue-123 -b fix/issue-123 main`。
+- ファイル変更を伴うIssueは、原則としてIssue専用branchと専用worktreeで開始してください。通常のIssue／feature／bugfixは`main`ではなく`origin/develop`から開始します。
+   ```powershell
+   git fetch origin develop
+   git worktree add ..\NyankoFace-issue-123 -b fix/issue-123 origin/develop
+   ```
 - repository rootのmain worktreeは、最新mainの同期、統合test、merge後の本番反映だけに使い、feature実装を直接行わないでください。
 - 複数Issueが同じfileまたは同じ状態schemaを変更する場合は並行編集せず、依存PRを先にmergeしてから後続worktreeを最新mainへ更新してください。
 - 各worktreeは1 Issue、1 acceptance criteria set、1 PRに限定してください。途中で見つけた別問題は別Issue・別worktreeへ分離してください。
@@ -30,12 +34,16 @@
 
 NyankoFaceは、`develop`を統合ブランチ、`main`を本番・リリースブランチとするGit Flow運用を採用します。
 
-- 通常のIssue、feature、bugfixは、最新の`origin/develop`から専用branchを作成し、PRのbaseを`develop`にしてください。既存の`fix/issue-*`命名もこのルールに従います。
-- 通常のIssue PRを`main`へ直接マージしないでください。`main`へ入れるのは、検証済みの`release/*`または緊急の`hotfix/*`だけです。
-- `release/*`は`develop`から作成し、CI・レビュー・本番検証後に`main`へマージします。リリースの結果は同じ変更が`develop`にも残るよう、必要なback-mergeを行ってください。
-- `hotfix/*`は`main`から作成し、修正検証後に`main`と`develop`の両方へ反映してください。
+- 通常のIssue、feature、bugfixは、最新の`origin/develop`から専用branchを作成し、PRのbaseを`develop`にしてください。`feature/*`、`fix/*`、`bugfix/*`、`codex/*`はこの用途で使い、既存の`fix/issue-*`命名もこのルールに従います。
+- 通常のIssue PRを`main`へ直接マージしないでください。`main`へ入れるのは、検証済みの`release/*`、緊急の`hotfix/*`、またはPRに例外理由を明記して承認された自動依存更新だけです。
+- `release/*`は`develop`から作成し、CI・レビュー・本番検証後に`main`へマージします。完了後は、同じproduction revisionを`develop`へback-mergeし、両ブランチの祖先関係を確認してください。
+- `hotfix/*`は`main`から作成し、修正検証後に`main`と`develop`の両方へ反映してください。hotfixを`fix/*`や`feature/*`で代用しないでください。
+- リリースtagはproduction branchの検証済みマージrevisionにだけ付け、原則として`vX.Y.Z`形式を使います。tag作成とback-mergeが確認できるまで、release／hotfixを完了扱いにしないでください。
 - デプロイ対象は原則として`main`のマージ済みrevisionです。例外が必要な場合は、IssueとPRに理由、対象revision、rollback方法を記録してください。
-- ローカルworktreeのbranch、remoteの追跡先、運用メモが食い違う場合は、マージ前に停止してbranch modelを確認してください。推測で`main`を統合先に選ばないでください。
+- 作業開始前に`git fetch origin main develop`、`git status --short --branch`、`git branch -vv`を実行し、通常作業は`origin/develop`、releaseは`origin/develop`、hotfixは`origin/main`を起点にしていることを確認してください。working treeがdirty、またはupstreamが意図したremote branchと一致しない場合は作業を止めてください。
+- PR作成・merge前に、PRのbase branch、head SHA、`CI / validate`、必要なreview、未解決thread、branch protection／rulesetを確認してください。`scripts/check_pr_merge_readiness.py`が対象PRをREADYと判定し、merge時は`gh pr merge --match-head-commit <verified-sha>`を使うまで完了扱いにしないでください。
+- release／hotfixのmerge後は、production verification、back-merge、tag、remote branchの状態を確認してから専用worktreeとbranchを整理してください。required merge targetやtagを確認する前にbranchを削除しないでください。
+- ローカルworktreeのbranch、remoteの追跡先、PRのbase、運用メモが食い違う場合は、マージ前に停止してbranch modelを確認してください。推測で`main`を統合先に選ばないでください。
 
 ## Forgejo・MCP credential contract
 
