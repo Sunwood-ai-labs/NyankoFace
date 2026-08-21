@@ -117,12 +117,22 @@ export default function SpaceRunner({
       previousPhaseRef.current = phase;
     }
     const eventPrefix = `runtime:${runtimeCycleRef.current}`;
-    if (feedback?.source === 'action' && feedback.kind === 'error') return;
+    const actionErrorVisible = feedback?.source === 'action' && feedback.kind === 'error';
+    const previousWasFailure = previousPhase === 'failed' || previousPhase === 'error';
+    const runtimeIsFailure = phase === 'failed' || phase === 'error';
+    const runtimeRecovered = phaseChanged && previousWasFailure && !runtimeIsFailure;
+    const confirmedRecovery = phase === 'running' && iframePhase === 'ready';
+    if (runtimeRecovered || (actionErrorVisible && confirmedRecovery)) {
+      feedbackEventRef.current = null;
+      runtimeFeedbackEventRef.current = null;
+      if (feedback?.kind === 'error') setFeedback(null);
+    }
+    if (actionErrorVisible && !runtimeRecovered && !confirmedRecovery) return;
     if (phase === 'running' && iframePhase === 'ready') {
       showRuntimeFeedback({
         source: 'runtime',
         kind: 'success',
-        eventKey: `${eventPrefix}:running`,
+        eventKey: `${eventPrefix}:running:${locale}`,
         message: ui(locale, 'Spaceの起動が完了しました。アプリを操作できます。', 'Space is ready. You can use the app now.'),
       });
     } else if (phase === 'failed' || phase === 'error') {
@@ -132,21 +142,17 @@ export default function SpaceRunner({
       showRuntimeFeedback({
         source: 'runtime',
         kind: 'error',
-        eventKey: `${eventPrefix}:${phase}:${runtime?.runtimeError || 'generic'}`,
+        eventKey: `${eventPrefix}:${phase}:${locale}:${runtime?.runtimeError || 'generic'}`,
         message: cause,
       });
     } else if (phase === 'stopped' && phaseChanged && lastActionRef.current === 'stop') {
       showRuntimeFeedback({
         source: 'runtime',
         kind: 'success',
-        eventKey: `${eventPrefix}:stopped`,
+        eventKey: `${eventPrefix}:stopped:${locale}`,
         message: ui(locale, 'Spaceを一時停止しました。', 'Space paused.'),
       });
       lastActionRef.current = null;
-    } else if (phaseChanged && (previousPhase === 'failed' || previousPhase === 'error')) {
-      feedbackEventRef.current = null;
-      runtimeFeedbackEventRef.current = null;
-      if (feedback?.kind === 'error') setFeedback(null);
     }
   }, [feedback?.kind, feedback?.source, iframePhase, locale, phase, runtime?.runtimeError]);
 
