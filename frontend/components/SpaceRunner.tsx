@@ -413,7 +413,9 @@ export default function SpaceRunner({
       const sameActionErrorVisible = feedback?.source === 'action'
         && feedback.kind === 'error'
         && feedback.action === action;
-      if (!sameActionErrorVisible) {
+      const actionRecoveryConfirmed = (action === 'stop' && nextRuntime?.phase === 'stopped')
+        || (action === 'start' && nextRuntime?.phase === 'running' && iframePhase === 'ready');
+      if (!sameActionErrorVisible || actionRecoveryConfirmed) {
         showFeedback({ source: 'action', action, copy, kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
       }
     } catch (error) {
