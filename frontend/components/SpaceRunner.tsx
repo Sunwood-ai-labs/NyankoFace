@@ -59,7 +59,10 @@ export default function SpaceRunner({
   const iframeRetryActionRef = useRef<(() => void) | null>(null);
   const feedbackEventRef = useRef<string | null>(null);
   const feedbackClearRef = useRef<number | null>(null);
+  const actionControllerRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
   const actionEpochRef = useRef(0);
+  const lastActionRef = useRef<SpaceOperation | null>(null);
   const previousPhaseRef = useRef<SpaceRuntimePhase>('checking');
 
   const controlBase = `/api/spaces/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
@@ -88,8 +91,13 @@ export default function SpaceRunner({
     }
   }
 
-  useEffect(() => () => {
-    if (feedbackClearRef.current !== null) window.clearTimeout(feedbackClearRef.current);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      actionControllerRef.current?.abort('unmount');
+      if (feedbackClearRef.current !== null) window.clearTimeout(feedbackClearRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -112,6 +120,13 @@ export default function SpaceRunner({
         eventKey: `${eventPrefix}:${phase}`,
         message: cause,
       });
+    } else if (phase === 'stopped' && previousPhase === 'stopping' && lastActionRef.current === 'stop') {
+      showFeedback({
+        kind: 'success',
+        eventKey: `${eventPrefix}:stopped`,
+        message: ui(locale, 'Spaceを一時停止しました。', 'Space paused.'),
+      });
+      lastActionRef.current = null;
     }
   }, [locale, phase, runtime?.runtimeError]);
 
@@ -239,14 +254,17 @@ export default function SpaceRunner({
     setErrorMsg(null);
     const startedAt = performance.now();
     actionEpochRef.current += 1;
+    lastActionRef.current = action;
     const actionEventKey = `action:${action}:${actionEpochRef.current}`;
     const controller = new AbortController();
+    actionControllerRef.current = controller;
     const timeout = window.setTimeout(() => controller.abort(), 30_000);
     try {
       const res = await fetch(`${controlBase}/${action}`, {
         method: 'POST',
         signal: controller.signal,
       });
+      if (!mountedRef.current) return;
       const durationMs = responseDuration(res, startedAt);
       if (!res.ok) {
         const message = actionError(action, res.status);
@@ -258,6 +276,8 @@ export default function SpaceRunner({
       const nextRuntime = json
         ? runtime?.applyPayload(json)
         : await runtime?.refresh();
+      if (!mountedRef.current) return;
+      if (action === 'stop' && nextRuntime?.phase === 'stopped') lastActionRef.current = null;
       const message = action === 'start'
         ? ui(locale, '起動要求を受け付けました。', 'Start request accepted.')
         : nextRuntime?.phase === 'stopped'
@@ -265,6 +285,7 @@ export default function SpaceRunner({
           : ui(locale, '停止要求を受け付けました。Spaceを停止中です。', 'Stop request accepted. Space is stopping.');
       showFeedback({ kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
     } catch (error) {
+      if (!mountedRef.current) return;
       const message = error instanceof DOMException && error.name === 'AbortError'
         ? ui(locale, '操作が30秒でタイムアウトしました。状態を確認してから再度お試しください。', 'The operation timed out after 30 seconds. Check the status before retrying.')
         : ui(locale, 'Space Runnerに接続できませんでした。', 'Could not connect to spaces-runner.');
@@ -277,8 +298,11 @@ export default function SpaceRunner({
       });
     } finally {
       window.clearTimeout(timeout);
-      setBusy(false);
-      setOperation(null);
+      if (actionControllerRef.current === controller) actionControllerRef.current = null;
+      if (mountedRef.current) {
+        setBusy(false);
+        setOperation(null);
+      }
     }
   }
 
@@ -468,7 +492,7 @@ export default function SpaceRunner({
               : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300'
           }`}
         >
-          <span className="min-w-0">{feedback.message}</span>
+          <span className="min-w-0 [overflow-wrap:anywhere]">{feedback.message}</span>
           <span className="flex shrink-0 items-center gap-2">
             {feedback.durationMs !== undefined ? <span className="font-mono text-xs opacity-75">{feedback.durationMs} ms</span> : null}
             <button
