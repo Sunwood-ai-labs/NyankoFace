@@ -382,22 +382,6 @@ export default function SpaceRunner({
         </div>
 
         <div className="ml-auto flex gap-2">
-          <button
-            type="button"
-            onClick={start}
-            disabled={busy || phase === 'running' || isSpaceRuntimePending(phase)}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950 px-3 text-sm font-semibold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
-          >
-            <HfIcon
-              name={operation === 'start' ? 'spinner' : 'play'}
-              className={`h-3.5 w-3.5 ${operation === 'start' ? 'animate-spin' : ''}`}
-            />
-            {operation === 'start'
-              ? ui(locale, '起動を受付中…', 'Starting…')
-              : phase === 'running'
-                ? ui(locale, '実行中', 'Running')
-                : ui(locale, 'Spaceを起動', 'Start this Space')}
-          </button>
           {auth.status === 'authenticated' ? (
             <button
               type="button"
