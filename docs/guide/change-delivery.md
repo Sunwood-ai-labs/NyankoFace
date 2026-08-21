@@ -99,15 +99,15 @@ acceptance criteria, and merge order are demonstrably independent.
 Start file-changing issues in a dedicated branch and worktree:
 
 ```powershell
-git fetch origin
-git worktree add ..\NyankoFace-issue-123 -b fix/issue-123 origin/main
+git fetch origin develop
+git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
 ```
 
 Reserve the main worktree for synchronizing main, integration tests, and
 post-merge deployment. Keep each issue worktree limited to one issue, one set
 of acceptance criteria, and one PR. Do not implement issues concurrently when
 they modify the same files or state schema; merge the prerequisite PR first,
-then update the dependent worktree from main. Move newly discovered unrelated
+then update the dependent worktree from develop. Move newly discovered unrelated
 work into another issue and worktree.
 
 After merge and production verification, confirm there are no unpushed commits

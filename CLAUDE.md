@@ -20,8 +20,8 @@
 
 ## Git worktree policy
 
-- ファイル変更を伴うIssueは、原則としてIssue専用branchと専用worktreeで開始してください。例: `git worktree add ../NyankoFace-issue-123 -b fix/issue-123 main`。
+- ファイル変更を伴うIssueは、原則としてIssue専用branchと専用worktreeで開始してください。通常のIssue／feature／bugfixは`origin/develop`から開始し、例: `git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop`。
 - repository rootのmain worktreeは、最新mainの同期、統合test、merge後の本番反映だけに使い、feature実装を直接行わないでください。
-- 複数Issueが同じfileまたは同じ状態schemaを変更する場合は並行編集せず、依存PRを先にmergeしてから後続worktreeを最新mainへ更新してください。
+- 複数Issueが同じfileまたは同じ状態schemaを変更する場合は並行編集せず、依存PRを先にmergeしてから後続worktreeを最新developへ更新してください。
 - 各worktreeは1 Issue、1 acceptance criteria set、1 PRに限定してください。途中で見つけた別問題は別Issue・別worktreeへ分離してください。
 - PR mergeと本番確認が完了したら、未push commitやユーザー所有変更がないことを確認してからworktreeとlocal branchを削除してください。

@@ -124,8 +124,8 @@ branch、受入条件、merge順序が独立していることを先に確認し
 ファイル変更を伴うIssueは、専用branchと専用worktreeへ分離します。
 
 ```powershell
-git fetch origin
-git worktree add ..\NyankoFace-issue-123 -b fix/issue-123 origin/main
+git fetch origin develop
+git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
 ```
 
 main worktreeは最新mainの同期、統合test、merge後の本番反映だけに使います。
@@ -140,19 +140,19 @@ flowchart TD
     A --> PA[PR #123]
     B --> PB[PR #124]
     PA --> V{同じfileやschemaへ依存?}
-    V -->|yes| U[先行PRをmerge<br/>後続をmainへ更新]
+    V -->|yes| U[先行PRをmerge<br/>後続をdevelopへ更新]
     V -->|no| T[独立testとreview]
     U --> T
     T --> M
 ```
 
 同じfileや状態schemaを触るIssueは並行実装しません。依存する基盤PRを先にmergeし、
-後続worktreeを最新mainへ更新します。途中で見つけた別問題は別Issue・別worktreeへ
+後続worktreeを最新developへ更新します。途中で見つけた別問題は別Issue・別worktreeへ
 移します。mergeと本番確認後、未push commitやユーザー所有変更がないことを確認して
 worktreeを削除します。
 
 ```powershell
-git worktree remove ..\NyankoFace-issue-123
+git worktree remove ../NyankoFace-issue-123
 git branch -d fix/issue-123
 ```
 

@@ -26,7 +26,7 @@
    git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
    ```
 - repository rootのmain worktreeは、最新mainの同期、統合test、merge後の本番反映だけに使い、feature実装を直接行わないでください。
-- 複数Issueが同じfileまたは同じ状態schemaを変更する場合は並行編集せず、依存PRを先にmergeしてから後続worktreeを最新mainへ更新してください。
+- 複数Issueが同じfileまたは同じ状態schemaを変更する場合は並行編集せず、依存PRを先にmergeしてから後続worktreeを最新developへ更新してください。
 - 各worktreeは1 Issue、1 acceptance criteria set、1 PRに限定してください。途中で見つけた別問題は別Issue・別worktreeへ分離してください。
 - PR mergeと本番確認が完了したら、未push commitやユーザー所有変更がないことを確認してからworktreeとlocal branchを削除してください。
 
@@ -58,7 +58,7 @@ NyankoFace MCPを利用するagentは、Forgejo APIとMCPの両方に同じForge
 ## Parallel agent and CLI-first policy
 
 - 独立したIssueでwrite setとstate schemaが重ならない場合は、可能な限りサブエージェントへboundedな監査・実装・検証を分担し、Issueごとの専用worktreeで並列処理してください。各agentの担当範囲、対象Issue、変更ファイルを開始時に固定してください。
-- 同一file、共有config、DB／registry schema、API contractを触るIssueは並列編集せず、先行PRのmerge後に後続worktreeを最新mainへ更新してください。agentの結果は必ずmain agentがdiff、test、scopeを確認してから統合してください。
+- 同一file、共有config、DB／registry schema、API contractを触るIssueは並列編集せず、先行PRのmerge後に後続worktreeを最新developへ更新してください。agentの結果は必ずmain agentがdiff、test、scopeを確認してから統合してください。
 - 1 Issue＝1 acceptance criteria set＝1専用worktree＝1 PRを維持し、複数Issueの変更・レビュー・mergeを一つのPRへ混在させないでください。
 - 実装、テスト、レビュー、GitHub操作、証跡作成はCLIを第一選択にしてください。GUI／Desktop clientが受入条件に明記されていない限り、GUI操作をテストの前提にしないでください。GUIが明記されていても、ユーザーの明示許可なしに実行せず、CLIで代替した場合は証跡へ明記してください。
 - 並列agentが完了したら結果とworktreeのclean／未push状態を確認し、不要なagentとmerge済みworktreeを整理してください。引き継ぎ資料はagentの判断、checkpoint、review、merge、Issue状態を随時更新してください。
