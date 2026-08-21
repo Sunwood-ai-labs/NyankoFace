@@ -8,6 +8,7 @@ import { useSpaceRuntime } from './SpaceRuntimeProvider';
 import { ui } from '@/lib/i18n';
 import {
   formatElapsedDuration,
+  getSpaceRuntimeState,
   isSpaceGatewayErrorDocument,
   isSpaceGatewayPending,
   isSpaceRuntimePending,
@@ -15,6 +16,8 @@ import {
   SPACE_IFRAME_TIMEOUT_MS,
   type SpaceIframePhase,
   type SpaceRuntimePhase,
+  type SpaceRuntimeStateKind,
+  type SpaceRuntimeStep,
 } from '@/lib/space-runtime';
 
 type SpaceOperation = 'start' | 'stop';
@@ -264,6 +267,101 @@ export default function SpaceRunner({
     error: 'bg-red-200 text-red-800',
   };
 
+  const runtimeState = getSpaceRuntimeState(phase);
+  const stateCopy: Record<SpaceRuntimeStateKind, {
+    title: string;
+    description: string;
+    nextTitle: string;
+    nextDescription: string;
+  }> = {
+    checking: {
+      title: ui(locale, 'ワーカーの状態を確認中', 'Checking worker availability'),
+      description: ui(locale, '最新の状態を取得しています。起動できるか確認できるまでお待ちください。', 'Fetching the latest state. Wait until we know whether this Space can start.'),
+      nextTitle: ui(locale, '確認が終わるまで待機', 'Wait for the check'),
+      nextDescription: ui(locale, '状態を確認したあと、起動できる場合だけ起動ボタンを表示します。', 'The start action appears only after the runtime state is confirmed.'),
+    },
+    available: {
+      title: ui(locale, '起動できます', 'Ready to start'),
+      description: ui(locale, 'ワーカーは利用可能です。起動すると、キューと準備の状態を追跡します。', 'The worker is available. Starting the Space will show queue and preparation states.'),
+      nextTitle: ui(locale, '次の操作', 'Next action'),
+      nextDescription: ui(locale, '起動ボタンでSpaceの起動要求を送信します。', 'Use the start action to send a request for this Space.'),
+    },
+    unavailable: {
+      title: ui(locale, 'ワーカーに接続できません', 'Worker unavailable'),
+      description: ui(locale, '状態を取得できないため、起動操作をいったん止めています。', 'The runtime state is unavailable, so starting is paused for now.'),
+      nextTitle: ui(locale, '状態を再確認', 'Check the state again'),
+      nextDescription: ui(locale, '接続が戻り、起動可能だと確認できてから操作してください。', 'Retry the status check before starting when the connection is back.'),
+    },
+    queued: {
+      title: ui(locale, 'キューで待機中', 'Waiting in queue'),
+      description: ui(locale, '起動要求は受け付けられました。ワーカーの割り当てを待っています。', 'The start request was accepted. Waiting for a worker assignment.'),
+      nextTitle: ui(locale, '次の段階: 準備', 'Next: preparation'),
+      nextDescription: ui(locale, 'キューを抜けると、ビルドと起動準備へ進みます。推定時間は表示しません。', 'After the queue, the Space moves into build and startup preparation. No guessed wait time is shown.'),
+    },
+    preparing: {
+      title: ui(locale, 'ワーカーを準備中', 'Preparing the worker'),
+      description: ui(locale, 'Spaceのビルドまたは起動を進めています。', 'The Space is being built or started.'),
+      nextTitle: ui(locale, '次の段階: アプリ接続', 'Next: connect to the app'),
+      nextDescription: ui(locale, '準備が終わると、アプリの接続確認へ進みます。', 'When preparation finishes, the app connection check begins.'),
+    },
+    running: {
+      title: ui(locale, 'アプリを実行中', 'App is running'),
+      description: ui(locale, 'アプリの画面を読み込んでいます。', 'The app is available and its screen is loading.'),
+      nextTitle: ui(locale, '現在の段階', 'Current stage'),
+      nextDescription: ui(locale, 'アプリの操作を開始できます。', 'You can start using the app.'),
+    },
+    stopping: {
+      title: ui(locale, '停止処理を確認中', 'Finishing shutdown'),
+      description: ui(locale, 'Spaceの停止が完了するまで、新しい起動要求は送信できません。', 'A new start request is disabled until the Space has finished stopping.'),
+      nextTitle: ui(locale, '次の段階: 起動可能', 'Next: ready to start'),
+      nextDescription: ui(locale, '停止完了後に起動ボタンを再び表示します。', 'The start action returns after shutdown is complete.'),
+    },
+    failed: {
+      title: ui(locale, '起動に失敗しました', 'Startup failed'),
+      description: ui(locale, 'ランナーが失敗を返しました。原因を確認してから、もう一度起動できます。', 'The runner reported a failure. Check the state, then try starting again.'),
+      nextTitle: ui(locale, '次の操作', 'Next action'),
+      nextDescription: ui(locale, '再試行で新しい起動要求を送信します。前の処理を自動で繰り返しません。', 'Retry sends a new start request; the previous operation is not repeated automatically.'),
+    },
+    error: {
+      title: ui(locale, '状態を確認できません', 'Could not read the state'),
+      description: ui(locale, 'ランナーから状態を取得できませんでした。起動前にもう一度確認してください。', 'The runner state could not be read. Check it again before starting.'),
+      nextTitle: ui(locale, '次の操作', 'Next action'),
+      nextDescription: ui(locale, '再確認が成功してから、表示された操作を選んでください。', 'After the check succeeds, choose the action shown for the confirmed state.'),
+    },
+  };
+  const copy = stateCopy[runtimeState.kind];
+  const stepLabels: Record<SpaceRuntimeStep, string> = {
+    availability: ui(locale, '利用可否', 'Availability'),
+    queue: ui(locale, 'キュー', 'Queue'),
+    prepare: ui(locale, '準備', 'Prepare'),
+    app: ui(locale, 'アプリ', 'App'),
+  };
+  const stepOrder: SpaceRuntimeStep[] = ['availability', 'queue', 'prepare', 'app'];
+  const currentStepIndex = stepOrder.indexOf(runtimeState.currentStep);
+  const stateIsError = ['unavailable', 'failed', 'error'].includes(runtimeState.kind);
+  const stateRole = stateIsError ? 'alert' : 'status';
+  const stateLive = stateIsError ? 'assertive' : 'polite';
+  const stateTone: Record<SpaceRuntimeStateKind, string> = {
+    checking: 'border-sky-300/30 bg-sky-300/10 text-sky-100',
+    available: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-100',
+    unavailable: 'border-rose-300/30 bg-rose-300/10 text-rose-100',
+    queued: 'border-amber-300/30 bg-amber-300/10 text-amber-100',
+    preparing: 'border-amber-300/30 bg-amber-300/10 text-amber-100',
+    running: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-100',
+    stopping: 'border-amber-300/30 bg-amber-300/10 text-amber-100',
+    failed: 'border-rose-300/30 bg-rose-300/10 text-rose-100',
+    error: 'border-rose-300/30 bg-rose-300/10 text-rose-100',
+  };
+  const statusRetry = runtimeState.kind === 'unavailable'
+    || runtimeState.kind === 'error'
+    || (runtimeState.kind === 'failed' && Boolean(runtime?.error));
+  const stepStatus = (index: number) => {
+    if (stateIsError && index === currentStepIndex) return 'blocked';
+    if (index < currentStepIndex) return 'complete';
+    if (index === currentStepIndex) return 'current';
+    return 'upcoming';
+  };
+
   return (
     <div
       className="nyankoface-space-runner overflow-hidden bg-white dark:bg-zinc-950"
@@ -397,93 +495,132 @@ export default function SpaceRunner({
           ) : null}
         </div>
       ) : (
-        <div className="nyankoface-space-stage relative flex min-h-[calc(100vh-50px)] flex-col overflow-hidden bg-[#090b12] px-7 py-6 text-zinc-400">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(103,90,190,0.58),rgba(45,42,78,0.44)_16%,rgba(9,11,18,0.98)_46%)]" />
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:18px_18px]" />
-          <div className="relative z-10 flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="max-w-[360px] text-2xl font-bold leading-tight text-zinc-300">
+        <div
+          className="nyankoface-space-stage relative flex min-h-[calc(100vh-50px)] flex-col overflow-hidden bg-[#090b12] px-4 py-5 text-zinc-400 sm:px-7 sm:py-6"
+          data-runtime-state-kind={runtimeState.kind}
+          data-runtime-motion={runtimeState.isProgressing ? 'progress' : 'quiet'}
+        >
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(119,99,255,0.12),transparent_42%),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(180deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:auto,18px_18px,18px_18px]" />
+          <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col">
+            <div className="flex flex-col gap-5 border-b border-white/10 pb-5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+                  {ui(locale, 'Space Runner', 'Space Runner')} · {owner}/{repo}
+                </p>
+                <h2 className="mt-2 max-w-2xl truncate text-2xl font-bold leading-tight text-zinc-100 sm:text-3xl">
                   {displayName}
                 </h2>
-                <span className="grid h-6 w-6 place-items-center rounded-full border border-white/20 text-xs text-zinc-400">i</span>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400 sm:text-base">
+                  {description || ui(locale, `${owner}/${repo}として公開されたAIアプリです。`, `AI application published as ${owner}/${repo}.`)}
+                </p>
               </div>
-              <p className="mt-3 max-w-[440px] text-lg leading-7 text-zinc-300">
-                {description || ui(locale, `${owner}/${repo}として公開されたAIアプリです。`, `AI application published as ${owner}/${repo}.`)}
-              </p>
-              <p className="mt-4 text-[11px] font-semibold uppercase tracking-normal text-zinc-500">
-                {ui(locale, '実行基盤', 'Powered by')} <span className="normal-case text-zinc-300">NyankoFace Runner</span>
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={start}
-                disabled={busy || isSpaceRuntimePending(phase)}
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 text-sm font-semibold text-zinc-100 hover:bg-white/10 disabled:cursor-wait disabled:opacity-70"
-              >
-                <HfIcon name={operation === 'start' ? 'spinner' : 'play'} className={`h-3.5 w-3.5 ${operation === 'start' ? 'animate-spin' : ''}`} />
-                {operation === 'start' ? ui(locale, '起動中…', 'Starting…') : ui(locale, '起動', 'Start')}
-              </button>
-              <a
-                href={`/git/${owner}/${repo}/src/branch/main`}
-                aria-label={ui(locale, 'Spaceのファイルを見る', 'View Space files')}
-                title={ui(locale, 'Spaceのファイルを見る', 'View Space files')}
-                className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"
-              >
-                <HfIcon name="file" className="h-4 w-4" />
-              </a>
-              {auth.status === 'authenticated' ? (
+              <div className="flex shrink-0 gap-2">
                 <a
-                  href={`/git/${owner}/${repo}/settings`}
-                  aria-label={ui(locale, 'ForgejoでSpaceの設定を開く', 'Open Space settings in Forgejo')}
-                  title={ui(locale, 'ForgejoでSpaceの設定を開く', 'Open Space settings in Forgejo')}
-                  className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10"
+                  href={`/git/${owner}/${repo}/src/branch/main`}
+                  aria-label={ui(locale, 'Spaceのファイルを見る', 'View Space files')}
+                  title={ui(locale, 'Spaceのファイルを見る', 'View Space files')}
+                  className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300"
                 >
-                  <HfIcon name="gear" className="h-4 w-4" />
+                  <HfIcon name="file" className="h-4 w-4" />
                 </a>
-              ) : null}
+                {auth.status === 'authenticated' ? (
+                  <a
+                    href={`/git/${owner}/${repo}/settings`}
+                    aria-label={ui(locale, 'ForgejoでSpaceの設定を開く', 'Open Space settings in Forgejo')}
+                    title={ui(locale, 'ForgejoでSpaceの設定を開く', 'Open Space settings in Forgejo')}
+                    className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-300"
+                  >
+                    <HfIcon name="gear" className="h-4 w-4" />
+                  </a>
+                ) : null}
+              </div>
             </div>
-          </div>
 
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-8 text-center">
-            <button
-              type="button"
-              onClick={start}
-              disabled={busy || isSpaceRuntimePending(phase)}
-              aria-label={ui(locale, 'このSpaceを起動', 'Start this Space')}
-              title={ui(locale, 'このSpaceを起動', 'Start this Space')}
-              className="group relative grid h-56 w-56 place-items-center rounded-full border border-violet-300/45 bg-violet-500/20 shadow-[0_0_64px_rgba(111,91,255,0.45),inset_0_0_54px_rgba(168,145,255,0.24)] transition hover:scale-[1.02] disabled:cursor-wait disabled:opacity-70 max-sm:h-44 max-sm:w-44"
-            >
-              <span className="absolute inset-[-16px] rounded-full border border-violet-300/10" />
-              <HfIcon
-                name={operation === 'start' ? 'spinner' : 'play'}
-                className={`h-10 w-10 text-violet-100 transition group-hover:scale-110 ${operation === 'start' ? 'animate-spin' : ''}`}
-              />
-            </button>
-            <div className="space-y-2">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.28em] text-zinc-500">
-                {operation === 'start'
-                  ? ui(locale, '起動要求を送信中', 'Sending start request')
-                  : isSpaceRuntimePending(phase)
-                    ? `${statusLabel[phase]} · ${formatElapsedDuration(runtime?.elapsedMs || 0)}`
-                    : ['offline', 'unavailable', 'failed', 'error'].includes(phase)
-                      ? statusLabel[phase]
-                      : ui(locale, 'タップして起動', 'Tap to start')}
-              </p>
-              {runtime?.error ? (
-                <button type="button" onClick={() => void runtime.refresh()} disabled={runtime.checking} className="rounded-md border border-white/15 px-3 py-1.5 text-xs font-semibold text-zinc-300 hover:bg-white/5 disabled:opacity-60">
-                  {runtime.checking ? ui(locale, '再確認中…', 'Checking…') : ui(locale, '状態を再確認', 'Check again')}
-                </button>
-              ) : null}
-              <p className="mx-auto max-w-[300px] text-xs leading-5 text-zinc-500">
-                {ui(locale, '公開Spaceはログインなしでオンデマンド起動できます。', 'Public Spaces can be started on demand without signing in.')}
-              </p>
+            <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.9fr)]">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 sm:p-5">
+                <div className="flex items-start gap-3">
+                  <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${stateTone[runtimeState.kind]} ${runtimeState.isProgressing ? 'motion-safe:animate-pulse' : ''} motion-reduce:animate-none`}>
+                    <HfIcon name={stateIsError ? 'warning' : runtimeState.kind === 'available' ? 'play' : 'space'} className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                        {statusLabel[phase]}
+                      </p>
+                      <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-semibold text-zinc-500">
+                        {execution === 'remote-gpu' ? 'GPU' : 'CPU'}
+                      </span>
+                    </div>
+                    <div role={stateRole} aria-live={stateLive} aria-atomic="true" className="mt-2">
+                      <h3 className="text-xl font-bold text-zinc-100">{copy.title}</h3>
+                      <p className="mt-1 max-w-xl text-sm leading-6 text-zinc-400">{copy.description}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-4 gap-2" aria-label={ui(locale, 'Spaceの準備段階', 'Space readiness stages')}>
+                  {stepOrder.map((step, index) => {
+                    const status = stepStatus(index);
+                    return (
+                      <div key={step} className="min-w-0">
+                        <div className={`mb-2 h-1 rounded-full ${status === 'complete' ? 'bg-emerald-300/70' : status === 'current' ? 'bg-violet-300' : status === 'blocked' ? 'bg-rose-300/75' : 'bg-white/10'}`} />
+                        <p className={`truncate text-[11px] font-semibold ${status === 'current' ? 'text-zinc-100' : status === 'blocked' ? 'text-rose-200' : status === 'complete' ? 'text-emerald-200' : 'text-zinc-600'}`}>
+                          {stepLabels[step]}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-xs text-zinc-600">
+                  {runtimeState.isProgressing
+                    ? `${copy.title} · ${formatElapsedDuration(runtime?.elapsedMs || 0)}`
+                    : ui(locale, '現在の状態を確認してから操作できます。', 'The current state is shown before you act.')}
+                </p>
+              </div>
+
+              <div className="flex flex-col justify-between rounded-2xl border border-white/10 bg-[#111421] p-4 sm:p-5">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">{copy.nextTitle}</p>
+                  <p className="mt-2 text-sm leading-6 text-zinc-300">{copy.nextDescription}</p>
+                </div>
+                <div className="mt-6">
+                  {runtimeState.canStart && !statusRetry ? (
+                    <button
+                      type="button"
+                      onClick={start}
+                      disabled={busy}
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-violet-300/40 bg-violet-300/15 px-4 py-3 text-sm font-semibold text-violet-100 transition hover:bg-violet-300/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-200 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <HfIcon name={operation === 'start' ? 'spinner' : 'play'} className={`h-4 w-4 ${operation === 'start' ? 'motion-safe:animate-spin motion-reduce:animate-none' : ''}`} />
+                      {operation === 'start'
+                        ? ui(locale, '起動要求を送信中…', 'Sending start request…')
+                        : runtimeState.kind === 'failed'
+                          ? ui(locale, 'もう一度起動', 'Try starting again')
+                          : ui(locale, 'Spaceを起動', 'Start this Space')}
+                    </button>
+                  ) : statusRetry ? (
+                    <button
+                      type="button"
+                      onClick={() => void runtime?.refresh()}
+                      disabled={runtime?.checking}
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-zinc-100 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-200 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <HfIcon name={runtime?.checking ? 'spinner' : 'refresh'} className={`h-4 w-4 ${runtime?.checking ? 'motion-safe:animate-spin motion-reduce:animate-none' : ''}`} />
+                      {runtime?.checking ? ui(locale, '再確認中…', 'Checking…') : ui(locale, '状態を再確認', 'Check the state again')}
+                    </button>
+                  ) : (
+                    <div className="flex min-h-11 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-zinc-400" role="status" aria-live="polite">
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${runtimeState.isProgressing ? 'bg-amber-300 motion-safe:animate-pulse motion-reduce:animate-none' : 'bg-zinc-600'}`} />
+                      <span>{runtimeState.isProgressing ? ui(locale, 'このまま待機してください。', 'Please wait here.') : ui(locale, '現在は操作を受け付けていません。', 'No action is available right now.')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div className="relative z-10 pb-1 text-center text-xs text-zinc-600">
-            {ui(locale, '提供', 'Powered by')} {owner}/{repo}
+            <div className="mt-auto pt-6 text-center text-xs text-zinc-600">
+              {ui(locale, '提供', 'Powered by')} {owner}/{repo} · NyankoFace Runner
+            </div>
           </div>
         </div>
       )}

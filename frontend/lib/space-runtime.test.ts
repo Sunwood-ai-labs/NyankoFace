@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   formatElapsedDuration,
+  getSpaceRuntimeState,
   isSpaceGatewayErrorDocument,
   isSpaceRuntimePending,
   isSpaceGatewayPending,
@@ -57,4 +58,27 @@ test('reports pending phases and stable elapsed labels', () => {
   assert.equal(isSpaceRuntimePending('running'), false);
   assert.equal(formatElapsedDuration(9_900), '9s');
   assert.equal(formatElapsedDuration(65_000), '1:05');
+});
+
+test('maps runtime phases to persistent waiting-state rules', () => {
+  assert.deepEqual(getSpaceRuntimeState('stopped'), {
+    kind: 'available',
+    currentStep: 'availability',
+    nextStep: 'queue',
+    isProgressing: false,
+    canStart: true,
+    canRetry: false,
+  });
+  assert.deepEqual(getSpaceRuntimeState('checking'), {
+    kind: 'checking',
+    currentStep: 'availability',
+    nextStep: 'queue',
+    isProgressing: true,
+    canStart: false,
+    canRetry: false,
+  });
+  assert.equal(getSpaceRuntimeState('offline').canStart, false);
+  assert.equal(getSpaceRuntimeState('queued').currentStep, 'queue');
+  assert.equal(getSpaceRuntimeState('warming').currentStep, 'prepare');
+  assert.equal(getSpaceRuntimeState('failed').canRetry, true);
 });
