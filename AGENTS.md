@@ -23,7 +23,7 @@
 - ファイル変更を伴うIssueは、原則としてIssue専用branchと専用worktreeで開始してください。通常のIssue／feature／bugfixは`main`ではなく`origin/develop`から開始します。
    ```powershell
    git fetch origin develop
-   git worktree add ..\NyankoFace-issue-123 -b fix/issue-123 origin/develop
+   git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
    ```
 - repository rootのmain worktreeは、最新mainの同期、統合test、merge後の本番反映だけに使い、feature実装を直接行わないでください。
 - 複数Issueが同じfileまたは同じ状態schemaを変更する場合は並行編集せず、依存PRを先にmergeしてから後続worktreeを最新mainへ更新してください。
