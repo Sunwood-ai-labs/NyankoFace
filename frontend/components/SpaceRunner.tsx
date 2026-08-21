@@ -188,6 +188,7 @@ export default function SpaceRunner({
     if (actionErrorVisible && confirmedRecovery) {
       feedbackEventRef.current = null;
       runtimeFeedbackEventRef.current = null;
+      setErrorMsg(null);
       setFeedback(null);
     }
     if (actionErrorVisible && !confirmedRecovery) return;
@@ -360,6 +361,10 @@ export default function SpaceRunner({
     setBusy(true);
     setOperation(action);
     setErrorMsg(null);
+    if (feedback?.source === 'action' && feedback.kind === 'error') {
+      feedbackEventRef.current = null;
+      setFeedback(null);
+    }
     const startedAt = performance.now();
     actionEpochRef.current += 1;
     const actionEpoch = actionEpochRef.current;
@@ -413,7 +418,8 @@ export default function SpaceRunner({
       const message = actionFeedbackMessage(copy);
       const sameActionErrorVisible = feedback?.source === 'action'
         && feedback.kind === 'error'
-        && feedback.action === action;
+        && feedback.action === action
+        && feedback.eventKey.startsWith(`${actionEventKey}:`);
       const actionRecoveryConfirmed = (action === 'stop' && nextRuntime?.phase === 'stopped')
         || (action === 'start' && nextRuntime?.phase === 'running' && iframePhase === 'ready');
       if (!sameActionErrorVisible || actionRecoveryConfirmed) {
@@ -644,7 +650,10 @@ export default function SpaceRunner({
             <button
               type="button"
               aria-label={ui(locale, '通知を閉じる', 'Dismiss notification')}
-              onClick={() => setFeedback(null)}
+              onClick={() => {
+                if (feedback.source === 'action' && feedback.kind === 'error') setErrorMsg(null);
+                setFeedback(null);
+              }}
               className="rounded p-1 text-current/70 hover:bg-black/5 hover:text-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-current dark:hover:bg-white/10"
             >
               <span aria-hidden="true">×</span>
