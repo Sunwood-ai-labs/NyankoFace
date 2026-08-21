@@ -21,6 +21,7 @@ export interface SpaceRuntimeState {
   isProgressing: boolean;
   canStart: boolean;
   canRetry: boolean;
+  canRetryStart: boolean;
 }
 
 export interface SpaceRuntimeInfo extends SpaceStatusInfo {
@@ -92,6 +93,7 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
       isProgressing: true,
       canStart: false,
       canRetry: false,
+      canRetryStart: false,
     };
   }
   if (phase === 'stopped') {
@@ -102,6 +104,7 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
       isProgressing: false,
       canStart: true,
       canRetry: false,
+      canRetryStart: false,
     };
   }
   if (phase === 'offline' || phase === 'unavailable') {
@@ -112,6 +115,7 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
       isProgressing: false,
       canStart: false,
       canRetry: true,
+      canRetryStart: false,
     };
   }
   if (phase === 'queued') {
@@ -122,6 +126,7 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
       isProgressing: true,
       canStart: false,
       canRetry: false,
+      canRetryStart: false,
     };
   }
   if (phase === 'leased' || phase === 'building' || phase === 'starting' || phase === 'warming') {
@@ -132,6 +137,7 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
       isProgressing: true,
       canStart: false,
       canRetry: false,
+      canRetryStart: false,
     };
   }
   if (phase === 'running') {
@@ -142,6 +148,7 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
       isProgressing: false,
       canStart: false,
       canRetry: false,
+      canRetryStart: false,
     };
   }
   if (phase === 'stopping') {
@@ -152,6 +159,7 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
       isProgressing: true,
       canStart: false,
       canRetry: false,
+      canRetryStart: false,
     };
   }
   if (phase === 'failed') {
@@ -160,8 +168,9 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
       currentStep: 'prepare',
       nextStep: 'queue',
       isProgressing: false,
-      canStart: true,
+      canStart: false,
       canRetry: true,
+      canRetryStart: true,
     };
   }
   return {
@@ -169,8 +178,9 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
     currentStep: 'prepare',
     nextStep: 'queue',
     isProgressing: false,
-    canStart: true,
+    canStart: false,
     canRetry: true,
+    canRetryStart: true,
   };
 }
 

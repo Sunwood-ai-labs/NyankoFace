@@ -354,6 +354,7 @@ export default function SpaceRunner({
   };
   const statusRetry = runtimeState.kind === 'unavailable'
     || (runtimeState.kind === 'failed' && Boolean(runtime?.error));
+  const retryStart = runtimeState.canRetryStart && !statusRetry;
   const stepStatus = (index: number) => {
     if (stateIsError && index === currentStepIndex) return 'blocked';
     if (index < currentStepIndex) return 'complete';
@@ -577,9 +578,19 @@ export default function SpaceRunner({
                       <HfIcon name={operation === 'start' ? 'spinner' : 'play'} className={`h-4 w-4 ${operation === 'start' ? 'motion-safe:animate-spin motion-reduce:animate-none' : ''}`} />
                       {operation === 'start'
                         ? ui(locale, '起動要求を送信中…', 'Sending start request…')
-                          : runtimeState.kind === 'failed' || runtimeState.kind === 'error'
-                            ? ui(locale, 'もう一度起動', 'Try starting again')
-                          : ui(locale, 'Spaceを起動', 'Start this Space')}
+                        : ui(locale, 'Spaceを起動', 'Start this Space')}
+                    </button>
+                  ) : retryStart ? (
+                    <button
+                      type="button"
+                      onClick={start}
+                      disabled={busy}
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-violet-300/40 bg-violet-300/15 px-4 py-3 text-sm font-semibold text-violet-100 transition hover:bg-violet-300/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-200 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <HfIcon name={operation === 'start' ? 'spinner' : 'play'} className={`h-4 w-4 ${operation === 'start' ? 'motion-safe:animate-spin motion-reduce:animate-none' : ''}`} />
+                      {operation === 'start'
+                        ? ui(locale, '起動要求を送信中…', 'Sending start request…')
+                        : ui(locale, 'もう一度起動', 'Try starting again')}
                     </button>
                   ) : statusRetry ? (
                     <button

@@ -68,6 +68,7 @@ test('maps runtime phases to persistent waiting-state rules', () => {
     isProgressing: false,
     canStart: true,
     canRetry: false,
+    canRetryStart: false,
   });
   assert.deepEqual(getSpaceRuntimeState('checking'), {
     kind: 'checking',
@@ -76,6 +77,7 @@ test('maps runtime phases to persistent waiting-state rules', () => {
     isProgressing: true,
     canStart: false,
     canRetry: false,
+    canRetryStart: false,
   });
   assert.equal(getSpaceRuntimeState('offline').canStart, false);
   assert.equal(getSpaceRuntimeState('queued').currentStep, 'queue');
@@ -86,7 +88,9 @@ test('maps runtime phases to persistent waiting-state rules', () => {
     currentStep: 'prepare',
     nextStep: 'queue',
     isProgressing: false,
-    canStart: true,
+    canStart: false,
     canRetry: true,
+    canRetryStart: true,
   });
+  assert.equal(getSpaceRuntimeState('failed').canRetryStart, true);
 });
