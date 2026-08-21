@@ -17,14 +17,14 @@
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
     "@fortawesome/react-fontawesome": "^3.5.0",
     "gray-matter": "4.0.3",
-    "highlight.js": "^11.11.1",
+    "highlight.js": "^11.12.0",
     "marked": "12.0.2",
     "mermaid": "11.16.1",
-    "next": "16.3.0",
+    "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "sanitize-html": "^2.17.6",
-    "smol-toml": "1.7.1"
+    "sanitize-html": "^2.17.7",
+    "smol-toml": "1.8.0"
   },
   "devDependencies": {
     "@types/node": "20.19.43",
