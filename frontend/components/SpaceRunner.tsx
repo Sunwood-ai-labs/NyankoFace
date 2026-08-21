@@ -28,6 +28,10 @@ type ActionFeedbackCopy =
   | { type: 'httpError'; action: SpaceOperation; statusCode: number }
   | { type: 'timeout' }
   | { type: 'connection' };
+type RuntimeFeedbackCopy =
+  | { type: 'ready' }
+  | { type: 'failure'; phase: 'failed' | 'error'; cause: string | null }
+  | { type: 'stopped' };
 type OperationFeedback = {
   source: 'action' | 'runtime';
   kind: 'success' | 'error';
@@ -36,6 +40,7 @@ type OperationFeedback = {
   eventKey: string;
   action?: SpaceOperation;
   copy?: ActionFeedbackCopy;
+  runtimeCopy?: RuntimeFeedbackCopy;
 };
 
 const SPACE_FEEDBACK_SUCCESS_TIMEOUT_MS = 6_000;
@@ -50,6 +55,8 @@ export default function SpaceRunner({
   description?: string | null;
 }) {
   const { locale } = useLocale();
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
   const { auth } = useAuthSession();
   const runtime = useSpaceRuntime();
   const [busy, setBusy] = useState(false);
@@ -75,6 +82,8 @@ export default function SpaceRunner({
   const actionEpochRef = useRef(0);
   const runtimeCycleRef = useRef(0);
   const lastActionRef = useRef<SpaceOperation | null>(null);
+  const lastActionEpochRef = useRef<number | null>(null);
+  const stopTerminalEpochRef = useRef<number | null>(null);
   const previousPhaseRef = useRef<SpaceRuntimePhase>('checking');
 
   const controlBase = `/api/spaces/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
@@ -112,17 +121,30 @@ export default function SpaceRunner({
   function actionFeedbackMessage(copy: ActionFeedbackCopy): string {
     switch (copy.type) {
       case 'startAccepted':
-        return ui(locale, '起動要求を受け付けました。', 'Start request accepted.');
+        return ui(localeRef.current, '起動要求を受け付けました。', 'Start request accepted.');
       case 'stopAccepted':
-        return ui(locale, '停止要求を受け付けました。Spaceを停止中です。', 'Stop request accepted. Space is stopping.');
+        return ui(localeRef.current, '停止要求を受け付けました。Spaceを停止中です。', 'Stop request accepted. Space is stopping.');
       case 'stopPaused':
-        return ui(locale, 'Spaceを一時停止しました。', 'Space paused.');
+        return ui(localeRef.current, 'Spaceを一時停止しました。', 'Space paused.');
       case 'httpError':
         return actionError(copy.action, copy.statusCode);
       case 'timeout':
-        return ui(locale, '操作が30秒でタイムアウトしました。状態を確認してから再度お試しください。', 'The operation timed out after 30 seconds. Check the status before retrying.');
+        return ui(localeRef.current, '操作が30秒でタイムアウトしました。状態を確認してから再度お試しください。', 'The operation timed out after 30 seconds. Check the status before retrying.');
       case 'connection':
-        return ui(locale, 'Space Runnerに接続できませんでした。', 'Could not connect to spaces-runner.');
+        return ui(localeRef.current, 'Space Runnerに接続できませんでした。', 'Could not connect to spaces-runner.');
+    }
+  }
+
+  function runtimeFeedbackMessage(copy: RuntimeFeedbackCopy): string {
+    switch (copy.type) {
+      case 'ready':
+        return ui(localeRef.current, 'Spaceの起動が完了しました。アプリを操作できます。', 'Space is ready. You can use the app now.');
+      case 'failure':
+        return copy.cause
+          ? ui(localeRef.current, `原因: ${copy.cause}`, `Cause: ${copy.cause}`)
+          : ui(localeRef.current, 'ランナーが起動失敗を返しました。状態を確認してから「もう一度起動」を選んでください。', 'The runner reported a startup failure. Check the state, then choose “Try starting again.”');
+      case 'stopped':
+        return ui(localeRef.current, 'Spaceを一時停止しました。', 'Space paused.');
     }
   }
 
@@ -168,37 +190,48 @@ export default function SpaceRunner({
     }
     if (actionErrorVisible && !confirmedRecovery) return;
     if (phase === 'running' && iframePhase === 'ready') {
+      const runtimeCopy: RuntimeFeedbackCopy = { type: 'ready' };
       showRuntimeFeedback({
         source: 'runtime',
         kind: 'success',
-        eventKey: `${eventPrefix}:running:${locale}`,
-        message: ui(locale, 'Spaceの起動が完了しました。アプリを操作できます。', 'Space is ready. You can use the app now.'),
+        eventKey: `${eventPrefix}:${runtimeCopy.type}:running`,
+        message: runtimeFeedbackMessage(runtimeCopy),
+        runtimeCopy,
       });
     } else if (phase === 'failed' || phase === 'error') {
-      const cause = runtime?.runtimeError
-        ? ui(locale, `原因: ${runtime.runtimeError}`, `Cause: ${runtime.runtimeError}`)
-        : ui(locale, 'ランナーが起動失敗を返しました。状態を確認してから「もう一度起動」を選んでください。', 'The runner reported a startup failure. Check the state, then choose “Try starting again.”');
+      const runtimeCopy: RuntimeFeedbackCopy = { type: 'failure', phase, cause: runtime?.runtimeError || null };
       showRuntimeFeedback({
         source: 'runtime',
         kind: 'error',
-        eventKey: `${eventPrefix}:${phase}:${locale}:${runtime?.runtimeError || 'generic'}`,
-        message: cause,
+        eventKey: `${eventPrefix}:${runtimeCopy.type}:${runtimeCopy.phase}:${runtimeCopy.cause || 'generic'}`,
+        message: runtimeFeedbackMessage(runtimeCopy),
+        runtimeCopy,
       });
     } else if (phase === 'stopped' && phaseChanged && lastActionRef.current === 'stop') {
+      const stopEpoch = lastActionEpochRef.current;
+      if (stopEpoch === null || stopTerminalEpochRef.current === stopEpoch) return;
+      const runtimeCopy: RuntimeFeedbackCopy = { type: 'stopped' };
+      stopTerminalEpochRef.current = stopEpoch;
       showRuntimeFeedback({
         source: 'runtime',
         kind: 'success',
-        eventKey: `${eventPrefix}:stopped:${locale}`,
-        message: ui(locale, 'Spaceを一時停止しました。', 'Space paused.'),
+        eventKey: `${eventPrefix}:stopped:${stopEpoch}`,
+        message: runtimeFeedbackMessage(runtimeCopy),
+        runtimeCopy,
       });
       lastActionRef.current = null;
+      lastActionEpochRef.current = null;
     }
   }, [feedback?.action, feedback?.kind, feedback?.source, iframePhase, locale, phase, runtime?.runtimeError]);
 
   useEffect(() => {
     setFeedback((current) => {
-      if (current?.source !== 'action' || !current.copy) return current;
-      const message = actionFeedbackMessage(current.copy);
+      if (current?.source === 'action' && current.copy) {
+        const message = actionFeedbackMessage(current.copy);
+        return current.message === message ? current : { ...current, message };
+      }
+      if (current?.source !== 'runtime' || !current.runtimeCopy) return current;
+      const message = runtimeFeedbackMessage(current.runtimeCopy);
       return current.message === message ? current : { ...current, message };
     });
   }, [locale]);
@@ -310,14 +343,14 @@ export default function SpaceRunner({
 
   function actionError(action: SpaceOperation, statusCode: number): string {
     if (statusCode === 401) {
-      return ui(locale, 'Forgejoにログインして再度お試しください。', 'Sign in to Forgejo, then try again.');
+      return ui(localeRef.current, 'Forgejoにログインして再度お試しください。', 'Sign in to Forgejo, then try again.');
     }
     if (statusCode === 403) {
-      return ui(locale, 'このSpaceへの書き込み権限が必要です。', 'Write permission on this Space is required.');
+      return ui(localeRef.current, 'このSpaceへの書き込み権限が必要です。', 'Write permission on this Space is required.');
     }
     return action === 'start'
-      ? ui(locale, `Spaceの起動に失敗しました (HTTP ${statusCode})`, `Failed to start this Space (HTTP ${statusCode})`)
-      : ui(locale, `Spaceの一時停止に失敗しました (HTTP ${statusCode})`, `Failed to pause this Space (HTTP ${statusCode})`);
+      ? ui(localeRef.current, `Spaceの起動に失敗しました (HTTP ${statusCode})`, `Failed to start this Space (HTTP ${statusCode})`)
+      : ui(localeRef.current, `Spaceの一時停止に失敗しました (HTTP ${statusCode})`, `Failed to pause this Space (HTTP ${statusCode})`);
   }
 
   async function runAction(action: SpaceOperation) {
@@ -327,8 +360,11 @@ export default function SpaceRunner({
     setErrorMsg(null);
     const startedAt = performance.now();
     actionEpochRef.current += 1;
+    const actionEpoch = actionEpochRef.current;
     lastActionRef.current = action;
-    const actionEventKey = `action:${action}:${actionEpochRef.current}`;
+    lastActionEpochRef.current = actionEpoch;
+    if (action === 'stop') stopTerminalEpochRef.current = null;
+    const actionEventKey = `action:${action}:${actionEpoch}`;
     const controller = new AbortController();
     actionControllerRef.current = controller;
     const timeout = window.setTimeout(() => controller.abort(), 30_000);
@@ -342,7 +378,10 @@ export default function SpaceRunner({
       if (!res.ok) {
         const copy: ActionFeedbackCopy = { type: 'httpError', action, statusCode: res.status };
         const message = actionFeedbackMessage(copy);
-        if (action === 'stop') lastActionRef.current = null;
+        if (action === 'stop') {
+          lastActionRef.current = null;
+          lastActionEpochRef.current = null;
+        }
         setErrorMsg(message);
         showFeedback({ source: 'action', action, copy, kind: 'error', message, durationMs, eventKey: `${actionEventKey}:error:${res.status}` });
         return;
@@ -353,7 +392,15 @@ export default function SpaceRunner({
         ? runtime?.applyPayload(json)
         : await runtime?.refresh();
       if (!mountedRef.current) return;
-      if (action === 'stop' && nextRuntime?.phase === 'stopped') lastActionRef.current = null;
+      const stopTerminalAlreadyShown = action === 'stop'
+        && nextRuntime?.phase === 'stopped'
+        && stopTerminalEpochRef.current === actionEpoch;
+      if (action === 'stop' && nextRuntime?.phase === 'stopped') {
+        if (!stopTerminalAlreadyShown) stopTerminalEpochRef.current = actionEpoch;
+        lastActionRef.current = null;
+        lastActionEpochRef.current = null;
+      }
+      if (stopTerminalAlreadyShown) return;
       const copy: ActionFeedbackCopy = action === 'start'
         ? { type: 'startAccepted' }
         : nextRuntime?.phase === 'stopped'
@@ -363,7 +410,10 @@ export default function SpaceRunner({
       showFeedback({ source: 'action', action, copy, kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
     } catch (error) {
       if (!mountedRef.current) return;
-      if (action === 'stop') lastActionRef.current = null;
+      if (action === 'stop') {
+        lastActionRef.current = null;
+        lastActionEpochRef.current = null;
+      }
       const copy: ActionFeedbackCopy = error instanceof DOMException && error.name === 'AbortError'
         ? { type: 'timeout' }
         : { type: 'connection' };
