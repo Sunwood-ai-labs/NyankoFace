@@ -156,12 +156,13 @@ export default function SpaceRunner({
       (feedback.action === 'start' && phase === 'running' && iframePhase === 'ready')
       || (feedback.action === 'stop' && phase === 'stopped')
     );
-    if (runtimeRecovered || (actionErrorVisible && confirmedRecovery)) {
+    const runtimeFeedbackRecovered = runtimeRecovered && feedback?.source !== 'action';
+    if (runtimeFeedbackRecovered || (actionErrorVisible && confirmedRecovery)) {
       feedbackEventRef.current = null;
       runtimeFeedbackEventRef.current = null;
       if (feedback?.kind === 'error') setFeedback(null);
     }
-    if (actionErrorVisible && !runtimeRecovered && !confirmedRecovery) return;
+    if (actionErrorVisible && !confirmedRecovery) return;
     if (phase === 'running' && iframePhase === 'ready') {
       showRuntimeFeedback({
         source: 'runtime',
