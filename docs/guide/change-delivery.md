@@ -96,11 +96,22 @@ acceptance criteria, and merge order are demonstrably independent.
 
 ### One worktree per issue
 
-Start file-changing issues in a dedicated branch and worktree:
+Start normal file-changing issues in a dedicated branch and worktree. This
+`origin/develop` path is for normal Issue, feature, and bugfix work:
 
 ```powershell
 git fetch origin develop
 git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
+```
+
+For an emergency production hotfix, do not use the normal Issue path. Start a
+dedicated hotfix worktree from `origin/main`, target the hotfix PR at `main`,
+and back-merge the same fix to `develop` after the production merge, tag, and
+verification:
+
+```powershell
+git fetch origin main
+git worktree add ../NyankoFace-hotfix-123 -b hotfix/issue-123 origin/main
 ```
 
 Reserve the main worktree for synchronizing main, integration tests, and

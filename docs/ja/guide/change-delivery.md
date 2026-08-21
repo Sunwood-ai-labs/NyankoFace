@@ -121,11 +121,21 @@ branch、受入条件、merge順序が独立していることを先に確認し
 
 ### Issue単位のworktree
 
-ファイル変更を伴うIssueは、専用branchと専用worktreeへ分離します。
+通常のIssue、feature、bugfixなど、ファイル変更を伴う作業は専用branchと
+専用worktreeへ分離します。次の `origin/develop` 起点の手順は通常作業用です。
 
 ```powershell
 git fetch origin develop
 git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
+```
+
+本番環境の緊急hotfixでは、通常Issueの手順を使いません。`origin/main`から
+専用hotfix worktreeを作成し、PRのbaseを`main`にします。本番merge、tag、検証後に
+同じ修正を`develop`へback-mergeしてからworktreeを整理します。
+
+```powershell
+git fetch origin main
+git worktree add ../NyankoFace-hotfix-123 -b hotfix/issue-123 origin/main
 ```
 
 main worktreeは最新mainの同期、統合test、merge後の本番反映だけに使います。
