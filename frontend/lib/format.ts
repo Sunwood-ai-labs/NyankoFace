@@ -57,3 +57,10 @@ export function formatBytes(bytes: number | undefined | null): string {
   const value = bytes / Math.pow(1024, idx);
   return `${idx === 0 ? value : value.toFixed(1)} ${units[idx]}`;
 }
+
+export function formatCompactCount(value: number, locale: 'ja' | 'en'): string {
+  return new Intl.NumberFormat(locale === 'ja' ? 'ja-JP' : 'en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value);
+}

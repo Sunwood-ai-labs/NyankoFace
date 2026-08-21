@@ -1,0 +1,7 @@
+interface:
+  display_name: "NyankoFace Issue Manager"
+  short_description: "既存Issueを調査して安全に起票・分類"
+  default_prompt: "Use $nyankoface-issue-manager to search for duplicates, create a labeled GitHub Issue, and verify the saved body."
+
+policy:
+  allow_implicit_invocation: true
