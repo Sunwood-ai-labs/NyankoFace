@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { KnowledgeArticle, searchKnowledgeArticles } from '@/lib/knowledge';
-import { timeAgoEn, timeAgoJa } from '@/lib/format';
+import { formatCompactCount, timeAgoEn, timeAgoJa } from '@/lib/format';
 import { getLocale } from '@/lib/i18n-server';
 import { Locale, ui } from '@/lib/i18n';
 import { getKnowledgeMetricsBatch, getRepoMetricsBatch } from '@/lib/agent-metrics';
@@ -69,7 +69,7 @@ export function KnowledgeLikeCount({
       data-metric-state={available ? 'available' : 'unavailable'}
     >
       <HfIcon name="heart" className="h-3 w-3" />
-      {available ? likes : '—'}
+      {available ? formatCompactCount(likes, locale) : '—'}
     </span>
   );
 }
@@ -162,7 +162,7 @@ function DocCard({
           )}
           <span className="min-w-0 truncate" title={article.owner}>{article.owner}</span>
         </span>
-        <span className="flex shrink-0 items-center gap-2">
+        <span className="flex shrink-0 items-center gap-1.5">
           <KnowledgeLikeCount
             available={article.likesAvailable === true}
             likes={article.likes}

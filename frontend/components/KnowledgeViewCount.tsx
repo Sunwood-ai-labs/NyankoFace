@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import HfIcon from '@/components/HfIcon';
 import { useLocale } from './LocaleProvider';
 import { ui } from '@/lib/i18n';
+import { formatCompactCount } from '@/lib/format';
 
 type ViewResponse = {
   metrics?: { views?: number };
@@ -27,6 +28,7 @@ export default function KnowledgeViewCount({
   const [views, setViews] = useState(initialViews);
   const [state, setState] = useState<'available' | 'loading' | 'error'>(initialAvailable ? 'available' : record ? 'loading' : 'error');
   const { locale } = useLocale();
+  const compactViews = formatCompactCount(views, locale);
 
   useEffect(() => {
     if (!record) return;
@@ -73,7 +75,7 @@ export default function KnowledgeViewCount({
       data-metric-state={state}
     >
       <HfIcon name="eye" className={`h-3.5 w-3.5 ${state === 'loading' ? 'animate-pulse' : ''}`} />
-      {state === 'available' ? ui(locale, `${views} views`, `${views} views`) : '—'}
+      {state === 'available' ? ui(locale, `${compactViews} views`, `${compactViews} views`) : '—'}
     </span>
   );
 }

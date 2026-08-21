@@ -3,6 +3,7 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { KnowledgeLikeCount } from '../components/DocsDirectoryPage';
+import { formatCompactCount } from './format';
 
 test('knowledge likes render an unavailable marker instead of a fabricated zero', () => {
   const html = renderToStaticMarkup(createElement(KnowledgeLikeCount, {
@@ -27,4 +28,16 @@ test('knowledge likes render the recorded value when metrics are available', () 
   assert.match(html, /data-metric-state="available"/);
   assert.match(html, /title="12 repository likes"/);
   assert.match(html, />12<\/span>/);
+});
+
+test('knowledge metric labels stay compact while retaining the full accessible count', () => {
+  const html = renderToStaticMarkup(createElement(KnowledgeLikeCount, {
+    available: true,
+    likes: 9876543210,
+    locale: 'en',
+  }));
+
+  assert.match(html, /title="9876543210 repository likes"/);
+  assert.match(html, />9\.9B<\/span>/);
+  assert.equal(formatCompactCount(123456, 'ja'), '12.3万');
 });
