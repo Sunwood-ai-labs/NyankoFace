@@ -36,7 +36,7 @@ export function KnowledgeListSkeleton() {
       </div>
       <Pulse className="mt-8 h-8 w-48" />
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 8 }, (_, index) => <Pulse key={index} className="h-[190px] rounded-xl" />)}
+        {Array.from({ length: 8 }, (_, index) => <Pulse key={index} className="h-[208px] rounded-xl" />)}
       </div>
     </section>
   );
