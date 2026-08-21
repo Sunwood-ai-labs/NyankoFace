@@ -104,8 +104,8 @@ export default function SpaceRunner({
         message: ui(locale, 'Spaceの起動が完了しました。アプリを操作できます。', 'Space is ready. You can use the app now.'),
       });
     } else if (phase === 'failed' || phase === 'error') {
-      const cause = runtime?.error
-        ? ui(locale, `原因: ${runtime.error}`, `Cause: ${runtime.error}`)
+      const cause = runtime?.runtimeError
+        ? ui(locale, `原因: ${runtime.runtimeError}`, `Cause: ${runtime.runtimeError}`)
         : ui(locale, 'ランナーが起動失敗を返しました。状態を確認してから「もう一度起動」を選んでください。', 'The runner reported a startup failure. Check the state, then choose “Try starting again.”');
       showFeedback({
         kind: 'error',
@@ -113,7 +113,7 @@ export default function SpaceRunner({
         message: cause,
       });
     }
-  }, [locale, phase, runtime?.error]);
+  }, [locale, phase, runtime?.runtimeError]);
 
   useEffect(() => {
     if (iframeTimeoutRef.current !== null) {
@@ -238,7 +238,7 @@ export default function SpaceRunner({
     setOperation(action);
     setErrorMsg(null);
     const startedAt = performance.now();
-    if (action === 'start') actionEpochRef.current += 1;
+    actionEpochRef.current += 1;
     const actionEventKey = `action:${action}:${actionEpochRef.current}`;
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 30_000);
@@ -255,11 +255,14 @@ export default function SpaceRunner({
         return;
       }
       const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-      if (json) runtime?.applyPayload(json);
-      else await runtime?.refresh();
+      const nextRuntime = json
+        ? runtime?.applyPayload(json)
+        : await runtime?.refresh();
       const message = action === 'start'
         ? ui(locale, '起動要求を受け付けました。', 'Start request accepted.')
-        : ui(locale, 'Spaceを一時停止しました。', 'Space paused.');
+        : nextRuntime?.phase === 'stopped'
+          ? ui(locale, 'Spaceを一時停止しました。', 'Space paused.')
+          : ui(locale, '停止要求を受け付けました。Spaceを停止中です。', 'Stop request accepted. Space is stopping.');
       showFeedback({ kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
     } catch (error) {
       const message = error instanceof DOMException && error.name === 'AbortError'

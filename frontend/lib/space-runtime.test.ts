@@ -19,6 +19,10 @@ test('normalizes runner states without hiding startup and offline phases', () =>
   assert.equal(normalizeSpaceRuntime({ state: 'starting' }).phase, 'starting');
   assert.equal(normalizeSpaceRuntime({ status: 'worker-offline' }).phase, 'offline');
   assert.equal(normalizeSpaceRuntime({ status: 'build_failed' }).phase, 'failed');
+  assert.equal(
+    normalizeSpaceRuntime({ status: 'build_failed', error: '  image pull failed  ' }).runtimeError,
+    'image pull failed',
+  );
   assert.equal(normalizeSpaceRuntime({ status: 'running' }).status, 'running');
   assert.deepEqual(normalizeSpaceRuntime({ status: 'cancel_requested', execution: 'remote-gpu' }), {
     status: 'stopping',

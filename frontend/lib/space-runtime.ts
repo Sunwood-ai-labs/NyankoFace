@@ -26,12 +26,14 @@ export interface SpaceRuntimeState {
 
 export interface SpaceRuntimeInfo extends SpaceStatusInfo {
   phase: SpaceRuntimePhase;
+  runtimeError?: string;
 }
 
 type RuntimePayload = {
   status?: unknown;
   state?: unknown;
   execution?: unknown;
+  error?: unknown;
 };
 
 export const SPACE_STATUS_TIMEOUT_MS = 8_000;
@@ -61,6 +63,12 @@ export function isSpaceGatewayErrorDocument(
 }
 
 export function normalizeSpaceRuntime(payload: RuntimePayload | null): SpaceRuntimeInfo {
+  const runtime = normalizeSpaceRuntimeBase(payload);
+  const runtimeError = typeof payload?.error === 'string' ? payload.error.trim() : '';
+  return runtimeError ? { ...runtime, runtimeError } : runtime;
+}
+
+function normalizeSpaceRuntimeBase(payload: RuntimePayload | null): SpaceRuntimeInfo {
   const raw = String(payload?.status ?? payload?.state ?? '').trim().toLowerCase();
   const execution: SpaceExecution = payload?.execution === 'remote-gpu' ? 'remote-gpu' : 'local-cpu';
 
