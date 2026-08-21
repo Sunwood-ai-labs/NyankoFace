@@ -323,10 +323,10 @@ export default function SpaceRunner({
       nextDescription: ui(locale, '再試行で新しい起動要求を送信します。前の処理を自動で繰り返しません。', 'Retry sends a new start request; the previous operation is not repeated automatically.'),
     },
     error: {
-      title: ui(locale, '状態を確認できません', 'Could not read the state'),
-      description: ui(locale, 'ランナーから状態を取得できませんでした。起動前にもう一度確認してください。', 'The runner state could not be read. Check it again before starting.'),
-      nextTitle: ui(locale, '次の操作', 'Next action'),
-      nextDescription: ui(locale, '再確認が成功してから、表示された操作を選んでください。', 'After the check succeeds, choose the action shown for the confirmed state.'),
+      title: ui(locale, '起動に失敗しました', 'Startup failed'),
+      description: ui(locale, 'ランナーがエラーを返しました。原因を確認してから、もう一度起動できます。', 'The runner reported an error. Check the cause, then try starting again.'),
+      nextTitle: ui(locale, 'もう一度起動', 'Try starting again'),
+      nextDescription: ui(locale, '再試行で新しい起動要求を送信します。前の処理を自動で繰り返しません。', 'Retry sends a new start request; the previous operation is not repeated automatically.'),
     },
   };
   const copy = stateCopy[runtimeState.kind];
@@ -353,7 +353,6 @@ export default function SpaceRunner({
     error: 'border-rose-300/30 bg-rose-300/10 text-rose-100',
   };
   const statusRetry = runtimeState.kind === 'unavailable'
-    || runtimeState.kind === 'error'
     || (runtimeState.kind === 'failed' && Boolean(runtime?.error));
   const stepStatus = (index: number) => {
     if (stateIsError && index === currentStepIndex) return 'blocked';
@@ -578,8 +577,8 @@ export default function SpaceRunner({
                       <HfIcon name={operation === 'start' ? 'spinner' : 'play'} className={`h-4 w-4 ${operation === 'start' ? 'motion-safe:animate-spin motion-reduce:animate-none' : ''}`} />
                       {operation === 'start'
                         ? ui(locale, '起動要求を送信中…', 'Sending start request…')
-                        : runtimeState.kind === 'failed'
-                          ? ui(locale, 'もう一度起動', 'Try starting again')
+                          : runtimeState.kind === 'failed' || runtimeState.kind === 'error'
+                            ? ui(locale, 'もう一度起動', 'Try starting again')
                           : ui(locale, 'Spaceを起動', 'Start this Space')}
                     </button>
                   ) : statusRetry ? (

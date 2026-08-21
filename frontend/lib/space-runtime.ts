@@ -166,10 +166,10 @@ export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeStat
   }
   return {
     kind: 'error',
-    currentStep: 'availability',
-    nextStep: null,
+    currentStep: 'prepare',
+    nextStep: 'queue',
     isProgressing: false,
-    canStart: false,
+    canStart: true,
     canRetry: true,
   };
 }
