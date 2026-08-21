@@ -378,6 +378,9 @@ export default function SpaceRunner({
       if (!mountedRef.current) return;
       const durationMs = responseDuration(res, startedAt);
       if (!res.ok) {
+        const terminalStopAlreadyShown = action === 'stop'
+          && stopTerminalEpochRef.current === actionEpoch;
+        if (terminalStopAlreadyShown) return;
         const copy: ActionFeedbackCopy = { type: 'httpError', action, statusCode: res.status };
         const message = actionFeedbackMessage(copy);
         if (action === 'stop') {
@@ -418,6 +421,9 @@ export default function SpaceRunner({
       }
     } catch (error) {
       if (!mountedRef.current) return;
+      const terminalStopAlreadyShown = action === 'stop'
+        && stopTerminalEpochRef.current === actionEpoch;
+      if (terminalStopAlreadyShown) return;
       if (action === 'stop') {
         lastActionRef.current = null;
         lastActionEpochRef.current = null;
