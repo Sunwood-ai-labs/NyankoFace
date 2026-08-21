@@ -96,22 +96,39 @@ acceptance criteria, and merge order are demonstrably independent.
 
 ### One worktree per issue
 
-Start file-changing issues in a dedicated branch and worktree:
+Start normal file-changing issues in a dedicated branch and worktree. This
+`origin/develop` path is for normal Issue, feature, and bugfix work:
 
 ```powershell
-git fetch origin
-git worktree add ..\NyankoFace-issue-123 -b fix/issue-123 origin/main
+git fetch origin develop
+git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
 ```
 
-Reserve the main worktree for synchronizing main, integration tests, and
-post-merge deployment. Keep each issue worktree limited to one issue, one set
-of acceptance criteria, and one PR. Do not implement issues concurrently when
+For an emergency production hotfix, do not use the normal Issue path. Start a
+dedicated hotfix worktree from `origin/main`, target the hotfix PR at `main`,
+and back-merge the same fix to `develop` after the production merge, tag, and
+verification:
+
+```powershell
+git fetch origin main
+git worktree add ../NyankoFace-hotfix-123 -b hotfix/issue-123 origin/main
+```
+
+Reserve the main worktree for synchronizing main, release/hotfix integration,
+and post-merge deployment. Normal issue merges terminate at `develop`; do not
+route them through `main`. Keep each issue worktree limited to one issue, one
+set of acceptance criteria, and one PR. Do not implement issues concurrently when
 they modify the same files or state schema; merge the prerequisite PR first,
-then update the dependent worktree from main. Move newly discovered unrelated
+then update the dependent worktree from develop. Move newly discovered unrelated
 work into another issue and worktree.
 
-After merge and production verification, confirm there are no unpushed commits
-or user-owned changes before removing the worktree and local branch.
+After a normal PR merges into `develop` and integration verification passes,
+confirm there are no unpushed commits or user-owned changes before removing
+the worktree and local branch. If the PR is tied to an Issue, close that Issue
+explicitly with `gh issue close <issue-number>` and verify its closed state;
+because `develop` is not the default branch, do not rely on PR keywords for
+automatic closure. For a release, hotfix, or approved dependency update
+targeting `main`, wait for production verification before cleanup.
 
 CI owns builds, lint, unit and integration tests, configuration checks, and
 documentation builds. Tests use isolated temporary directories. Visual QA

@@ -121,38 +121,53 @@ branch、受入条件、merge順序が独立していることを先に確認し
 
 ### Issue単位のworktree
 
-ファイル変更を伴うIssueは、専用branchと専用worktreeへ分離します。
+通常のIssue、feature、bugfixなど、ファイル変更を伴う作業は専用branchと
+専用worktreeへ分離します。次の `origin/develop` 起点の手順は通常作業用です。
 
 ```powershell
-git fetch origin
-git worktree add ..\NyankoFace-issue-123 -b fix/issue-123 origin/main
+git fetch origin develop
+git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
 ```
 
-main worktreeは最新mainの同期、統合test、merge後の本番反映だけに使います。
+本番環境の緊急hotfixでは、通常Issueの手順を使いません。`origin/main`から
+専用hotfix worktreeを作成し、PRのbaseを`main`にします。本番merge、tag、検証後に
+同じ修正を`develop`へback-mergeしてからworktreeを整理します。
+
+```powershell
+git fetch origin main
+git worktree add ../NyankoFace-hotfix-123 -b hotfix/issue-123 origin/main
+```
+
+main worktreeは最新mainの同期、release／hotfixの統合、merge後の本番反映だけに
+使います。通常Issueのmerge先は`develop`であり、`main`を経由させません。
 feature実装はIssue worktreeで行い、1 worktreeを1 Issue、1受入条件set、1 PRに
 限定します。
 
 ```mermaid
 flowchart TD
-    M[main worktree<br/>統合・配備専用]
-    M --> A[issue-123 worktree<br/>Pages]
-    M --> B[issue-124 worktree<br/>Space API]
+    D[develop worktree<br/>通常統合]
+    D --> A[issue-123 worktree<br/>Pages]
+    D --> B[issue-124 worktree<br/>Space API]
     A --> PA[PR #123]
     B --> PB[PR #124]
     PA --> V{同じfileやschemaへ依存?}
-    V -->|yes| U[先行PRをmerge<br/>後続をmainへ更新]
+    V -->|yes| U[先行PRをmerge<br/>後続をdevelopへ更新]
     V -->|no| T[独立testとreview]
     U --> T
-    T --> M
+    T --> D
+    M[main worktree<br/>release／hotfix・配備専用]
 ```
 
 同じfileや状態schemaを触るIssueは並行実装しません。依存する基盤PRを先にmergeし、
-後続worktreeを最新mainへ更新します。途中で見つけた別問題は別Issue・別worktreeへ
-移します。mergeと本番確認後、未push commitやユーザー所有変更がないことを確認して
-worktreeを削除します。
+後続worktreeを最新developへ更新します。途中で見つけた別問題は別Issue・別worktreeへ
+移します。通常PRは`develop`へのmergeと統合検証後、未push commitやユーザー所有変更が
+ないことを確認してworktreeを削除します。PRにIssueが紐づく場合は、`develop`がdefault
+branchではないためPR keywordによる自動closeに依存せず、`gh issue close <issue-number>`
+などでIssueを明示的にcloseし、closed状態を確認します。release／hotfixまたは`main`向けの
+承認済み自動依存更新は、本番検証後にworktreeを削除します。
 
 ```powershell
-git worktree remove ..\NyankoFace-issue-123
+git worktree remove ../NyankoFace-issue-123
 git branch -d fix/issue-123
 ```
 
