@@ -102,10 +102,10 @@ export default function SpaceRunner({
 
   useEffect(() => {
     const previousPhase = previousPhaseRef.current;
-    if (previousPhase === phase) return;
-    previousPhaseRef.current = phase;
+    const phaseChanged = previousPhase !== phase;
+    if (phaseChanged) previousPhaseRef.current = phase;
     const eventPrefix = `runtime:${actionEpochRef.current}`;
-    if (phase === 'running') {
+    if (phase === 'running' && iframePhase === 'ready') {
       showFeedback({
         kind: 'success',
         eventKey: `${eventPrefix}:running`,
@@ -117,18 +117,21 @@ export default function SpaceRunner({
         : ui(locale, 'ランナーが起動失敗を返しました。状態を確認してから「もう一度起動」を選んでください。', 'The runner reported a startup failure. Check the state, then choose “Try starting again.”');
       showFeedback({
         kind: 'error',
-        eventKey: `${eventPrefix}:${phase}`,
+        eventKey: `${eventPrefix}:${phase}:${runtime?.runtimeError || 'generic'}`,
         message: cause,
       });
-    } else if (phase === 'stopped' && previousPhase === 'stopping' && lastActionRef.current === 'stop') {
+    } else if (phase === 'stopped' && phaseChanged && previousPhase === 'stopping' && lastActionRef.current === 'stop') {
       showFeedback({
         kind: 'success',
         eventKey: `${eventPrefix}:stopped`,
         message: ui(locale, 'Spaceを一時停止しました。', 'Space paused.'),
       });
       lastActionRef.current = null;
+    } else if (phaseChanged && (previousPhase === 'failed' || previousPhase === 'error') && feedback?.kind === 'error') {
+      feedbackEventRef.current = null;
+      setFeedback(null);
     }
-  }, [locale, phase, runtime?.runtimeError]);
+  }, [feedback?.kind, iframePhase, locale, phase, runtime?.runtimeError]);
 
   useEffect(() => {
     if (iframeTimeoutRef.current !== null) {
@@ -419,8 +422,8 @@ export default function SpaceRunner({
   const stepOrder: SpaceRuntimeStep[] = ['availability', 'queue', 'prepare', 'app'];
   const currentStepIndex = stepOrder.indexOf(runtimeState.currentStep);
   const stateIsError = ['unavailable', 'failed', 'error'].includes(runtimeState.kind);
-  const stateRole = stateIsError ? 'alert' : 'status';
-  const stateLive = stateIsError ? 'assertive' : 'polite';
+  const stateRole = ['failed', 'error'].includes(runtimeState.kind) ? 'status' : stateIsError ? 'alert' : 'status';
+  const stateLive = stateRole === 'alert' ? 'assertive' : 'polite';
   const stateTone: Record<SpaceRuntimeStateKind, string> = {
     checking: 'border-sky-300/30 bg-sky-300/10 text-sky-100',
     available: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-100',
