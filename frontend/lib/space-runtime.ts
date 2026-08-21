@@ -2,15 +2,38 @@ import type { SpaceExecution, SpaceStatus, SpaceStatusInfo } from './space-statu
 
 export type SpaceRuntimePhase = SpaceStatus | 'checking' | 'starting' | 'warming' | 'offline';
 export type SpaceIframePhase = 'idle' | 'loading' | 'ready' | 'timeout' | 'error';
+export type SpaceRuntimeStateKind =
+  | 'checking'
+  | 'available'
+  | 'unavailable'
+  | 'queued'
+  | 'preparing'
+  | 'running'
+  | 'stopping'
+  | 'failed'
+  | 'error';
+export type SpaceRuntimeStep = 'availability' | 'queue' | 'prepare' | 'app';
+
+export interface SpaceRuntimeState {
+  kind: SpaceRuntimeStateKind;
+  currentStep: SpaceRuntimeStep;
+  nextStep: SpaceRuntimeStep | null;
+  isProgressing: boolean;
+  canStart: boolean;
+  canRetry: boolean;
+  canRetryStart: boolean;
+}
 
 export interface SpaceRuntimeInfo extends SpaceStatusInfo {
   phase: SpaceRuntimePhase;
+  runtimeError?: string;
 }
 
 type RuntimePayload = {
   status?: unknown;
   state?: unknown;
   execution?: unknown;
+  error?: unknown;
 };
 
 export const SPACE_STATUS_TIMEOUT_MS = 8_000;
@@ -40,6 +63,12 @@ export function isSpaceGatewayErrorDocument(
 }
 
 export function normalizeSpaceRuntime(payload: RuntimePayload | null): SpaceRuntimeInfo {
+  const runtime = normalizeSpaceRuntimeBase(payload);
+  const runtimeError = typeof payload?.error === 'string' ? payload.error.trim() : '';
+  return runtimeError ? { ...runtime, runtimeError } : runtime;
+}
+
+function normalizeSpaceRuntimeBase(payload: RuntimePayload | null): SpaceRuntimeInfo {
   const raw = String(payload?.status ?? payload?.state ?? '').trim().toLowerCase();
   const execution: SpaceExecution = payload?.execution === 'remote-gpu' ? 'remote-gpu' : 'local-cpu';
 
@@ -61,6 +90,106 @@ export function normalizeSpaceRuntime(payload: RuntimePayload | null): SpaceRunt
     return { status: 'stopped', phase: 'stopped', execution };
   }
   return { status: 'error', phase: 'error', execution };
+}
+
+export function getSpaceRuntimeState(phase: SpaceRuntimePhase): SpaceRuntimeState {
+  if (phase === 'checking') {
+    return {
+      kind: 'checking',
+      currentStep: 'availability',
+      nextStep: 'queue',
+      isProgressing: true,
+      canStart: false,
+      canRetry: false,
+      canRetryStart: false,
+    };
+  }
+  if (phase === 'stopped') {
+    return {
+      kind: 'available',
+      currentStep: 'availability',
+      nextStep: 'queue',
+      isProgressing: false,
+      canStart: true,
+      canRetry: false,
+      canRetryStart: false,
+    };
+  }
+  if (phase === 'offline' || phase === 'unavailable') {
+    return {
+      kind: 'unavailable',
+      currentStep: 'availability',
+      nextStep: null,
+      isProgressing: false,
+      canStart: false,
+      canRetry: true,
+      canRetryStart: false,
+    };
+  }
+  if (phase === 'queued') {
+    return {
+      kind: 'queued',
+      currentStep: 'queue',
+      nextStep: 'prepare',
+      isProgressing: true,
+      canStart: false,
+      canRetry: false,
+      canRetryStart: false,
+    };
+  }
+  if (phase === 'leased' || phase === 'building' || phase === 'starting' || phase === 'warming') {
+    return {
+      kind: 'preparing',
+      currentStep: 'prepare',
+      nextStep: 'app',
+      isProgressing: true,
+      canStart: false,
+      canRetry: false,
+      canRetryStart: false,
+    };
+  }
+  if (phase === 'running') {
+    return {
+      kind: 'running',
+      currentStep: 'app',
+      nextStep: null,
+      isProgressing: false,
+      canStart: false,
+      canRetry: false,
+      canRetryStart: false,
+    };
+  }
+  if (phase === 'stopping') {
+    return {
+      kind: 'stopping',
+      currentStep: 'availability',
+      nextStep: 'queue',
+      isProgressing: true,
+      canStart: false,
+      canRetry: false,
+      canRetryStart: false,
+    };
+  }
+  if (phase === 'failed') {
+    return {
+      kind: 'failed',
+      currentStep: 'prepare',
+      nextStep: 'queue',
+      isProgressing: false,
+      canStart: false,
+      canRetry: true,
+      canRetryStart: true,
+    };
+  }
+  return {
+    kind: 'error',
+    currentStep: 'prepare',
+    nextStep: 'queue',
+    isProgressing: false,
+    canStart: false,
+    canRetry: true,
+    canRetryStart: true,
+  };
 }
 
 export function spaceRuntimePollInterval(phase: SpaceRuntimePhase): number {
