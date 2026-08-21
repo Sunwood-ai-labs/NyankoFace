@@ -141,7 +141,7 @@ export default function SpaceRunner({
         return ui(localeRef.current, 'Spaceの起動が完了しました。アプリを操作できます。', 'Space is ready. You can use the app now.');
       case 'failure':
         return copy.cause
-          ? ui(localeRef.current, `原因: ${copy.cause}`, `Cause: ${copy.cause}`)
+          ? ui(localeRef.current, `原因: ${copy.cause}。状態を確認してから「もう一度起動」を選んでください。`, `Cause: ${copy.cause}. Check the state, then choose “Try starting again.”`)
           : ui(localeRef.current, 'ランナーが起動失敗を返しました。状態を確認してから「もう一度起動」を選んでください。', 'The runner reported a startup failure. Check the state, then choose “Try starting again.”');
       case 'stopped':
         return ui(localeRef.current, 'Spaceを一時停止しました。', 'Space paused.');
@@ -410,7 +410,12 @@ export default function SpaceRunner({
           ? { type: 'stopPaused' }
           : { type: 'stopAccepted' };
       const message = actionFeedbackMessage(copy);
-      showFeedback({ source: 'action', action, copy, kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
+      const sameActionErrorVisible = feedback?.source === 'action'
+        && feedback.kind === 'error'
+        && feedback.action === action;
+      if (!sameActionErrorVisible) {
+        showFeedback({ source: 'action', action, copy, kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
+      }
     } catch (error) {
       if (!mountedRef.current) return;
       if (action === 'stop') {
