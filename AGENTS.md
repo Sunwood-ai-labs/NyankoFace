@@ -20,9 +20,13 @@
 
 ## Git worktree policy
 
-- ファイル変更を伴うIssueは、原則としてIssue専用branchと専用worktreeで開始してください。例: `git worktree add ../NyankoFace-issue-123 -b fix/issue-123 main`。
+- ファイル変更を伴うIssueは、原則としてIssue専用branchと専用worktreeで開始してください。通常のIssue／feature／bugfixは`main`ではなく`origin/develop`から開始します。
+   ```powershell
+   git fetch origin develop
+   git worktree add ../NyankoFace-issue-123 -b fix/issue-123 origin/develop
+   ```
 - repository rootのmain worktreeは、最新mainの同期、統合test、merge後の本番反映だけに使い、feature実装を直接行わないでください。
-- 複数Issueが同じfileまたは同じ状態schemaを変更する場合は並行編集せず、依存PRを先にmergeしてから後続worktreeを最新mainへ更新してください。
+- 複数Issueが同じfileまたは同じ状態schemaを変更する場合は並行編集せず、依存PRを先にmergeしてから後続worktreeを最新developへ更新してください。
 - 各worktreeは1 Issue、1 acceptance criteria set、1 PRに限定してください。途中で見つけた別問題は別Issue・別worktreeへ分離してください。
 - PR mergeと本番確認が完了したら、未push commitやユーザー所有変更がないことを確認してからworktreeとlocal branchを削除してください。
 
@@ -30,12 +34,16 @@
 
 NyankoFaceは、`develop`を統合ブランチ、`main`を本番・リリースブランチとするGit Flow運用を採用します。
 
-- 通常のIssue、feature、bugfixは、最新の`origin/develop`から専用branchを作成し、PRのbaseを`develop`にしてください。既存の`fix/issue-*`命名もこのルールに従います。
-- 通常のIssue PRを`main`へ直接マージしないでください。`main`へ入れるのは、検証済みの`release/*`または緊急の`hotfix/*`だけです。
-- `release/*`は`develop`から作成し、CI・レビュー・本番検証後に`main`へマージします。リリースの結果は同じ変更が`develop`にも残るよう、必要なback-mergeを行ってください。
-- `hotfix/*`は`main`から作成し、修正検証後に`main`と`develop`の両方へ反映してください。
+- 通常のIssue、feature、bugfixは、最新の`origin/develop`から専用branchを作成し、PRのbaseを`develop`にしてください。`feature/*`、`fix/*`、`bugfix/*`、`codex/*`はこの用途で使い、既存の`fix/issue-*`命名もこのルールに従います。
+- 通常のIssue PRを`main`へ直接マージしないでください。`main`へ入れるのは、検証済みの`release/*`、緊急の`hotfix/*`、またはPRに例外理由を明記して承認された自動依存更新だけです。
+- `release/*`は`develop`から作成し、CI・レビュー・本番検証後に`main`へマージします。完了後は、同じproduction revisionを`develop`へback-mergeし、両ブランチの祖先関係を確認してください。
+- `hotfix/*`は`main`から作成し、修正検証後に`main`と`develop`の両方へ反映してください。hotfixを`fix/*`や`feature/*`で代用しないでください。
+- リリースtagはproduction branchの検証済みマージrevisionにだけ付け、原則として`vX.Y.Z`形式を使います。tag作成とback-mergeが確認できるまで、release／hotfixを完了扱いにしないでください。
 - デプロイ対象は原則として`main`のマージ済みrevisionです。例外が必要な場合は、IssueとPRに理由、対象revision、rollback方法を記録してください。
-- ローカルworktreeのbranch、remoteの追跡先、運用メモが食い違う場合は、マージ前に停止してbranch modelを確認してください。推測で`main`を統合先に選ばないでください。
+- 作業開始前に`git fetch origin main develop`、`git status --short --branch`、`git branch -vv`を実行し、通常作業は`origin/develop`、releaseは`origin/develop`、hotfixは`origin/main`を起点にしていることを確認してください。working treeがdirty、またはupstreamが意図したremote branchと一致しない場合は作業を止めてください。
+- PR作成後は、PRのbase branch、head SHA、`CI / validate`、必要なreview、未解決thread、branch protection／rulesetを確認してください。merge直前に`scripts/check_pr_merge_readiness.py`を対象PRへ実行し、READY判定を確認したうえで、merge時は`gh pr merge --match-head-commit <verified-sha>`を使ってください。
+- 通常のIssue／feature／bugfix PR（baseが`develop`）は、`develop`へのmergeとintegration verification、remote targetの確認後に専用worktreeとbranchを整理してください。release／hotfix PR（baseが`main`）はproduction verification、back-merge、tag、remote branchの状態を確認してから整理し、`main`へ入る承認済み自動依存更新はproduction verificationとremote branchの確認後に整理してください。required merge targetやtagを確認する前にbranchを削除しないでください。
+- ローカルworktreeのbranch、remoteの追跡先、PRのbase、運用メモが食い違う場合は、マージ前に停止してbranch modelを確認してください。推測で`main`を統合先に選ばないでください。
 
 ## Forgejo・MCP credential contract
 
@@ -50,7 +58,7 @@ NyankoFace MCPを利用するagentは、Forgejo APIとMCPの両方に同じForge
 ## Parallel agent and CLI-first policy
 
 - 独立したIssueでwrite setとstate schemaが重ならない場合は、可能な限りサブエージェントへboundedな監査・実装・検証を分担し、Issueごとの専用worktreeで並列処理してください。各agentの担当範囲、対象Issue、変更ファイルを開始時に固定してください。
-- 同一file、共有config、DB／registry schema、API contractを触るIssueは並列編集せず、先行PRのmerge後に後続worktreeを最新mainへ更新してください。agentの結果は必ずmain agentがdiff、test、scopeを確認してから統合してください。
+- 同一file、共有config、DB／registry schema、API contractを触るIssueは並列編集せず、先行PRのmerge後に後続worktreeを最新developへ更新してください。agentの結果は必ずmain agentがdiff、test、scopeを確認してから統合してください。
 - 1 Issue＝1 acceptance criteria set＝1専用worktree＝1 PRを維持し、複数Issueの変更・レビュー・mergeを一つのPRへ混在させないでください。
 - 実装、テスト、レビュー、GitHub操作、証跡作成はCLIを第一選択にしてください。GUI／Desktop clientが受入条件に明記されていない限り、GUI操作をテストの前提にしないでください。GUIが明記されていても、ユーザーの明示許可なしに実行せず、CLIで代替した場合は証跡へ明記してください。
 - 並列agentが完了したら結果とworktreeのclean／未push状態を確認し、不要なagentとmerge済みworktreeを整理してください。引き継ぎ資料はagentの判断、checkpoint、review、merge、Issue状態を随時更新してください。
@@ -79,6 +87,6 @@ NyankoFace MCPを利用するagentは、Forgejo APIとMCPの両方に同じForge
 
 7. 同一のPR head SHAに紐づくexact-headのCodex review、登録済みCIの成功、未解決review thread 0を確認し、確認したhead SHAを記録してからmergeしてください。`scripts/check_pr_merge_readiness.py`の結果も記録し、merge操作自体にもその検証済みSHAを固定してください。CLIなら`gh pr merge --match-head-commit <verified-sha>`、connector/APIならexpected head SHA相当を指定し、headが変わった場合はmergeを止めてreadinessからやり直してください。
 
-8. merge直後にIssue、親Issue、専用worktreeの状態、local branchの状態、引き継ぎ資料を更新してください。production verificationが完了するまではIssue専用worktreeを保持し、検証後に未push変更・ユーザー所有変更・clean状態を確認してから、不要になったmerge済みworktreeとlocal branchを整理してください。
+8. merge直後にIssue、親Issue、専用worktreeの状態、local branchの状態、引き継ぎ資料を更新してください。通常のIssue／feature／bugfix PR（baseが`develop`）は、`develop`へのmergeとintegration verificationが完了した後、関連Issueがある場合は`gh issue close <issue-number>`などで明示的にcloseしてclosed状態を確認するまでIssue専用worktreeを保持し、その後に未push変更・ユーザー所有変更・clean状態を確認して整理してください。release／hotfix PR（baseが`main`）はproduction verification、back-merge、tagが完了するまで保持し、`main`へ入る承認済み自動依存更新はproduction verificationが完了するまで保持してください。
 
-9. 最後に対象repo `Sunwood-ai-labs/NyankoFace`、確認時点、期待状態を固定して、open Issue数、open PR数、対象Issue／PRの状態、`git worktree list --porcelain`から動的に特定したmain worktreeの既存変更を確認し、結果を引き継ぎ資料へ記録してください。remote状態を確認する前に`git fetch origin main`を実行し、merge commitとremote `main` SHAを記録してください。そのうえで`git merge-base --is-ancestor <merge-commit> origin/main`または同等のCLI確認でmerge commitがremote `main`に含まれることを確認してください。後続の独立mergeがない場合だけremote `main`の先端SHAとの一致を期待し、後続commitがある場合は祖先関係を期待状態とします。merge直後の対象Issueがclosed、対象PRがmerged、main worktreeのユーザー所有変更が保持されていることも記録してください。
+9. 最後に対象repo `Sunwood-ai-labs/NyankoFace`、確認時点、期待状態を固定して、open Issue数、open PR数、対象Issue／PRの状態、`git worktree list --porcelain`から動的に特定したmain worktreeの既存変更を確認し、結果を引き継ぎ資料へ記録してください。remote状態を確認する前に`git fetch origin main develop`を実行してください。通常のIssue／feature／bugfix PR（baseが`develop`）はmerge commitとremote `develop` SHAを記録し、`git merge-base --is-ancestor <merge-commit> origin/develop`または同等のCLI確認でmerge commitがremote `develop`に含まれることを確認してください。release／hotfix PRまたは`main`をbaseとする承認済み自動依存更新はmerge commitとremote `main` SHAを記録し、`git merge-base --is-ancestor <merge-commit> origin/main`または同等のCLI確認でmerge commitがremote `main`に含まれることを確認してください。release／hotfixは必要なback-merge先の祖先関係も確認し、後続の独立mergeがない場合だけ対象remote branchの先端SHAとの一致を期待し、後続commitがある場合は祖先関係を期待状態とします。merge直後の対象Issueがclosed、対象PRがmerged、main worktreeのユーザー所有変更が保持されていることも記録してください。
