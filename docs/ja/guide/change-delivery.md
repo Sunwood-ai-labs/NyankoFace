@@ -161,8 +161,10 @@ flowchart TD
 同じfileや状態schemaを触るIssueは並行実装しません。依存する基盤PRを先にmergeし、
 後続worktreeを最新developへ更新します。途中で見つけた別問題は別Issue・別worktreeへ
 移します。通常PRは`develop`へのmergeと統合検証後、未push commitやユーザー所有変更が
-ないことを確認してworktreeを削除します。release／hotfixまたは`main`向けの承認済み
-自動依存更新は、本番検証後にworktreeを削除します。
+ないことを確認してworktreeを削除します。PRにIssueが紐づく場合は、`develop`がdefault
+branchではないためPR keywordによる自動closeに依存せず、`gh issue close <issue-number>`
+などでIssueを明示的にcloseし、closed状態を確認します。release／hotfixまたは`main`向けの
+承認済み自動依存更新は、本番検証後にworktreeを削除します。
 
 ```powershell
 git worktree remove ../NyankoFace-issue-123

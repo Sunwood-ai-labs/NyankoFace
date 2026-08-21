@@ -124,8 +124,11 @@ work into another issue and worktree.
 
 After a normal PR merges into `develop` and integration verification passes,
 confirm there are no unpushed commits or user-owned changes before removing
-the worktree and local branch. For a release, hotfix, or approved dependency
-update targeting `main`, wait for production verification before cleanup.
+the worktree and local branch. If the PR is tied to an Issue, close that Issue
+explicitly with `gh issue close <issue-number>` and verify its closed state;
+because `develop` is not the default branch, do not rely on PR keywords for
+automatic closure. For a release, hotfix, or approved dependency update
+targeting `main`, wait for production verification before cleanup.
 
 CI owns builds, lint, unit and integration tests, configuration checks, and
 documentation builds. Tests use isolated temporary directories. Visual QA
