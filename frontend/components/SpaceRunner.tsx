@@ -22,6 +22,7 @@ import {
 
 type SpaceOperation = 'start' | 'stop';
 type OperationFeedback = {
+  source: 'action' | 'runtime';
   kind: 'success' | 'error';
   message: string;
   durationMs?: number;
@@ -62,6 +63,7 @@ export default function SpaceRunner({
   const actionControllerRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
   const actionEpochRef = useRef(0);
+  const runtimeCycleRef = useRef(0);
   const lastActionRef = useRef<SpaceOperation | null>(null);
   const previousPhaseRef = useRef<SpaceRuntimePhase>('checking');
 
@@ -103,12 +105,17 @@ export default function SpaceRunner({
   useEffect(() => {
     const previousPhase = previousPhaseRef.current;
     const phaseChanged = previousPhase !== phase;
-    if (phaseChanged) previousPhaseRef.current = phase;
+    if (phaseChanged) {
+      if (previousPhase === 'running' && phase !== 'running') runtimeCycleRef.current += 1;
+      previousPhaseRef.current = phase;
+    }
     const eventPrefix = `runtime:${actionEpochRef.current}`;
+    if (feedback?.source === 'action' && feedback.kind === 'error') return;
     if (phase === 'running' && iframePhase === 'ready') {
       showFeedback({
+        source: 'runtime',
         kind: 'success',
-        eventKey: `${eventPrefix}:running`,
+        eventKey: `${eventPrefix}:running:${runtimeCycleRef.current}`,
         message: ui(locale, 'Spaceの起動が完了しました。アプリを操作できます。', 'Space is ready. You can use the app now.'),
       });
     } else if (phase === 'failed' || phase === 'error') {
@@ -116,22 +123,24 @@ export default function SpaceRunner({
         ? ui(locale, `原因: ${runtime.runtimeError}`, `Cause: ${runtime.runtimeError}`)
         : ui(locale, 'ランナーが起動失敗を返しました。状態を確認してから「もう一度起動」を選んでください。', 'The runner reported a startup failure. Check the state, then choose “Try starting again.”');
       showFeedback({
+        source: 'runtime',
         kind: 'error',
         eventKey: `${eventPrefix}:${phase}:${runtime?.runtimeError || 'generic'}`,
         message: cause,
       });
     } else if (phase === 'stopped' && phaseChanged && previousPhase === 'stopping' && lastActionRef.current === 'stop') {
       showFeedback({
+        source: 'runtime',
         kind: 'success',
         eventKey: `${eventPrefix}:stopped`,
         message: ui(locale, 'Spaceを一時停止しました。', 'Space paused.'),
       });
       lastActionRef.current = null;
-    } else if (phaseChanged && (previousPhase === 'failed' || previousPhase === 'error') && feedback?.kind === 'error') {
+    } else if (phaseChanged && (previousPhase === 'failed' || previousPhase === 'error')) {
       feedbackEventRef.current = null;
-      setFeedback(null);
+      if (feedback?.kind === 'error') setFeedback(null);
     }
-  }, [feedback?.kind, iframePhase, locale, phase, runtime?.runtimeError]);
+  }, [feedback?.kind, feedback?.source, iframePhase, locale, phase, runtime?.runtimeError]);
 
   useEffect(() => {
     if (iframeTimeoutRef.current !== null) {
@@ -272,7 +281,7 @@ export default function SpaceRunner({
       if (!res.ok) {
         const message = actionError(action, res.status);
         setErrorMsg(message);
-        showFeedback({ kind: 'error', message, durationMs, eventKey: `${actionEventKey}:error:${res.status}` });
+        showFeedback({ source: 'action', kind: 'error', message, durationMs, eventKey: `${actionEventKey}:error:${res.status}` });
         return;
       }
       const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
@@ -287,7 +296,7 @@ export default function SpaceRunner({
         : nextRuntime?.phase === 'stopped'
           ? ui(locale, 'Spaceを一時停止しました。', 'Space paused.')
           : ui(locale, '停止要求を受け付けました。Spaceを停止中です。', 'Stop request accepted. Space is stopping.');
-      showFeedback({ kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
+      showFeedback({ source: 'action', kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
     } catch (error) {
       if (!mountedRef.current) return;
       const message = error instanceof DOMException && error.name === 'AbortError'
@@ -295,6 +304,7 @@ export default function SpaceRunner({
         : ui(locale, 'Space Runnerに接続できませんでした。', 'Could not connect to spaces-runner.');
       setErrorMsg(message);
       showFeedback({
+        source: 'action',
         kind: 'error',
         message,
         durationMs: Math.round(performance.now() - startedAt),
@@ -424,7 +434,7 @@ export default function SpaceRunner({
   const currentStepIndex = stepOrder.indexOf(runtimeState.currentStep);
   const stateIsError = ['unavailable', 'failed', 'error'].includes(runtimeState.kind);
   const stateRole = ['failed', 'error'].includes(runtimeState.kind) ? 'status' : stateIsError ? 'alert' : 'status';
-  const stateLive = stateRole === 'alert' ? 'assertive' : 'polite';
+  const stateLive = stateRole === 'alert' ? 'assertive' : stateIsError ? 'off' : 'polite';
   const stateTone: Record<SpaceRuntimeStateKind, string> = {
     checking: 'border-sky-300/30 bg-sky-300/10 text-sky-100',
     available: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-100',
