@@ -59,6 +59,7 @@ export default function SpaceRunner({
   const iframeExpiredRef = useRef(false);
   const iframeRetryActionRef = useRef<(() => void) | null>(null);
   const feedbackEventRef = useRef<string | null>(null);
+  const runtimeFeedbackEventRef = useRef<string | null>(null);
   const feedbackClearRef = useRef<number | null>(null);
   const actionControllerRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
@@ -93,6 +94,12 @@ export default function SpaceRunner({
     }
   }
 
+  function showRuntimeFeedback(next: OperationFeedback) {
+    if (runtimeFeedbackEventRef.current === next.eventKey) return;
+    runtimeFeedbackEventRef.current = next.eventKey;
+    showFeedback(next);
+  }
+
   useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -109,27 +116,27 @@ export default function SpaceRunner({
       if (previousPhase === 'running' && phase !== 'running') runtimeCycleRef.current += 1;
       previousPhaseRef.current = phase;
     }
-    const eventPrefix = `runtime:${actionEpochRef.current}`;
+    const eventPrefix = `runtime:${runtimeCycleRef.current}`;
     if (feedback?.source === 'action' && feedback.kind === 'error') return;
     if (phase === 'running' && iframePhase === 'ready') {
-      showFeedback({
+      showRuntimeFeedback({
         source: 'runtime',
         kind: 'success',
-        eventKey: `${eventPrefix}:running:${runtimeCycleRef.current}`,
+        eventKey: `${eventPrefix}:running`,
         message: ui(locale, 'Spaceの起動が完了しました。アプリを操作できます。', 'Space is ready. You can use the app now.'),
       });
     } else if (phase === 'failed' || phase === 'error') {
       const cause = runtime?.runtimeError
         ? ui(locale, `原因: ${runtime.runtimeError}`, `Cause: ${runtime.runtimeError}`)
         : ui(locale, 'ランナーが起動失敗を返しました。状態を確認してから「もう一度起動」を選んでください。', 'The runner reported a startup failure. Check the state, then choose “Try starting again.”');
-      showFeedback({
+      showRuntimeFeedback({
         source: 'runtime',
         kind: 'error',
         eventKey: `${eventPrefix}:${phase}:${runtime?.runtimeError || 'generic'}`,
         message: cause,
       });
-    } else if (phase === 'stopped' && phaseChanged && previousPhase === 'stopping' && lastActionRef.current === 'stop') {
-      showFeedback({
+    } else if (phase === 'stopped' && phaseChanged && lastActionRef.current === 'stop') {
+      showRuntimeFeedback({
         source: 'runtime',
         kind: 'success',
         eventKey: `${eventPrefix}:stopped`,
@@ -138,6 +145,7 @@ export default function SpaceRunner({
       lastActionRef.current = null;
     } else if (phaseChanged && (previousPhase === 'failed' || previousPhase === 'error')) {
       feedbackEventRef.current = null;
+      runtimeFeedbackEventRef.current = null;
       if (feedback?.kind === 'error') setFeedback(null);
     }
   }, [feedback?.kind, feedback?.source, iframePhase, locale, phase, runtime?.runtimeError]);
@@ -280,6 +288,7 @@ export default function SpaceRunner({
       const durationMs = responseDuration(res, startedAt);
       if (!res.ok) {
         const message = actionError(action, res.status);
+        if (action === 'stop') lastActionRef.current = null;
         setErrorMsg(message);
         showFeedback({ source: 'action', kind: 'error', message, durationMs, eventKey: `${actionEventKey}:error:${res.status}` });
         return;
@@ -299,6 +308,7 @@ export default function SpaceRunner({
       showFeedback({ source: 'action', kind: 'success', message, durationMs, eventKey: `${actionEventKey}:accepted` });
     } catch (error) {
       if (!mountedRef.current) return;
+      if (action === 'stop') lastActionRef.current = null;
       const message = error instanceof DOMException && error.name === 'AbortError'
         ? ui(locale, '操作が30秒でタイムアウトしました。状態を確認してから再度お試しください。', 'The operation timed out after 30 seconds. Check the status before retrying.')
         : ui(locale, 'Space Runnerに接続できませんでした。', 'Could not connect to spaces-runner.');
