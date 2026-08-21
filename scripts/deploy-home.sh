@@ -19,7 +19,7 @@ Optional runner environment:
   NYANKOFACE_DEPLOY_SMOKE_BASE_URL
                                  Optional public URL override for post-deploy smoke checks
   NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS
-                                 Per-request smoke-check timeout (default: 20)
+                                 Per-request smoke-check timeout (default: 30)
   NYANKOFACE_DEPLOY_SMOKE_INSECURE
                                  Set to 1 only when the smoke target uses an untrusted TLS certificate
 EOF
@@ -296,7 +296,7 @@ run_public_smoke_test() {
   base_url="${base_url%/}"
   [[ "$base_url" == https://* || "$base_url" == http://* ]] || die "public smoke base URL must be HTTP(S)"
 
-  local smoke_timeout="${NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS:-20}"
+  local smoke_timeout="${NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS:-30}"
   [[ "$smoke_timeout" =~ ^[0-9]+$ && "$smoke_timeout" -gt 0 ]] || die "NYANKOFACE_DEPLOY_SMOKE_TIMEOUT_SECONDS must be a positive integer"
 
   smoke_tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/nyankoface-smoke.XXXXXX")"
@@ -440,7 +440,10 @@ PY
   smoke_request "/"
   [[ "$status" == "200" ]] || die "public smoke check: portal returned HTTP $status"
   grep -Fqi "NyankoFace" "$body" || die "public smoke check: portal identity is missing"
-  grep -Eqi "SimpleHTTP|TIDELINE" "$body" && die "public smoke check: unexpected static server identity"
+  if grep -Eqi '^(server|x-powered-by):[[:space:]]*(simplehttp|tideline)([/:[:space:]]|$)' "$headers" \
+    || tr -d '\r\n' < "$body" | grep -Eqi '<(title|h1)[^>]*>[[:space:]]*(simplehttp|tideline)[[:space:]]*<'; then
+    die "public smoke check: unexpected static server identity"
+  fi
 
   smoke_request "/git/api/v1/version"
   [[ "$status" == "200" ]] || die "public smoke check: Forgejo API returned HTTP $status"

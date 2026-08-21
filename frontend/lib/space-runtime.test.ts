@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   formatElapsedDuration,
+  getSpaceRuntimeState,
   isSpaceGatewayErrorDocument,
   isSpaceRuntimePending,
   isSpaceGatewayPending,
@@ -18,6 +19,10 @@ test('normalizes runner states without hiding startup and offline phases', () =>
   assert.equal(normalizeSpaceRuntime({ state: 'starting' }).phase, 'starting');
   assert.equal(normalizeSpaceRuntime({ status: 'worker-offline' }).phase, 'offline');
   assert.equal(normalizeSpaceRuntime({ status: 'build_failed' }).phase, 'failed');
+  assert.equal(
+    normalizeSpaceRuntime({ status: 'build_failed', error: '  image pull failed  ' }).runtimeError,
+    'image pull failed',
+  );
   assert.equal(normalizeSpaceRuntime({ status: 'running' }).status, 'running');
   assert.deepEqual(normalizeSpaceRuntime({ status: 'cancel_requested', execution: 'remote-gpu' }), {
     status: 'stopping',
@@ -57,4 +62,39 @@ test('reports pending phases and stable elapsed labels', () => {
   assert.equal(isSpaceRuntimePending('running'), false);
   assert.equal(formatElapsedDuration(9_900), '9s');
   assert.equal(formatElapsedDuration(65_000), '1:05');
+});
+
+test('maps runtime phases to persistent waiting-state rules', () => {
+  assert.deepEqual(getSpaceRuntimeState('stopped'), {
+    kind: 'available',
+    currentStep: 'availability',
+    nextStep: 'queue',
+    isProgressing: false,
+    canStart: true,
+    canRetry: false,
+    canRetryStart: false,
+  });
+  assert.deepEqual(getSpaceRuntimeState('checking'), {
+    kind: 'checking',
+    currentStep: 'availability',
+    nextStep: 'queue',
+    isProgressing: true,
+    canStart: false,
+    canRetry: false,
+    canRetryStart: false,
+  });
+  assert.equal(getSpaceRuntimeState('offline').canStart, false);
+  assert.equal(getSpaceRuntimeState('queued').currentStep, 'queue');
+  assert.equal(getSpaceRuntimeState('warming').currentStep, 'prepare');
+  assert.equal(getSpaceRuntimeState('failed').canRetry, true);
+  assert.deepEqual(getSpaceRuntimeState('error'), {
+    kind: 'error',
+    currentStep: 'prepare',
+    nextStep: 'queue',
+    isProgressing: false,
+    canStart: false,
+    canRetry: true,
+    canRetryStart: true,
+  });
+  assert.equal(getSpaceRuntimeState('failed').canRetryStart, true);
 });

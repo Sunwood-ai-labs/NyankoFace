@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   requestOriginFromHeaders,
@@ -106,4 +107,9 @@ test('does not derive a public origin from an untrusted Host header', () => {
     requestOriginFromHeaders(new Headers({ host: 'madesk.tail8be30.ts.net', 'x-nyankoface-trusted-host': '0' })),
     undefined,
   );
+});
+
+test('the catch-all gateway does not certify a client-controlled Host header', () => {
+  const gateway = readFileSync(new URL('../../gateway/nginx.conf', import.meta.url), 'utf8');
+  assert.doesNotMatch(gateway, /proxy_set_header X-NyankoFace-Trusted-Host 1;/);
 });
