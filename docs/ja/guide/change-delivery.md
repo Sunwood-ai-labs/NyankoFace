@@ -138,28 +138,31 @@ git fetch origin main
 git worktree add ../NyankoFace-hotfix-123 -b hotfix/issue-123 origin/main
 ```
 
-main worktreeは最新mainの同期、統合test、merge後の本番反映だけに使います。
+main worktreeは最新mainの同期、release／hotfixの統合、merge後の本番反映だけに
+使います。通常Issueのmerge先は`develop`であり、`main`を経由させません。
 feature実装はIssue worktreeで行い、1 worktreeを1 Issue、1受入条件set、1 PRに
 限定します。
 
 ```mermaid
 flowchart TD
-    M[main worktree<br/>統合・配備専用]
-    M --> A[issue-123 worktree<br/>Pages]
-    M --> B[issue-124 worktree<br/>Space API]
+    D[develop worktree<br/>通常統合]
+    D --> A[issue-123 worktree<br/>Pages]
+    D --> B[issue-124 worktree<br/>Space API]
     A --> PA[PR #123]
     B --> PB[PR #124]
     PA --> V{同じfileやschemaへ依存?}
     V -->|yes| U[先行PRをmerge<br/>後続をdevelopへ更新]
     V -->|no| T[独立testとreview]
     U --> T
-    T --> M
+    T --> D
+    M[main worktree<br/>release／hotfix・配備専用]
 ```
 
 同じfileや状態schemaを触るIssueは並行実装しません。依存する基盤PRを先にmergeし、
 後続worktreeを最新developへ更新します。途中で見つけた別問題は別Issue・別worktreeへ
-移します。mergeと本番確認後、未push commitやユーザー所有変更がないことを確認して
-worktreeを削除します。
+移します。通常PRは`develop`へのmergeと統合検証後、未push commitやユーザー所有変更が
+ないことを確認してworktreeを削除します。release／hotfixまたは`main`向けの承認済み
+自動依存更新は、本番検証後にworktreeを削除します。
 
 ```powershell
 git worktree remove ../NyankoFace-issue-123

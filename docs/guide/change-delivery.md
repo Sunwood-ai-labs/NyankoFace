@@ -114,15 +114,18 @@ git fetch origin main
 git worktree add ../NyankoFace-hotfix-123 -b hotfix/issue-123 origin/main
 ```
 
-Reserve the main worktree for synchronizing main, integration tests, and
-post-merge deployment. Keep each issue worktree limited to one issue, one set
-of acceptance criteria, and one PR. Do not implement issues concurrently when
+Reserve the main worktree for synchronizing main, release/hotfix integration,
+and post-merge deployment. Normal issue merges terminate at `develop`; do not
+route them through `main`. Keep each issue worktree limited to one issue, one
+set of acceptance criteria, and one PR. Do not implement issues concurrently when
 they modify the same files or state schema; merge the prerequisite PR first,
 then update the dependent worktree from develop. Move newly discovered unrelated
 work into another issue and worktree.
 
-After merge and production verification, confirm there are no unpushed commits
-or user-owned changes before removing the worktree and local branch.
+After a normal PR merges into `develop` and integration verification passes,
+confirm there are no unpushed commits or user-owned changes before removing
+the worktree and local branch. For a release, hotfix, or approved dependency
+update targeting `main`, wait for production verification before cleanup.
 
 CI owns builds, lint, unit and integration tests, configuration checks, and
 documentation builds. Tests use isolated temporary directories. Visual QA
