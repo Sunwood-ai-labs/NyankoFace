@@ -170,8 +170,7 @@ export default function SpaceRunner({
     const runtimeIsFailure = phase === 'failed' || phase === 'error';
     const runtimeRecovered = phaseChanged
       && previousWasFailure
-      && !runtimeIsFailure
-      && (phase !== 'running' || iframePhase === 'ready');
+      && !runtimeIsFailure;
     const leftRunning = phaseChanged && previousPhase === 'running' && phase !== 'running';
     const confirmedRecovery = actionErrorVisible && (
       (feedback.action === 'start' && phase === 'running' && iframePhase === 'ready')
@@ -391,19 +390,18 @@ export default function SpaceRunner({
       }
       const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
       if (!mountedRef.current) return;
+      const terminalStopAlreadyShown = action === 'stop'
+        && stopTerminalEpochRef.current === actionEpoch;
+      if (terminalStopAlreadyShown) return;
       const nextRuntime = json
         ? runtime?.applyPayload(json)
         : await runtime?.refresh();
       if (!mountedRef.current) return;
-      const stopTerminalAlreadyShown = action === 'stop'
-        && nextRuntime?.phase === 'stopped'
-        && stopTerminalEpochRef.current === actionEpoch;
       if (action === 'stop' && nextRuntime?.phase === 'stopped') {
-        if (!stopTerminalAlreadyShown) stopTerminalEpochRef.current = actionEpoch;
+        stopTerminalEpochRef.current = actionEpoch;
         lastActionRef.current = null;
         lastActionEpochRef.current = null;
       }
-      if (stopTerminalAlreadyShown) return;
       const copy: ActionFeedbackCopy = action === 'start'
         ? { type: 'startAccepted' }
         : nextRuntime?.phase === 'stopped'
