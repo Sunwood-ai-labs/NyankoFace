@@ -41,7 +41,7 @@ NyankoFaceは、`develop`を統合ブランチ、`main`を本番・リリース�
 - リリースtagはproduction branchの検証済みマージrevisionにだけ付け、原則として`vX.Y.Z`形式を使います。tag作成とback-mergeが確認できるまで、release／hotfixを完了扱いにしないでください。
 - デプロイ対象は原則として`main`のマージ済みrevisionです。例外が必要な場合は、IssueとPRに理由、対象revision、rollback方法を記録してください。
 - 作業開始前に`git fetch origin main develop`、`git status --short --branch`、`git branch -vv`を実行し、通常作業は`origin/develop`、releaseは`origin/develop`、hotfixは`origin/main`を起点にしていることを確認してください。working treeがdirty、またはupstreamが意図したremote branchと一致しない場合は作業を止めてください。
-- PR作成・merge前に、PRのbase branch、head SHA、`CI / validate`、必要なreview、未解決thread、branch protection／rulesetを確認してください。`scripts/check_pr_merge_readiness.py`が対象PRをREADYと判定し、merge時は`gh pr merge --match-head-commit <verified-sha>`を使うまで完了扱いにしないでください。
+- PR作成後は、PRのbase branch、head SHA、`CI / validate`、必要なreview、未解決thread、branch protection／rulesetを確認してください。merge直前に`scripts/check_pr_merge_readiness.py`を対象PRへ実行し、READY判定を確認したうえで、merge時は`gh pr merge --match-head-commit <verified-sha>`を使ってください。
 - release／hotfixのmerge後は、production verification、back-merge、tag、remote branchの状態を確認してから専用worktreeとbranchを整理してください。required merge targetやtagを確認する前にbranchを削除しないでください。
 - ローカルworktreeのbranch、remoteの追跡先、PRのbase、運用メモが食い違う場合は、マージ前に停止してbranch modelを確認してください。推測で`main`を統合先に選ばないでください。
 
