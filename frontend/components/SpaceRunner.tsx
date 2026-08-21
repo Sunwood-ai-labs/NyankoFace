@@ -168,12 +168,11 @@ export default function SpaceRunner({
     const actionErrorVisible = feedback?.source === 'action' && feedback.kind === 'error';
     const previousWasFailure = previousPhase === 'failed' || previousPhase === 'error';
     const runtimeIsFailure = phase === 'failed' || phase === 'error';
-    const runtimeIsUnavailable = phase === 'offline' || phase === 'unavailable';
     const runtimeRecovered = phaseChanged
       && previousWasFailure
       && !runtimeIsFailure
-      && !runtimeIsUnavailable
       && (phase !== 'running' || iframePhase === 'ready');
+    const leftRunning = phaseChanged && previousPhase === 'running' && phase !== 'running';
     const confirmedRecovery = actionErrorVisible && (
       (feedback.action === 'start' && phase === 'running' && iframePhase === 'ready')
       || (feedback.action === 'stop' && phase === 'stopped')
@@ -181,7 +180,11 @@ export default function SpaceRunner({
     if (runtimeRecovered) {
       feedbackEventRef.current = null;
       runtimeFeedbackEventRef.current = null;
-      if (feedback?.source === 'runtime') setFeedback(null);
+    }
+    if (feedback?.source === 'runtime' && (runtimeRecovered || leftRunning)) {
+      feedbackEventRef.current = null;
+      runtimeFeedbackEventRef.current = null;
+      setFeedback(null);
     }
     if (actionErrorVisible && confirmedRecovery) {
       feedbackEventRef.current = null;
