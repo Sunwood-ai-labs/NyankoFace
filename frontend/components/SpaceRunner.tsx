@@ -276,6 +276,7 @@ export default function SpaceRunner({
         return;
       }
       const json = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+      if (!mountedRef.current) return;
       const nextRuntime = json
         ? runtime?.applyPayload(json)
         : await runtime?.refresh();
