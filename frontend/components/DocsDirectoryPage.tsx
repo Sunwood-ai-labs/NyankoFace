@@ -89,7 +89,7 @@ function DocCard({
 
   return (
     <article
-      className={`group relative flex h-[190px] min-w-0 cursor-pointer flex-col overflow-hidden rounded-xl bg-gradient-to-br ${cardTone(article.topics)} text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.10)] ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:shadow-lg focus-within:ring-2 focus-within:ring-zinc-950 focus-within:ring-offset-2`}
+      className={`group relative grid h-[208px] min-w-0 grid-rows-[minmax(0,1fr)_auto] cursor-pointer overflow-hidden rounded-xl bg-gradient-to-br ${cardTone(article.topics)} text-white shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.10)] ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:shadow-lg focus-within:ring-2 focus-within:ring-zinc-950 focus-within:ring-offset-2`}
     >
       <Link
         href={docHref(article)}
@@ -103,8 +103,8 @@ function DocCard({
       >
         {article.emoji}
       </span>
-      <div className="pointer-events-none relative z-10 flex min-h-0 flex-1 flex-col px-4 pb-2 pt-2.5">
-        <div className="mb-4 flex min-w-0 items-start gap-1.5 text-[10px] font-semibold leading-none text-white/90">
+      <div className="pointer-events-none relative z-10 grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] px-4 pb-2 pt-2.5">
+        <div className="mb-2 flex min-w-0 items-start gap-1.5 text-[10px] font-semibold leading-none text-white/90">
           <span className="rounded bg-white/15 px-1.5 py-1 shadow-sm ring-1 ring-white/10 backdrop-blur">
             {ui(locale, '記事', 'Article')}
           </span>
@@ -116,19 +116,29 @@ function DocCard({
             {ui(locale, '注目', 'Featured')}
           </Link>
         </div>
-        <h3 className="line-clamp-2 text-[17px] font-bold leading-[22px] group-hover:underline">
-          {article.title}
-        </h3>
-        <p className="mt-1 line-clamp-2 text-sm font-medium leading-5 text-white/85">
-          {article.description}
-        </p>
+        <div className="min-h-0 min-w-0 overflow-hidden">
+          <h3
+            className="line-clamp-2 min-w-0 whitespace-pre-line text-[17px] font-bold leading-[22px] [overflow-wrap:anywhere] group-hover:underline"
+            title={article.title}
+          >
+            {article.title}
+          </h3>
+          <p
+            className="mt-1 line-clamp-2 min-w-0 whitespace-pre-line text-sm font-medium leading-5 text-white/85 [overflow-wrap:anywhere]"
+            title={article.description}
+          >
+            {article.description}
+          </p>
+        </div>
         {topics.length > 0 ? (
-          <div className="relative z-20 mt-auto flex min-w-0 gap-1.5 pt-2">
+          <div className="relative z-20 flex min-w-0 gap-1.5 overflow-hidden pt-2">
             {topics.map((topic) => (
               <Link
                 key={topic}
                 href={`/docs?${new URLSearchParams({ tag: topic, sort, order })}`}
-                className="pointer-events-auto max-w-[48%] truncate rounded-full bg-black/10 px-2 py-1 text-[10px] font-medium text-white/85 ring-1 ring-white/10 hover:bg-black/20 hover:text-white"
+                aria-label={ui(locale, `${topic}で絞り込む`, `Filter by ${topic}`)}
+                title={topic}
+                className="pointer-events-auto min-w-0 flex-1 truncate rounded-full bg-black/10 px-2 py-1 text-[10px] font-medium text-white/85 ring-1 ring-white/10 hover:bg-black/20 hover:text-white"
               >
                 #{topic}
               </Link>
@@ -136,8 +146,8 @@ function DocCard({
           </div>
         ) : null}
       </div>
-      <div className="pointer-events-none relative z-10 mt-auto flex h-[33px] items-center justify-between gap-3 bg-black/10 px-4 text-xs font-medium text-white/85 backdrop-blur-sm">
-        <span className="flex min-w-0 items-center gap-1.5">
+      <div className="pointer-events-none relative z-10 flex h-[33px] min-w-0 items-center justify-between gap-3 overflow-hidden bg-black/10 px-4 text-xs font-medium text-white/85 backdrop-blur-sm">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
           {article.ownerAvatarUrl ? (
             <img
               src={article.ownerAvatarUrl}
@@ -150,7 +160,7 @@ function DocCard({
               {article.owner.charAt(0)}
             </span>
           )}
-          <span className="truncate">{article.owner}</span>
+          <span className="min-w-0 truncate" title={article.owner}>{article.owner}</span>
         </span>
         <span className="flex shrink-0 items-center gap-2">
           <KnowledgeLikeCount
@@ -165,7 +175,12 @@ function DocCard({
             initialViews={article.views}
             initialAvailable={article.metricsAvailable === true}
           />
-          <span>{locale === 'ja' ? timeAgoJa(article.updatedAt) : timeAgoEn(article.updatedAt)}</span>
+          <span
+            className="min-w-0 max-w-[8rem] truncate"
+            title={locale === 'ja' ? timeAgoJa(article.updatedAt) : timeAgoEn(article.updatedAt)}
+          >
+            {locale === 'ja' ? timeAgoJa(article.updatedAt) : timeAgoEn(article.updatedAt)}
+          </span>
         </span>
       </div>
     </article>
