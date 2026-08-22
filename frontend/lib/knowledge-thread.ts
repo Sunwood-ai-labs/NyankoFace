@@ -209,6 +209,20 @@ function stripHiddenHtml(value: string): string {
       continue;
     }
 
+    let backslashCount = 0;
+    for (
+      let cursor = index - 1;
+      cursor >= 0 && value[cursor] === '\\';
+      cursor -= 1
+    ) {
+      backslashCount += 1;
+    }
+    if (backslashCount % 2 === 1) {
+      visible.push(value[index]);
+      index += 1;
+      continue;
+    }
+
     const next = value[index + 1] || '';
     if (value[index] !== '<' || !/[\/!?A-Za-z]/.test(next)) {
       visible.push(value[index]);
