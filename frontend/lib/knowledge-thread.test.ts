@@ -623,3 +623,12 @@ test('preserves replies in invalid HTML declarations', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+
+
+test('preserves backslash-escaped HTML fragments', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '\\<span title=">>1">' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
