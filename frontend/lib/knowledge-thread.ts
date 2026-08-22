@@ -471,6 +471,20 @@ function stripHtmlTags(value: string): string {
       continue;
     }
 
+    let backslashCount = 0;
+    for (
+      let cursor = index - 1;
+      cursor >= 0 && value[cursor] === '\\';
+      cursor -= 1
+    ) {
+      backslashCount += 1;
+    }
+    if (backslashCount % 2 === 1) {
+      visible.push(value[index]);
+      index += 1;
+      continue;
+    }
+
     const next = value[index + 1] || '';
     const afterSlash = next === '/' ? value[index + 2] || '' : next;
     if (!/[A-Za-z]/.test(afterSlash)) {
