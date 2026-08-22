@@ -1179,6 +1179,10 @@ function renderMarkdown(markdown: string, urls?: ReadmeRenderUrls): string {
   return sanitizeRenderedMarkdown(resolveRelativeRepositoryUrls(rendered, urls));
 }
 
+export function renderMarkdownBody(markdown: string, urls?: ReadmeRenderUrls): string {
+  return renderMarkdown(markdown, urls);
+}
+
 export interface ReadmeRenderUrls {
   assetBaseUrl?: string;
   relativeLinkBaseUrl?: string;
