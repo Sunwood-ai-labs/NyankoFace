@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from 'react';
 
 type MarkdownBodyProps = {
   html: string;
@@ -72,9 +72,34 @@ function mermaidTheme(theme: NyankoFaceTheme, darkMode: boolean) {
   };
 }
 
+const MarkdownBodyThemeContext = createContext<number | undefined>(undefined);
+
+export function MarkdownBodyThemeProvider({ children }: { children: ReactNode }) {
+  const [themeRevision, setThemeRevision] = useState(0);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    const rerender = () => setThemeRevision((revision) => revision + 1);
+    const observer = new MutationObserver(rerender);
+    observer.observe(root, { attributes: true, attributeFilter: ['data-nyankoface-theme'] });
+    colorScheme.addEventListener('change', rerender);
+    return () => {
+      observer.disconnect();
+      colorScheme.removeEventListener('change', rerender);
+    };
+  }, []);
+
+  return (
+    <MarkdownBodyThemeContext.Provider value={themeRevision}>
+      {children}
+    </MarkdownBodyThemeContext.Provider>
+  );
+}
 export default function MarkdownBody({ html, className }: MarkdownBodyProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const [themeRevision, setThemeRevision] = useState(0);
+  const sharedThemeRevision = useContext(MarkdownBodyThemeContext);
+  const [localThemeRevision, setLocalThemeRevision] = useState(0);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -135,9 +160,10 @@ export default function MarkdownBody({ html, className }: MarkdownBodyProps) {
   }, [html]);
 
   useEffect(() => {
+    if (sharedThemeRevision !== undefined) return;
     const root = document.documentElement;
     const colorScheme = window.matchMedia('(prefers-color-scheme: dark)');
-    const rerender = () => setThemeRevision((revision) => revision + 1);
+    const rerender = () => setLocalThemeRevision((revision) => revision + 1);
     const observer = new MutationObserver(rerender);
     observer.observe(root, { attributes: true, attributeFilter: ['data-nyankoface-theme'] });
     colorScheme.addEventListener('change', rerender);
@@ -145,7 +171,9 @@ export default function MarkdownBody({ html, className }: MarkdownBodyProps) {
       observer.disconnect();
       colorScheme.removeEventListener('change', rerender);
     };
-  }, []);
+  }, [sharedThemeRevision]);
+
+  const themeRevision = sharedThemeRevision ?? localThemeRevision;
 
   useEffect(() => {
     const root = rootRef.current;

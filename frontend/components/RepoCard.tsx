@@ -70,7 +70,7 @@ export default function RepoCard({ repo, kind, locale }: { repo: Repo; kind?: 'm
   const spaceTheme = getSpaceTheme(repo.full_name);
 
   return (
-    <article className={`group relative flex min-h-44 flex-col overflow-hidden rounded-xl border shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900 ${kind === 'space' ? 'p-0' : 'p-4'} ${theme.card}`}>
+    <article className={`group relative flex min-w-0 min-h-44 flex-col overflow-hidden rounded-xl border shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-900 ${kind === 'space' ? 'p-0' : 'p-4'} ${theme.card}`}>
       {kind === 'space' ? (
         <Link
           href={`/${owner}/${name}`}
@@ -91,15 +91,15 @@ export default function RepoCard({ repo, kind, locale }: { repo: Repo; kind?: 'm
       ) : null}
 
       <div className={`flex flex-1 flex-col ${kind === 'space' ? 'p-4' : ''}`}>
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2 truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ${theme.icon}`}>
               <HfIcon name={icon} className="h-3 w-3" />
             </span>
-            <a href={`/git/${owner}`} className="text-zinc-500 hover:text-zinc-900 hover:underline dark:text-zinc-400">
+            <a href={`/git/${owner}`} className="min-w-0 max-w-[42%] truncate text-zinc-500 hover:text-zinc-900 hover:underline dark:text-zinc-400" title={owner}>
               {owner}/
             </a>
-            <Link href={`/${owner}/${name}`} className={`truncate hover:underline ${theme.title}`}>
+            <Link href={`/${owner}/${name}`} className={`min-w-0 flex-1 truncate hover:underline ${theme.title}`} title={name}>
               {name}
             </Link>
           </div>
@@ -110,7 +110,7 @@ export default function RepoCard({ repo, kind, locale }: { repo: Repo; kind?: 'm
           ) : null}
         </div>
 
-        <Link href={`/${owner}/${name}`} className="mt-2 line-clamp-2 min-h-[2.5rem] text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">
+        <Link href={`/${owner}/${name}`} className="mt-2 line-clamp-2 min-h-[2.5rem] min-w-0 text-sm text-zinc-600 [overflow-wrap:anywhere] hover:text-zinc-900 dark:text-zinc-400">
           {repo.description || ui(locale, '説明はありません', 'No description')}
         </Link>
 
@@ -120,7 +120,7 @@ export default function RepoCard({ repo, kind, locale }: { repo: Repo; kind?: 'm
               <Link
                 key={t}
                 href={`${basePath}?q=${encodeURIComponent(t)}`}
-                className={`rounded-md px-2 py-0.5 text-xs ring-1 ring-inset transition-colors dark:bg-zinc-800 dark:text-zinc-300 ${theme.badge}`}
+                className={`max-w-full rounded-md px-2 py-0.5 text-xs [overflow-wrap:anywhere] ring-1 ring-inset transition-colors dark:bg-zinc-800 dark:text-zinc-300 ${theme.badge}`}
               >
                 {t}
               </Link>

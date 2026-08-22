@@ -110,6 +110,7 @@ const templates = [
   { label: 'MCP server', labelJa: 'MCPサーバー', topic: 'mcp', repo: 'my-mcp-server', slug: 'mcp-server' },
   { label: 'Versioned prompt', labelJa: '版管理プロンプト', topic: 'prompt', repo: 'my-agent-prompt', slug: 'versioned-prompt' },
   { label: 'Knowledge publication', labelJa: 'ナレッジ出版', topic: 'doc', repo: 'my-knowledge', slug: 'documentation' },
+  { label: 'Thread knowledge', labelJa: 'スレッド解説ナレッジ', topic: 'doc', repo: 'my-thread-knowledge', slug: 'thread-knowledge' },
   { label: 'PuruPuru PNGtuber', labelJa: 'PuruPuru PNGtuber', topic: 'character', repo: 'my-purupuru-character', slug: 'purupuru-pngtuber' },
   { label: 'Codex Pet package', labelJa: 'Codex Petパッケージ', topic: 'character', repo: 'my-codex-pet', slug: 'codex-pet' },
   { label: 'Character sheets', labelJa: 'キャラクターシート集', topic: 'character', repo: 'my-character-sheets', slug: 'character-sheets' },
@@ -134,7 +135,7 @@ const typeConfig: Record<string, { title: string; titleJa: string; repoPlacehold
 export default async function NewRepoGuidePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ type?: string; template?: string }>;
+  searchParams?: Promise<{ type?: string; template?: string; format?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
   if (resolvedSearchParams?.type === 'pages') {
@@ -156,6 +157,9 @@ export default async function NewRepoGuidePage({
     ...repoTypes.filter((type) => type.topic !== effectiveType),
   ];
   const isDoc = effectiveType === 'doc';
+  const knowledgeFormat = isDoc && (resolvedSearchParams?.template === 'thread-knowledge' || resolvedSearchParams?.format === 'thread')
+    ? 'thread'
+    : 'article';
   const isCharacter = effectiveType === 'character';
 
   return (
@@ -219,6 +223,48 @@ export default async function NewRepoGuidePage({
                   </label>
                 ))}
               </div>
+            </fieldset>
+
+            <fieldset hidden={!isDoc} data-knowledge-format-fieldset="true">
+              <legend className="mb-2 text-sm font-semibold text-zinc-900">{ui(locale, 'ナレッジ形式', 'Knowledge format')}</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50">
+                  <input type="radio" name="knowledge_format" value="article" defaultChecked={knowledgeFormat === 'article'} disabled={!isDoc} className="mt-1 h-4 w-4 accent-zinc-950" />
+                  <span>
+                    <span className="block text-sm font-bold text-zinc-950">{ui(locale, '通常の記事／Wiki', 'Article / Wiki')}</span>
+                    <span className="block text-xs leading-5 text-zinc-500">{ui(locale, 'これまでのMarkdown記事形式です。', 'The existing Markdown article format.')}</span>
+                  </span>
+                </label>
+                <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-amber-200 bg-amber-50/50 p-3 hover:bg-amber-50">
+                  <input type="radio" name="knowledge_format" value="thread" defaultChecked={knowledgeFormat === 'thread'} disabled={!isDoc} className="mt-1 h-4 w-4 accent-amber-700" />
+                  <span>
+                    <span className="block text-sm font-bold text-zinc-950">{ui(locale, 'スレッド解説', 'Thread explanation')}</span>
+                    <span className="block text-xs leading-5 text-zinc-600">{ui(locale, '投稿番号・名前・返信参照を持つ形式です。', 'Posts with numbers, names, and reply references.')}</span>
+                  </span>
+                </label>
+              </div>
+              <details hidden={knowledgeFormat !== 'thread'} data-knowledge-format-help="true" className="mt-3 rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-50">
+                <summary className="cursor-pointer font-semibold">{ui(locale, 'スレッド形式の保存例', 'Thread format example')}</summary>
+                <pre className="mt-3 max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded bg-white/70 p-3 text-xs leading-5 dark:bg-zinc-950/40"><code>{`---
+format: thread
+title: スレッド解説サンプル
+description: 投稿形式で仕組みを順番に説明します。
+thread:
+  part: Part.1
+  theme: 仕組みを順番に解説
+  rules: [短く具体的に書く]
+posts:
+  - number: 1
+    name: 名無しさん
+    body: |
+      まず全体像を教えてください。
+  - number: 2
+    name: 解説役
+    role: 回答
+    body: |
+      >>1 に答えます。入口から順に説明します。
+---`}</code></pre>
+              </details>
             </fieldset>
 
             <div className="grid gap-4 sm:grid-cols-[180px_minmax(0,1fr)]">
@@ -404,6 +450,24 @@ export default async function NewRepoGuidePage({
   form.addEventListener("input", persistCreateState);
   form.addEventListener("change", persistCreateState);
   form.addEventListener("submit", persistCreateState);
+  const formatFieldset = document.querySelector("[data-knowledge-format-fieldset]");
+  const formatInputs = Array.from(form.querySelectorAll('input[name="knowledge_format"]'));
+  const formatHelp = document.querySelector("[data-knowledge-format-help]");
+  const syncKnowledgeFormatHelp = () => {
+    if (!(formatHelp instanceof HTMLElement)) return;
+    const selected = form.querySelector('input[name="knowledge_format"]:checked');
+    formatHelp.hidden = selected?.value !== "thread";
+  };
+  const syncKnowledgeFormatFieldset = () => {
+    const selectedTopic = form.querySelector('input[name="topic"]:checked');
+    const docSelected = selectedTopic?.value === "doc";
+    if (formatFieldset instanceof HTMLElement) formatFieldset.hidden = !docSelected;
+    formatInputs.forEach((input) => { input.disabled = !docSelected; });
+    syncKnowledgeFormatHelp();
+  };
+  formatInputs.forEach((input) => input.addEventListener("change", syncKnowledgeFormatHelp));
+  form.querySelectorAll('input[name="topic"]').forEach((input) => input.addEventListener("change", syncKnowledgeFormatFieldset));
+  syncKnowledgeFormatFieldset();
 })();
           `,
         }}
