@@ -54,16 +54,22 @@ function markdownBodyValue(value: unknown): string {
   if (typeof value === 'number') return trimSurroundingBlankLines(String(value));
   return '';
 }
-function list(value: unknown): string[] {
+function list(value: unknown, limit = Number.MAX_SAFE_INTEGER): string[] {
   if (Array.isArray(value)) {
-    return value.map(stringValue).filter((item): item is string => Boolean(item));
+    return value
+      .slice(0, limit)
+      .map(stringValue)
+      .filter((item): item is string => Boolean(item));
   }
   const single = stringValue(value);
-  return single ? single.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean) : [];
+  return single
+    ? single.split(/\r?\n|,/).slice(0, limit).map((item) => item.trim()).filter(Boolean)
+    : [];
 }
 
 const MAX_POST_NUMBER = 1_000_000;
 const MAX_THREAD_POSTS = 2_048;
+const MAX_THREAD_REPLIES = 256;
 const MAX_THREAD_RULES = 256;
 const MAX_THREAD_SOURCES = 256;
 function positiveInteger(value: unknown): number | undefined {
@@ -86,6 +92,8 @@ const SANITIZED_NON_TEXT_HTML_TAGS = new Set([
 const SANITIZED_RAW_TEXT_HTML_TAGS = new Set([
   'script', 'style', 'textarea', 'option', 'title', 'noembed', 'noframes', 'plaintext',
 ]);
+
+const HTML_BLOCK_TYPE_1_TAGS = new Set(['pre', 'script', 'style', 'textarea']);
 
 const HTML_BLOCK_LINE_PATTERN = /^\s{0,3}(?:<!--|<\?|<!\[CDATA\[|<\/?(?:address|article|aside|blockquote|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|nav|ol|p|pre|script|section|style|summary|table|tbody|td|tfoot|th|thead|title|tr|ul)(?:\s|\/?>))/i;
 const HTML_BLOCK_TAG_PATTERN = /^\s{0,3}<\s*(\/?)\s*(address|article|aside|blockquote|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|nav|ol|p|pre|script|section|style|summary|table|tbody|td|tfoot|th|thead|title|tr|ul)\b[^>]*>/i;
@@ -588,6 +596,7 @@ function stripMarkdownCode(value: string): string {
   let fenceListDepth: number | null = null;
   let fenceListIndentation: number | null = null;
   let htmlBlockDepth = 0;
+  let htmlBlockType1Tag = '';
   let paragraph = false;
   let paragraphBlockquoteDepth: number | null = null;
   let paragraphListDepth: number | null = null;
@@ -647,11 +656,29 @@ function stripMarkdownCode(value: string): string {
 
     const isHtmlBlockLine = HTML_BLOCK_LINE_PATTERN.test(content);
     const htmlBlockTag = HTML_BLOCK_TAG_PATTERN.exec(content);
-    if (!fenced && (htmlBlockDepth > 0 || isHtmlBlockLine)) {
+    if (!fenced && (htmlBlockDepth > 0 || htmlBlockType1Tag || isHtmlBlockLine)) {
       if (/^\s*$/.test(content)) {
         htmlBlockDepth = 0;
+        htmlBlockType1Tag = '';
+      } else if (
+        htmlBlockType1Tag
+        && htmlBlockTag?.[1]
+        && htmlBlockTag[2].toLowerCase() === htmlBlockType1Tag
+      ) {
+        htmlBlockDepth = 0;
+        htmlBlockType1Tag = '';
       } else if (htmlBlockTag && !htmlBlockTag[1] && !/\/\s*>$/.test(htmlBlockTag[0])) {
-        htmlBlockDepth += 1;
+        const tagName = htmlBlockTag[2].toLowerCase();
+        const hasInlineEndTag = new RegExp(
+          '<\\s*/\\s*' + tagName + '\\s*>',
+          'i',
+        ).test(content.slice(htmlBlockTag[0].length));
+        if (HTML_BLOCK_TYPE_1_TAGS.has(tagName) && !hasInlineEndTag) {
+          htmlBlockType1Tag = tagName;
+          htmlBlockDepth = 1;
+        } else {
+          htmlBlockDepth += 1;
+        }
       }
       paragraph = false;
       return content;
@@ -699,9 +726,10 @@ function stripMarkdownCode(value: string): string {
     const previousLine = lines[lineIndex - 1] || '';
     const isSetextUnderline =
       lineIndex > 0
-      && !/^\s*$/.test(previousLine)
+      && isSetextHeadingText(previousLine)
       && /^\s{0,3}=+\s*$/.test(content);
-    const isTableDelimiterLine = /^\s{0,3}\|?(?:\s*:?-+:?\s*\|)+\s*$/.test(content);
+    const isTableDelimiterLine = isValidTableDelimiterLine(content, previousLine);
+    const isGithubAlertLine = /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(content);
     const isDirectiveBlockLine = /^\s{0,3}:::(?:message|details)(?:\s|$)/i.test(content);
     const isBlockLine =
       /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(content)
@@ -709,6 +737,7 @@ function stripMarkdownCode(value: string): string {
       || isSetextUnderline
       || isHtmlBlockLine
       || isTableDelimiterLine
+      || isGithubAlertLine
       || isDirectiveBlockLine;
     paragraph = !isBlockLine;
     paragraphBlockquoteDepth = blockquoteDepth;
@@ -727,14 +756,58 @@ function decodeVisibleReplyMarkers(value: string): string {
     .replace(/&(?:gt|#0*62|#x0*3e|#0*65310|#x0*ff1e);/gi, '>');
 }
 
+function countMarkdownTableCells(value: string): number | undefined {
+  const trimmed = value.trim();
+  if (!trimmed.includes('|')) return undefined;
+  const start = trimmed.startsWith('|') ? 1 : 0;
+  const end = trimmed.endsWith('|') ? trimmed.length - 1 : trimmed.length;
+  let count = 1;
+  let escaped = false;
+  for (let index = start; index < end; index += 1) {
+    if (escaped) {
+      escaped = false;
+    } else if (trimmed[index] === '\\') {
+      escaped = true;
+    } else if (trimmed[index] === '|') {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+function isSetextHeadingText(value: string): boolean {
+  const normalized = value.replace(/^\s{0,3}(?:>\s?)+/, '');
+  if (!normalized.trim()) return false;
+  return !(
+    /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(normalized)
+    || /^\s{0,3}(?:\x60{3,}|~{3,})/.test(normalized)
+    || HTML_BLOCK_LINE_PATTERN.test(normalized)
+    || /^\s{0,3}(?:[-+*]|\d{1,9}[.)])[ \t]+/.test(normalized)
+  );
+}
+
+function isValidTableDelimiterLine(value: string, previousLine: string): boolean {
+  if (!/^\s{0,3}\|?(?:\s*:?-+:?\s*\|)+\s*$/.test(value)) return false;
+  const headerCells = countMarkdownTableCells(previousLine);
+  const delimiterCells = countMarkdownTableCells(value);
+  return headerCells !== undefined && headerCells === delimiterCells;
+}
+
 function parseReplyNumbers(value: unknown, bodyMarkdown: string): number[] {
-  const explicit = list(value)
-    .map((item) => positiveInteger(item))
-    .filter((item): item is number => item !== undefined);
-  const anchors = [...decodeVisibleReplyMarkers(stripMarkdownCode(bodyMarkdown)).matchAll(/(?:>>|＞＞)\s*(\d{1,7})\b/g)]
-    .map((match) => positiveInteger(match[1]))
-    .filter((item): item is number => item !== undefined);
-  return [...new Set([...explicit, ...anchors])];
+  const replies = new Set<number>();
+  for (const item of list(value, MAX_THREAD_REPLIES)) {
+    const number = positiveInteger(item);
+    if (number !== undefined) replies.add(number);
+    if (replies.size >= MAX_THREAD_REPLIES) return [...replies];
+  }
+
+  const visibleBody = decodeVisibleReplyMarkers(stripMarkdownCode(bodyMarkdown));
+  for (const match of visibleBody.matchAll(/(?:>>|＞＞)\s*(\d{1,7})\b/g)) {
+    const number = positiveInteger(match[1]);
+    if (number !== undefined) replies.add(number);
+    if (replies.size >= MAX_THREAD_REPLIES) break;
+  }
+  return [...replies];
 }
 
 function normalizeSource(value: unknown): KnowledgeThreadSource | undefined {

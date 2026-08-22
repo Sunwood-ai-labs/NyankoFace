@@ -632,3 +632,48 @@ test('preserves backslash-escaped HTML fragments', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+
+
+test('bounds explicit reply targets per post', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      reply_to: Array.from({ length: 1024 }, (_, index) => index + 1),
+      body: '本文',
+    }],
+  });
+  assert.equal(thread?.posts[0]?.replyTo.length, 256);
+});
+
+test('does not infer replies after a type-1 HTML block ends', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<script>\n</script>\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies from GitHub alert code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '> [!NOTE]\n>     \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('keeps visible replies after an invalid Setext predecessor', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '# Heading\n===\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('keeps visible replies after a mismatched table delimiter', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: 'noheader\n|---|---|\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
