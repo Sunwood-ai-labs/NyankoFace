@@ -437,7 +437,9 @@ function stripMarkdownLinkDestinations(value: string): string {
           destinationEnd >= 0
           && isValidInlineLinkContent(value.slice(labelEnd + 2, destinationEnd))
         ) {
-          if (!isImage) visible += value.slice(index, labelEnd + 1);
+          if (!isImage) {
+            visible += stripMarkdownLinkDestinations(value.slice(index, labelEnd + 1));
+          }
           index = destinationEnd + 1;
           continue;
         }
@@ -514,6 +516,13 @@ function stripHtmlTags(value: string): string {
     if (tagEnd < 0) {
       visible.push(value.slice(index));
       break;
+    }
+
+    const autolinkContent = value.slice(index + 1, tagEnd);
+    if (/^[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\r\n]*$/.test(autolinkContent)) {
+      visible.push(autolinkContent);
+      index = tagEnd + 1;
+      continue;
     }
 
     if (!parseHtmlTag(value, index, tagEnd)) {

@@ -677,3 +677,20 @@ test('keeps visible replies after a mismatched table delimiter', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+
+
+test('does not infer replies from nested image labels in links', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[![diagram >>1](image.png)](target)' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies from autolink closing brackets', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<https://example.test/>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
