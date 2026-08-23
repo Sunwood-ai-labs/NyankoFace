@@ -821,18 +821,18 @@ function stripMarkdownCode(value: string): string {
   const lines = value.split(/\r?\n/);
   const directiveOpeningPattern = /^\s{0,3}:::(?:message(?:[ \t]+alert)?|details(?:[ \t]+[^\r\n]*)?)[ \t]*$/i;
   const directiveClosingPattern = /^\s{0,3}:::\s*$/;
-  const hasMatchingDirectiveCloser = (startIndex: number): boolean => {
-    let depth = 1;
-    for (let index = startIndex + 1; index < lines.length; index += 1) {
-      if (directiveOpeningPattern.test(lines[index])) {
-        depth += 1;
-      } else if (directiveClosingPattern.test(lines[index])) {
-        depth -= 1;
-        if (depth === 0) return true;
+  const directiveHasCloserByLine = Array.from({ length: lines.length }, () => false);
+  const openDirectiveLines: number[] = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    if (directiveOpeningPattern.test(lines[index])) {
+      openDirectiveLines.push(index);
+    } else if (directiveClosingPattern.test(lines[index])) {
+      const openingIndex = openDirectiveLines.pop();
+      if (openingIndex !== undefined) {
+        directiveHasCloserByLine[openingIndex] = true;
       }
     }
-    return false;
-  };
+  }
   const visibleLines = lines.map((line, lineIndex) => {
     let content = line;
     let blockquoteDepth = 0;
@@ -969,7 +969,7 @@ function stripMarkdownCode(value: string): string {
     }
 
     const isDirectiveBlockLine = directiveOpeningPattern.test(content);
-    const directiveHasCloser = isDirectiveBlockLine && hasMatchingDirectiveCloser(lineIndex);
+    const directiveHasCloser = isDirectiveBlockLine && directiveHasCloserByLine[lineIndex];
     const isDirectiveBlockCloser = /^\s{0,3}:::\s*$/.test(content);
     if (!fenced && directiveHasCloser) {
       directiveBlockDepth += 1;
