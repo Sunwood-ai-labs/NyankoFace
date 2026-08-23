@@ -1,0 +1,1114 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+import { parseReadme, renderMarkdownBody } from './markdown';
+import { isThreadKnowledge, parseKnowledgeThread, safeKnowledgeHref } from './knowledge-thread';
+
+const newKnowledgeSource = readFileSync(new URL('../app/new/page.tsx', import.meta.url), 'utf8');
+const detailSource = readFileSync(new URL('../app/docs/[owner]/[slug]/page.tsx', import.meta.url), 'utf8');
+const directorySource = readFileSync(new URL('../components/DocsDirectoryPage.tsx', import.meta.url), 'utf8');
+const threadViewSource = readFileSync(new URL('../components/KnowledgeThreadView.tsx', import.meta.url), 'utf8');
+
+test('parses thread metadata, ordered posts, and half/full-width reply anchors', () => {
+  const frontmatter = {
+    format: 'thread',
+    thread: {
+      part: 'Part.2',
+      theme: 'なぜこの仕組みは動くのか',
+      rules: ['短く具体的に書く'],
+      sources: [
+        { label: '仕様書', url: 'https://example.com/spec' },
+        { label: '拒否するURL', url: 'javascript:alert(1)' },
+      ],
+    },
+    posts: [
+      { number: 1, name: '名無しさん', body: 'まず全体像を教えてください。' },
+      { number: 2, name: '解説役', role: '回答', id: 'abc123', body: '>>1\n＞＞1 に答えます。', posted_at: '2026-08-22T10:00:00+09:00' },
+    ],
+  };
+
+  assert.equal(isThreadKnowledge(frontmatter), true);
+  const thread = parseKnowledgeThread(frontmatter);
+  assert.ok(thread);
+  assert.deepEqual(thread.metadata, {
+    part: 'Part.2',
+    theme: 'なぜこの仕組みは動くのか',
+    rules: ['短く具体的に書く'],
+    sources: [{ label: '仕様書', url: 'https://example.com/spec' }],
+  });
+  assert.deepEqual(thread.posts.map((post) => ({
+    number: post.number,
+    name: post.name,
+    role: post.role,
+    id: post.id,
+    postedAt: post.postedAt,
+    replyTo: post.replyTo,
+  })), [
+    { number: 1, name: '名無しさん', role: undefined, id: undefined, postedAt: undefined, replyTo: [] },
+    { number: 2, name: '解説役', role: '回答', id: 'abc123', postedAt: '2026-08-22T10:00:00+09:00', replyTo: [1] },
+  ]);
+});
+
+test('keeps ordinary knowledge articles on the regular format path', () => {
+  assert.equal(isThreadKnowledge({ format: 'article', posts: [] }), false);
+  assert.equal(parseKnowledgeThread({ format: 'article', posts: [] }), null);
+});
+
+test('normalizes YAML Date values used for post timestamps', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, posted_at: new Date('2026-08-22T01:00:00.000Z'), body: '本文' }],
+  });
+  assert.equal(thread?.posts[0]?.postedAt, '2026-08-22T01:00:00.000Z');
+});
+
+test('falls back safely for unsafe or oversized post numbers', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [
+      { number: '9007199254740992', body: '一つ目' },
+      { number: '9007199254740992', body: '二つ目' },
+    ],
+  });
+  assert.deepEqual(thread?.posts.map((post) => post.number), [1, 2]);
+});
+
+test('allocates duplicate post numbers without rescanning earlier posts', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: Array.from({ length: 2048 }, (_, index) => ({ number: 1, body: `本文 ${index}` })),
+  });
+  assert.equal(thread?.posts[0]?.number, 1);
+  assert.equal(thread?.posts.at(-1)?.number, 2048);
+});
+
+test('does not turn Markdown code operators into reply anchors', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: [
+        '計算式は `value >> 1` です。',
+        '`value\n>> 2`',
+        '```js\nvalue >> 3\n```',
+        '    value >> 4',
+        '>     value >> 5',
+        '> ```js\n> value >> 6\n> ```',
+        '- ```js\n  value >> 7\n  ```',
+        '<!-- TODO: verify >>8 -->',
+        '<!-- multiline >>\n9 -->',
+        '<code>value >> 10</code>',
+        '<pre>value >> 11</pre>',
+        '[guide](https://example.test/thread/>>12)',
+        '<a href="https://example.test/thread/>>13">guide</a>',
+      ].join('\n\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not close a Markdown fence when a marker has info text', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '```js\n```js\n>>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('recognizes escaped and encoded visible reply markers', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '\\>\\>1\n\n&gt;&gt;2' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1, 2]);
+});
+test('recognizes zero-padded greater-than entities', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '&#062;&#x03E;1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('ignores reference-style link identifiers in reply anchors', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[guide][ticket>>1]\n\n[ticket>>1]: https://example.test' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('preserves visible replies after unmatched Markdown link brackets', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: Array.from({ length: 4096 }, () => '[').join('') + ' visible >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('preserves leading whitespace in thread post Markdown', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '\n    value >> 1\n' }],
+  });
+  assert.equal(thread?.posts[0]?.bodyMarkdown, '    value >> 1');
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('does not enter invalid backtick fences', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['```lang`x', '\\>\\>1'].join('\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not close an inline code span with a longer delimiter run', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '` text \\>\\>1 ```',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('keeps visible replies after hidden HTML inside fenced code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ['```html', '<!-- example', '```', '\\>\\>1'].join('\n') }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('keeps reply markers in indented paragraph continuations', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '説明\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('preserves ASCII reply markers before blockquote stripping', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('recognizes the maximum accepted reply number', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '>>1000000' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1000000]);
+});
+test('keeps duplicate maximum post numbers within the accepted range', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1000000, body: '最大' }, { number: 1000000, body: '重複' }],
+  });
+  assert.deepEqual(thread?.posts.map((post) => post.number), [1000000, 1]);
+});
+
+test('preserves undefined reference link identifiers', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[guide][ticket>>1]' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('keeps escaped backticks and their visible reply marker', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ['\\', '`literal >>1', '\\', '`'].join('') }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not treat an indented line after a heading as a paragraph continuation', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '# Heading\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('closes active code spans at escaped source delimiters', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: [String.fromCharCode(96), 'code ', '\\', String.fromCharCode(96), ' visible \\>\\>1 ', String.fromCharCode(96)].join('') }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('keeps replies after inline code containing hidden HTML syntax', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: [String.fromCharCode(96), '<!--', String.fromCharCode(96), ' \\>\\>1'].join('') }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('rejects partially numeric post and reply references', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [
+      { number: '2foo', body: '本文' },
+      { number: 1, reply_to: '2.5', body: '本文' },
+    ],
+  });
+  assert.deepEqual(thread?.posts.map((post) => post.number), [1, 2]);
+  assert.deepEqual(thread?.posts[1]?.replyTo, []);
+});
+test('preserves replies after incomplete HTML-looking fragments', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<span title="x" ＞＞1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('stops raw-text sanitization at the first matching closing tag', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<script>const sample = "<script>";</script> ＞＞1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not infer replies from sanitized non-text HTML', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: [
+        "<script>const ref = '>>1';</script>",
+        "<style>.thread::before { content: '>>1'; }</style>",
+        '<textarea>>>1</textarea>',
+      ].join('\n\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('keeps visible replies after comment syntax in HTML attributes', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<span title="<!--">visible</span> >>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('matches later code spans after an unmatched shorter delimiter', () => {
+  const tick = String.fromCharCode(96);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: [tick, 'literal ', tick, tick, 'code >>1', tick, tick, ' ', tick].join('') }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not cross code spans across later delimiter runs', () => {
+  const tick = String.fromCharCode(96);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: [tick, 'hidden ', tick, tick, ' text', tick, ' visible >>1 ', tick, tick, ' ', tick].join(''),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('preserves replies in invalid inline link destinations', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[guide](bad destination >>1)' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not infer replies from indented lines after Setext headings', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['Heading', '===', '    ' + String.fromCharCode(92) + '>' + String.fromCharCode(92) + '>1'].join(String.fromCharCode(10)),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('preserves replies after incomplete reference definitions', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[guide][ticket>>1]\n\n[ticket>>1]:' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('ignores multiline reference definitions in reply anchors', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '[guide][ticket>>1]\n\n[ticket>>1]:\n  https://example.test',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies from image alt labels', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '![diagram >>1](image.png)' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('scopes fenced code to its Markdown container', () => {
+  const tick = String.fromCharCode(96);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['> ' + tick + tick + tick, '> example', tick + tick + tick, '>>1'].join(String.fromCharCode(10)),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('ignores reply markers in quoted inline link titles', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[guide](https://example.test "details ) >>1")' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('uses safe source URLs and sends post Markdown through the shared renderer', () => {
+  assert.equal(safeKnowledgeHref('https://example.com/source'), 'https://example.com/source');
+  assert.equal(safeKnowledgeHref('mailto:author@example.com'), 'mailto:author@example.com');
+  assert.equal(safeKnowledgeHref('javascript:alert(1)'), null);
+
+  const html = parseReadme('[bad](javascript:alert(1))\n\n**safe**').bodyHtml;
+  assert.doesNotMatch(html, /javascript:/i);
+  assert.match(html, /<strong>safe<\/strong>/);
+});
+
+test('renders post Markdown without treating thematic breaks as frontmatter', () => {
+  const html = renderMarkdownBody('---\n\n本文\n\n---\n\n後半');
+  assert.match(html, /本文/);
+  assert.match(html, /後半/);
+});
+
+test('wires the thread format through creation, directory, and detail surfaces', () => {
+  assert.match(newKnowledgeSource, /name="knowledge_format" value="thread"/);
+  assert.match(newKnowledgeSource, /format: thread/);
+  assert.match(newKnowledgeSource, /title: スレッド解説サンプル/);
+  assert.match(newKnowledgeSource, /description: 投稿形式で仕組みを順番に説明します/);
+  assert.match(newKnowledgeSource, /data-knowledge-format-help="true"/);
+  assert.match(newKnowledgeSource, /<details hidden=\{knowledgeFormat !== 'thread'\}/);
+  assert.match(newKnowledgeSource, /data-knowledge-format-fieldset="true"/);
+  assert.match(newKnowledgeSource, /syncKnowledgeFormatFieldset/);
+  assert.match(newKnowledgeSource, /syncKnowledgeFormatHelp/);
+  assert.match(directorySource, /article\.format === 'thread'/);
+  assert.match(detailSource, /<KnowledgeThreadView/);
+  assert.match(detailSource, /knowledgeRenderUrls/);
+  assert.match(threadViewSource, /MarkdownBodyThemeProvider/);
+  assert.match(threadViewSource, /renderMarkdownBody\(post\.bodyMarkdown/);
+  assert.match(threadViewSource, /renderUrls\?\: ReadmeRenderUrls/);
+  assert.match(threadViewSource, /data-thread-post-number/);
+  assert.match(threadViewSource, /href=\{`#thread-post-\$\{target\}`\}/);
+});
+
+
+test('preserves visible replies after escaped image markers', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '\\![diagram >>1](image.png)' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+
+test('ignores non-element raw HTML tokens in reply inference', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['<?thread >>1?>', '<!DOCTYPE html ">>2">', '<![CDATA[>>3]]>'].join('\n\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('ignores shortcut and collapsed reference image labels', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: [
+        '![diagram >>1]',
+        '![diagram >>1][]',
+        '[diagram >>1]: image.png',
+      ].join('\n\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('scopes fenced code to list containers', () => {
+  const tick = String.fromCharCode(96);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['- ' + tick + tick + tick, '  example', ' ' + tick + tick + tick, '>>1'].join('\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+
+test('bounds rendered thread posts', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: Array.from({ length: 2049 }, (_, index) => ({ number: index + 1, body: '本文' })),
+  });
+  assert.equal(thread?.posts.length, 2048);
+});
+
+test('does not infer replies from indented code after an HTML block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<!-- done -->\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('recognizes replies in raw HTML block text', () => {
+  const tick = String.fromCharCode(96);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['<div>', tick + 'answer >>1' + tick, '</div>'].join('\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+
+test('bounds thread rules and sources', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    thread: {
+      rules: Array.from({ length: 257 }, (_, index) => 'ルール' + index),
+      sources: Array.from({ length: 257 }, (_, index) => ({ label: '資料' + index, url: 'https://example.com/' + index })),
+    },
+    posts: [],
+  });
+  assert.equal(thread?.metadata.rules.length, 256);
+  assert.equal(thread?.metadata.sources.length, 256);
+});
+
+test('ignores multiline reference titles in reply inference', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '[guide][ticket]\n\n[ticket]: /url\n  "details >>1"',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('keeps visible replies inside type-6 HTML blocks', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<div>\n    \\>\\>1\n</div>' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('uses marker-specific indentation for list fences', () => {
+  const tick = String.fromCharCode(96);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['10. ' + tick + tick + tick, '  ＞＞1'].join('\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+
+test('preserves excess list-marker indentation as code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '-     \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('preserves reply markers in invalid HTML tags', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<span @bad=">>1">' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+
+test('recognizes encoded full-width reply markers', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '&#xFF1E;&#65310;1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not infer replies from indented code after a table delimiter', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '| h |\n|---|\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+
+test('does not infer replies from indented code after a directive block opener', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ':::message\n    \\>\\>1\n:::' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('ignores directive-looking lines inside fenced code', () => {
+  const tick = String.fromCharCode(96);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: [
+        ':::message',
+        tick + tick + tick,
+        ':::message',
+        tick + tick + tick,
+        ':::',
+        '    \\>\\>1',
+        ':::',
+      ].join('\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('preserves replies after unbalanced reference destinations', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[ticket>>1]: /foo(bar' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('ignores balanced parentheses in reference destinations', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '[guide][ticket]\n\n[ticket]: /foo(bar)',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+
+test('does not infer replies after a blockquote container ends', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '> paragraph\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('keeps type-6 HTML blocks open through their terminating blank line', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<div>\n</div>\n    ＞＞1\n\n本文' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('preserves replies in invalid HTML declarations', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<!123 ＞＞1>' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+
+test('preserves backslash-escaped HTML fragments', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '\\<span title=">>1">' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+
+test('bounds explicit reply targets per post', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      reply_to: Array.from({ length: 1024 }, (_, index) => index + 1),
+      body: '本文',
+    }],
+  });
+  assert.equal(thread?.posts[0]?.replyTo.length, 256);
+});
+
+test('does not infer replies after a type-1 HTML block ends', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<script>\n</script>\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies from GitHub alert code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '> [!NOTE]\n>     \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('keeps visible replies after an invalid Setext predecessor', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '# Heading\n===\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('keeps visible replies after a mismatched table delimiter', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: 'noheader\n|---|---|\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+
+test('preserves replies after a thematic break before a Setext underline', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '---\n===\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('preserves replies after a non-paragraph table header', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '# a | b\n|---|---|\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('does not infer replies from nested image labels in links', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[![diagram >>1](image.png)](target)' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies from nested image labels in reference links', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '[![diagram >>1](image.png)][target]\n\n[target]: /url',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('preserves replies after an invalid email autolink', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<a/@b>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('does not infer replies from autolink closing brackets', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<https://example.test/>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+
+test('bounds each thread post body by UTF-8 bytes', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: 'あ'.repeat(100_000) }],
+  });
+  assert.ok(new TextEncoder().encode(thread?.posts[0]?.bodyMarkdown || '').length <= 64 * 1024);
+});
+
+test('bounds aggregate thread body bytes before scanning aliases', () => {
+  const sharedPost = { number: 1, body: 'x'.repeat(70_000) };
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: Array.from({ length: 2_048 }, () => sharedPost),
+  });
+  const totalBytes = thread?.posts.reduce(
+    (total, post) => total + new TextEncoder().encode(post.bodyMarkdown).length,
+    0,
+  ) || 0;
+  assert.ok(totalBytes <= 1024 * 1024);
+  assert.ok((thread?.posts.length || 0) < 2_048);
+});
+
+
+test('bounds each thread post metadata field and aggregate bytes', () => {
+  const sharedMetadata = 'あ'.repeat(100_000);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: Array.from({ length: 2_048 }, (_, index) => ({
+      number: index + 1,
+      name: sharedMetadata,
+      role: sharedMetadata,
+      id: sharedMetadata,
+      posted_at: sharedMetadata,
+      body: '本文',
+    })),
+  });
+  const posts = thread?.posts || [];
+  const metadataFields = posts.flatMap((post) => [post.name, post.role, post.id, post.postedAt]);
+  assert.ok(metadataFields.every((field) => !field || new TextEncoder().encode(field).length <= 4 * 1024));
+  const totalBytes = metadataFields.reduce(
+    (total, field) => total + (field ? new TextEncoder().encode(field).length : 0),
+    0,
+  );
+  assert.ok(totalBytes <= 256 * 1024);
+  assert.ok(posts.length < 2_048);
+});
+
+test('bounds thread-level metadata fields and aggregate bytes', () => {
+  const sharedMetadata = 'あ'.repeat(100_000);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    thread: {
+      part: sharedMetadata,
+      theme: sharedMetadata,
+      rules: Array.from({ length: 256 }, () => sharedMetadata),
+      sources: Array.from({ length: 256 }, () => ({
+        label: sharedMetadata,
+        url: 'https://example.com/' + sharedMetadata,
+      })),
+    },
+    posts: [],
+  });
+  assert.ok(thread);
+  const metadataFields = [
+    thread.metadata.part,
+    thread.metadata.theme,
+    ...thread.metadata.rules,
+    ...thread.metadata.sources.flatMap((source) => [source.label, source.url]),
+  ];
+  assert.ok(metadataFields.every((field) => !field || new TextEncoder().encode(field).length <= 4 * 1024));
+  const totalBytes = metadataFields.reduce(
+    (total, field) => total + (field ? new TextEncoder().encode(field).length : 0),
+    0,
+  );
+  assert.ok(totalBytes <= 256 * 1024);
+  assert.ok(thread.metadata.rules.length < 256 || thread.metadata.sources.length < 256);
+});
+
+test('bounds scalar reply lists before splitting', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      reply_to: Array.from({ length: 100_000 }, (_, index) => String(index + 1)).join(','),
+      body: '本文',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, Array.from({ length: 256 }, (_, index) => index + 1));
+});
+
+test('bounds oversized scalar post numbers before validation', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: '9'.repeat(100_000), body: '本文' }],
+  });
+  assert.equal(thread?.posts[0]?.number, 1);
+});
+
+test('does not infer replies from email autolink delimiters', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<user@example.com>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('keeps visible replies after backticks inside raw HTML attributes', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: "<span title=\"`\">visible >>1</span> `x`" }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('bounds array reply lists before normalizing every item', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      reply_to: ['1'.repeat(16_384), '2'],
+      body: '本文',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies from mixed space-tab indented code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ' \t>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+
+test('does not infer replies from link definition continuation code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[ticket]: /url\n    >>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('decodes numeric entity reply markers', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '&gt;&gt;&#49;' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+
+test('does not infer replies after inline type-1 HTML closing tags', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<script>\ntext </script>\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+
+test('bounds aggregate reply targets across the thread', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: Array.from({ length: 2_048 }, (_, index) => ({
+      number: index + 1,
+      reply_to: Array.from({ length: 256 }, (_, target) => target + 1),
+      body: '本文',
+    })),
+  });
+  const totalTargets = thread?.posts.reduce((total, post) => total + post.replyTo.length, 0) || 0;
+  assert.equal(totalTargets, 8_192);
+});
+
+test('keeps list-item paragraph continuations visible', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['- item', '    ' + String.fromCharCode(92) + '>' + String.fromCharCode(92) + '>1'].join(String.fromCharCode(10)),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not infer replies from hyphen Setext code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['Heading', '-', '    ' + String.fromCharCode(92) + '>' + String.fromCharCode(92) + '>1'].join(String.fromCharCode(10)),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('preserves replies after whitespace-invalid URI autolinks', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<http:foo bar>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('bounds nested Markdown link label processing', () => {
+  const body = '['.repeat(6_000) + 'x' + '](u)'.repeat(6_000);
+  assert.doesNotThrow(() => parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body }],
+  }));
+});
+
+test('preserves replies after angle-invalid bare link destinations', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[guide](foo<bar>>1)' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('preserves replies after overlong reference labels', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '[' + 'a'.repeat(1_000) + ']: /url\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not infer replies after a declaration HTML block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<!DOCTYPE html>\n    \\>\\>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('does not infer replies after a closed Zenn directive', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ':::message\ntext\n:::\n    \\>\\>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('does not infer replies after a closed HTML comment block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<!--\n-->\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies after a closed processing-instruction HTML block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<?job\n?>\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies after a closed CDATA HTML block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<![CDATA[\n]]>\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('preserves replies after a noninterrupting ordered line before Setext underline', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: 'text\\n2. item\\n===\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('decodes numeric whitespace entities before reply scans', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '&gt;&gt;&#10;1 &gt;&gt;&#xA;2' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1, 2]);
+});
+test('does not infer replies from tab-indented blockquote-like code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '\t> >>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('preserves replies after an invalid Zenn message opener', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ':::message typo\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('preserves replies after an unquoted GitHub alert marker', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[!NOTE]\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('preserves replies after a paragraph-contained reference definition', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: 'text\\n[ticket]: /url\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('keeps visible replies after a code span opener before tag-like text', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: String.fromCharCode(96) + '<span title=' + String.fromCharCode(34) + String.fromCharCode(96) + String.fromCharCode(34) + '>visible >>1' + String.fromCharCode(96),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('decodes named whitespace entities before reply scans', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '&gt;&gt;&nbsp;1 &gt;&gt;&Tab;2' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1, 2]);
+});
+test('preserves replies after an unclosed Zenn directive', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ':::message\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});

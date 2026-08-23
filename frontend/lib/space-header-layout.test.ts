@@ -10,6 +10,14 @@ const detailTabsSource = readFileSync(
   new URL('../components/DetailTabs.tsx', import.meta.url),
   'utf8',
 );
+const repoSearchListSource = readFileSync(
+  new URL('../components/RepoSearchList.tsx', import.meta.url),
+  'utf8',
+);
+const repoCardSource = readFileSync(
+  new URL('../components/RepoCard.tsx', import.meta.url),
+  'utf8',
+);
 const globalStyles = readFileSync(
   new URL('../app/globals.css', import.meta.url),
   'utf8',
@@ -60,5 +68,18 @@ test('DetailTabs stays keyboard-reachable inside a bounded horizontal scroller',
 
 test('non-Space repository title keeps its existing responsive branch', () => {
   assert.match(repoPageSource, /isSpace \? 'nyankoface-space-header-main' : 'flex min-w-0 flex-1 items-center gap-2 py-3 max-sm:flex-wrap'/);
-  assert.match(repoPageSource, /isSpace \? 'nyankoface-space-header-repo truncate' : isSpaceApp \? 'truncate' : 'break-words'/);
+  assert.match(repoPageSource, /isSpaceApp \? 'max-sm:flex-nowrap max-sm:text-base' : 'max-sm:flex-nowrap'/);
+  assert.match(repoPageSource, /isSpace \? 'nyankoface-space-header-repo truncate' : 'truncate'/);
+  assert.match(repoPageSource, /title=\{`\$\{owner\}\/\$\{repoInfo\.name\}`\}/);
+  assert.doesNotMatch(repoPageSource, /isSpaceApp \? 'truncate' : 'break-words'/);
+});
+
+test('repository cards can grow instead of clipping narrow content', () => {
+  assert.match(repoSearchListSource, /min-w-0 rounded-lg border/);
+  assert.match(repoSearchListSource, /min-h-\[62px\]/);
+  assert.match(repoSearchListSource, /min-h-\[76px\]/);
+  assert.doesNotMatch(repoSearchListSource, /(?:^|[\s'"])h-\[(?:62|76)px\]/);
+  assert.match(repoCardSource, /min-w-0 min-h-44/);
+  assert.match(repoCardSource, /max-w-\[42%\] truncate/);
+  assert.match(repoCardSource, /min-w-0 flex-1 truncate/);
 });

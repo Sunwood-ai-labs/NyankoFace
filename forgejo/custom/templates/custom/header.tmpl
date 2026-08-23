@@ -3116,6 +3116,7 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
       const params = new URLSearchParams(location.search);
       const topic = params.get("topic");
       const template = params.get("template");
+      const knowledgeFormat = params.get("knowledge_format");
       const duplicateFrom = params.get("duplicate_from");
       const ownerName = params.get("owner");
       const repoName = params.get("repo");
@@ -3161,15 +3162,22 @@ html[data-nyankoface-theme="cyberpunk"] body a.nyankoface-community-tab.active {
         duplicateInput.value = duplicateFrom;
         form.appendChild(duplicateInput);
       }
-      if ((topic || duplicateFrom) && !document.querySelector(".nyankoface-create-topic-note")) {
+      if (form && knowledgeFormat && !form.querySelector('input[name="knowledge_format"]')) {
+        const formatInput = document.createElement("input");
+        formatInput.type = "hidden";
+        formatInput.name = "knowledge_format";
+        formatInput.value = knowledgeFormat;
+        form.appendChild(formatInput);
+      }
+      if ((topic || duplicateFrom || knowledgeFormat) && !document.querySelector(".nyankoface-create-topic-note")) {
         const note = document.createElement("div");
         note.className = "nyankoface-create-topic-note";
         note.innerHTML = `
           <div>
-            <strong>${duplicateFrom ? "Duplicate NyankoFace repository" : `${escapeHtml(topic)} repository`}</strong>
-            <span>${duplicateFrom ? `Create a new repository based on <code>${escapeHtml(duplicateFrom)}</code>, then copy or push the source files in Forgejo.` : `Add the <code>${escapeHtml(topic)}</code> topic after creation so NyankoFace indexes it in the right section.`}</span>
+            <strong>${duplicateFrom ? "Duplicate NyankoFace repository" : `${escapeHtml(topic || "knowledge")} repository`}</strong>
+            <span>${duplicateFrom ? `Create a new repository based on <code>${escapeHtml(duplicateFrom)}</code>, then copy or push the source files in Forgejo.` : `Add the <code>${escapeHtml(topic || "doc")}</code> topic after creation so NyankoFace indexes it in the right section.`}${knowledgeFormat ? ` Knowledge format: <code>${escapeHtml(knowledgeFormat)}</code>.` : ""}</span>
           </div>
-          ${template ? `<em>${escapeHtml(template.replaceAll("-", " "))}</em>` : ""}
+          ${template || knowledgeFormat ? `<em>${escapeHtml((template || "").replaceAll("-", " "))}${template && knowledgeFormat ? " · " : ""}${knowledgeFormat ? escapeHtml(knowledgeFormat) : ""}</em>` : ""}
         `;
         form?.prepend(note);
       }

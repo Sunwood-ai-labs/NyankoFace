@@ -294,8 +294,8 @@ export default async function RepoDetailPage({
               <HfIcon name={kindIcon} className="h-4 w-4" />
             </Link>
             <h1
-              className={`flex min-w-0 items-center gap-1 text-lg font-bold ${isSpace ? 'nyankoface-space-header-title' : `max-sm:w-[calc(100%-1.5rem)] ${isSpaceApp ? 'max-sm:flex-nowrap max-sm:text-base' : 'max-sm:flex-wrap'}`}`}
-              title={isSpace ? `${owner}/${repoInfo.name}` : undefined}
+              className={`flex min-w-0 items-center gap-1 text-lg font-bold ${isSpace ? 'nyankoface-space-header-title' : `max-sm:w-[calc(100%-1.5rem)] ${isSpaceApp ? 'max-sm:flex-nowrap max-sm:text-base' : 'max-sm:flex-nowrap'}`}`}
+              title={`${owner}/${repoInfo.name}`}
             >
               <Link
                 href={kindHref}
@@ -304,9 +304,9 @@ export default async function RepoDetailPage({
               >
                 {kindLabel}:
               </Link>
-              <a href={`/git/${owner}`} className={`text-zinc-500 hover:underline dark:text-zinc-400 ${isSpace ? 'nyankoface-space-header-owner' : ''}`}>{owner}</a>
+              <a href={`/git/${owner}`} className={`min-w-0 max-w-[42%] truncate text-zinc-500 hover:underline dark:text-zinc-400 ${isSpace ? 'nyankoface-space-header-owner' : ''}`} title={owner}>{owner}</a>
               <span className="shrink-0 text-zinc-300">/</span>
-              <span className={`min-w-0 font-mono text-zinc-950 dark:text-zinc-100 ${isSpace ? 'nyankoface-space-header-repo truncate' : isSpaceApp ? 'truncate' : 'break-words'}`}>{repoInfo.name}</span>
+              <span className={`min-w-0 flex-1 font-mono text-zinc-950 dark:text-zinc-100 ${isSpace ? 'nyankoface-space-header-repo truncate' : 'truncate'}`} title={repoInfo.name}>{repoInfo.name}</span>
             </h1>
             {isSpace ? (
               <div className="nyankoface-space-header-metrics">

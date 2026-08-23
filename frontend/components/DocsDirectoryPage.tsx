@@ -106,7 +106,7 @@ function DocCard({
       <div className="pointer-events-none relative z-10 grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto] px-4 pb-2 pt-2.5">
         <div className="mb-2 flex min-w-0 items-start gap-1.5 text-[10px] font-semibold leading-none text-white/90">
           <span className="rounded bg-white/15 px-1.5 py-1 shadow-sm ring-1 ring-white/10 backdrop-blur">
-            {ui(locale, '記事', 'Article')}
+            {article.format === 'thread' ? ui(locale, 'スレッド', 'Thread') : ui(locale, '記事', 'Article')}
           </span>
           <Link
             href="/docs?sort=views&order=desc"

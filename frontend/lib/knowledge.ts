@@ -1,5 +1,8 @@
 import { getContents, getRepo, getTextFile, Repo, repoDefaultBranch, searchReposByTopicAndQuery, SortOption } from './forgejo';
 import { parseReadme } from './markdown';
+import { parseKnowledgeThread, KnowledgeThread } from './knowledge-thread';
+
+export type KnowledgeArticleFormat = 'article' | 'thread';
 
 export interface KnowledgeArticle {
   id: string;
@@ -16,6 +19,8 @@ export interface KnowledgeArticle {
   updatedAt: string;
   createdAt: string;
   emoji: string;
+  format: KnowledgeArticleFormat;
+  thread?: KnowledgeThread;
   readingMinutes: number;
   views: number;
   likes: number;
@@ -104,6 +109,7 @@ async function loadPublication(repo: Repo): Promise<KnowledgeArticle[]> {
     if (!raw) return null;
     const parsed = parseReadme(raw);
     if (parsed.frontmatter.published === false) return null;
+    const thread = parseKnowledgeThread(parsed.frontmatter);
     const slug = entry.name.replace(/\.md$/i, '');
     const title = typeof parsed.frontmatter.title === 'string'
       ? parsed.frontmatter.title.trim()
@@ -129,7 +135,12 @@ async function loadPublication(repo: Repo): Promise<KnowledgeArticle[]> {
       emoji: typeof parsed.frontmatter.emoji === 'string' && parsed.frontmatter.emoji.trim()
         ? parsed.frontmatter.emoji.trim()
         : publicationEmoji(slug, topics),
-      readingMinutes: readingMinutes(parsed.bodyMarkdown),
+      format: thread ? 'thread' : 'article',
+      thread: thread || undefined,
+      readingMinutes: readingMinutes([
+        parsed.bodyMarkdown,
+        ...(thread?.posts.map((post) => post.bodyMarkdown) || []),
+      ].join('\n\n')),
       views: 0,
       likes: 0,
       bodyHtml: parsed.bodyHtml,

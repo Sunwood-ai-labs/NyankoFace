@@ -58,8 +58,8 @@ export default function RepoSearchList({
         return (
           <article
             key={repo.id ?? repo.full_name}
-            className={`block overflow-hidden rounded-lg border bg-white px-3 py-2 transition hover:bg-zinc-50 hover:shadow-sm ${
-              kind === 'benchmark' ? 'h-[76px] border-sky-100 hover:border-sky-200' : kind === 'automation' ? 'h-[76px] border-amber-100 hover:border-amber-300' : 'h-[62px] border-zinc-100 hover:border-zinc-200'
+            className={`block min-w-0 rounded-lg border bg-white px-3 py-2 transition hover:bg-zinc-50 hover:shadow-sm ${
+              kind === 'benchmark' ? 'min-h-[76px] border-sky-100 hover:border-sky-200' : kind === 'automation' ? 'min-h-[76px] border-amber-100 hover:border-amber-300' : 'min-h-[62px] border-zinc-100 hover:border-zinc-200'
             }`}
           >
             <div className="flex min-w-0 items-center gap-2.5">

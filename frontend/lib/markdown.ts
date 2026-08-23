@@ -1135,6 +1135,16 @@ function createMarkdownExtensions(locale: 'ja' | 'en', boundaryIndex: ZennBounda
   };
 }
 
+function sanitizeMarkdownTag(tagName: string, attribs: Record<string, string>) {
+  const safeAttribs = { ...attribs };
+  if (/^thread-post-\d+$/.test(safeAttribs.id || '')) {
+    delete safeAttribs.id;
+  }
+  if (/^thread-post-\d+$/.test(safeAttribs.name || '')) {
+    delete safeAttribs.name;
+  }
+  return { tagName, attribs: safeAttribs };
+}
 function sanitizeRenderedMarkdown(html: string): string {
   return sanitizeHtml(html, {
     allowedTags: [
@@ -1158,7 +1168,17 @@ function sanitizeRenderedMarkdown(html: string): string {
     allowProtocolRelative: false,
     enforceHtmlBoundary: true,
     transformTags: {
-      a: sanitizeHtml.simpleTransform('a', { rel: 'nofollow noreferrer' }, true),
+      '*': (tagName, attribs) => {
+        if (!/^thread-post-\d+$/.test(attribs.id || '')) return { tagName, attribs };
+        const safeAttribs = { ...attribs };
+        delete safeAttribs.id;
+        return { tagName, attribs: safeAttribs };
+      },
+      a: (tagName, attribs) => {
+        const transformed = sanitizeMarkdownTag(tagName, attribs);
+        transformed.attribs.rel = 'nofollow noreferrer';
+        return transformed;
+      },
     },
   });
 }
@@ -1177,6 +1197,10 @@ function renderMarkdown(markdown: string, urls?: ReadmeRenderUrls): string {
   });
   const rendered = parser.parse(markedMarkdown, { async: false, renderer: createMarkdownRenderer(locale) }) as string;
   return sanitizeRenderedMarkdown(resolveRelativeRepositoryUrls(rendered, urls));
+}
+
+export function renderMarkdownBody(markdown: string, urls?: ReadmeRenderUrls): string {
+  return renderMarkdown(markdown, urls);
 }
 
 export interface ReadmeRenderUrls {
