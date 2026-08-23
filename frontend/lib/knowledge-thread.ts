@@ -33,15 +33,6 @@ function record(value: unknown): Frontmatter | undefined {
     : undefined;
 }
 
-function stringValue(value: unknown): string | undefined {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value.toISOString();
-  }
-  if (typeof value !== 'string' && typeof value !== 'number') return undefined;
-  const normalized = String(value).trim();
-  return normalized || undefined;
-}
-
 function trimSurroundingBlankLines(value: string): string {
   if (!value.trim()) return '';
   return value
@@ -79,7 +70,17 @@ function boundedStringValue(
   value: unknown,
   maxBytes = MAX_THREAD_METADATA_FIELD_BYTES,
 ): string | undefined {
-  const normalized = stringValue(value);
+  let rawValue: string;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    rawValue = value.toISOString();
+  } else if (typeof value === 'string') {
+    rawValue = value.slice(0, maxBytes);
+  } else if (typeof value === 'number') {
+    rawValue = String(value);
+  } else {
+    return undefined;
+  }
+  const normalized = rawValue.trim();
   return normalized ? truncateUtf8(normalized, maxBytes) : undefined;
 }
 function list(value: unknown, limit = Number.MAX_SAFE_INTEGER): string[] {
@@ -115,6 +116,7 @@ const MAX_THREAD_METADATA_BYTES = 256 * 1024;
 const MAX_THREAD_POST_METADATA_FIELD_BYTES = MAX_THREAD_METADATA_FIELD_BYTES;
 const MAX_THREAD_POST_METADATA_BYTES = MAX_THREAD_METADATA_BYTES;
 const MAX_THREAD_REPLY_LIST_BYTES = 16 * 1024;
+const MAX_THREAD_INTEGER_TEXT_BYTES = 32;
 const MAX_THREAD_RULES = 256;
 const MAX_THREAD_SOURCES = 256;
 type ByteBudget = {
@@ -152,7 +154,9 @@ function normalizeMetadataList(value: unknown, limit: number, budget: ByteBudget
 function positiveInteger(value: unknown): number | undefined {
   const number = typeof value === 'number'
     ? value
-    : typeof value === 'string' && /^[+]?\d+$/.test(value.trim())
+    : typeof value === 'string'
+      && value.length <= MAX_THREAD_INTEGER_TEXT_BYTES
+      && /^[+]?\d+$/.test(value.trim())
       ? Number(value.trim())
       : undefined;
   if (number === undefined) return undefined;
@@ -938,7 +942,7 @@ export function safeKnowledgeHref(value: string): string | null {
 }
 
 export function isThreadKnowledge(frontmatter: Frontmatter): boolean {
-  const format = stringValue(frontmatter.format ?? frontmatter.knowledge_format)?.toLowerCase();
+  const format = boundedStringValue(frontmatter.format ?? frontmatter.knowledge_format)?.toLowerCase();
   if (format === 'thread') return true;
   return Array.isArray(frontmatter.thread_posts)
     || Array.isArray(record(frontmatter.thread)?.posts);

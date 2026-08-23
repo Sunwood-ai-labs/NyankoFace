@@ -785,3 +785,11 @@ test('bounds scalar reply lists before splitting', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, Array.from({ length: 256 }, (_, index) => index + 1));
 });
+
+test('bounds oversized scalar post numbers before validation', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: '9'.repeat(100_000), body: '本文' }],
+  });
+  assert.equal(thread?.posts[0]?.number, 1);
+});
