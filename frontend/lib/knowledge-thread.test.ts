@@ -858,3 +858,47 @@ test('does not infer replies after inline type-1 HTML closing tags', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
+
+
+test('bounds aggregate reply targets across the thread', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: Array.from({ length: 2_048 }, (_, index) => ({
+      number: index + 1,
+      reply_to: Array.from({ length: 256 }, (_, target) => target + 1),
+      body: '本文',
+    })),
+  });
+  const totalTargets = thread?.posts.reduce((total, post) => total + post.replyTo.length, 0) || 0;
+  assert.equal(totalTargets, 8_192);
+});
+
+test('keeps list-item paragraph continuations visible', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['- item', '    ' + String.fromCharCode(92) + '>' + String.fromCharCode(92) + '>1'].join(String.fromCharCode(10)),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not infer replies from hyphen Setext code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ['Heading', '-', '    ' + String.fromCharCode(92) + '>' + String.fromCharCode(92) + '>1'].join(String.fromCharCode(10)),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('preserves replies after whitespace-invalid URI autolinks', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<http:foo bar>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});

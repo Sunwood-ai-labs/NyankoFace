@@ -127,10 +127,15 @@ const MAX_THREAD_METADATA_BYTES = 256 * 1024;
 const MAX_THREAD_POST_METADATA_FIELD_BYTES = MAX_THREAD_METADATA_FIELD_BYTES;
 const MAX_THREAD_POST_METADATA_BYTES = MAX_THREAD_METADATA_BYTES;
 const MAX_THREAD_REPLY_LIST_BYTES = 16 * 1024;
+const MAX_THREAD_REPLY_TARGETS = 8_192;
 const MAX_THREAD_INTEGER_TEXT_BYTES = 32;
 const MAX_THREAD_RULES = 256;
 const MAX_THREAD_SOURCES = 256;
 type ByteBudget = {
+  used: number;
+  limit: number;
+};
+type ReplyTargetBudget = {
   used: number;
   limit: number;
 };
@@ -617,7 +622,7 @@ function stripHtmlTags(value: string): string {
 
     const autolinkContent = value.slice(index + 1, tagEnd);
     if (
-      /^[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\r\n]*$/.test(autolinkContent)
+      /^[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\x00-\x20\x7f]*$/.test(autolinkContent)
       || /^[^\s<>@]+@[^\s<>@]+$/.test(autolinkContent)
     ) {
       visible.push(autolinkContent);
@@ -717,7 +722,7 @@ function stripMarkdownCodeSpans(value: string): string {
   }
   return visible;
 }
-function hasFourColumnIndentation(value: string): boolean {
+function markdownIndentationColumns(value: string): number {
   let column = 0;
   for (const character of value) {
     if (character === ' ') {
@@ -727,9 +732,11 @@ function hasFourColumnIndentation(value: string): boolean {
     } else {
       break;
     }
-    if (column >= 4) return true;
   }
-  return false;
+  return column;
+}
+function hasFourColumnIndentation(value: string): boolean {
+  return markdownIndentationColumns(value) >= 4;
 }
 function stripMarkdownCode(value: string): string {
   let fenced = false;
@@ -743,6 +750,7 @@ function stripMarkdownCode(value: string): string {
   let paragraph = false;
   let paragraphBlockquoteDepth: number | null = null;
   let paragraphListDepth: number | null = null;
+  let paragraphListIndentation: number | null = null;
   const lines = value.split(/\r?\n/);
   const visibleLines = lines.map((line, lineIndex) => {
     let content = line;
@@ -775,6 +783,17 @@ function stripMarkdownCode(value: string): string {
     }
 
     let listContainerDepth = listDepth;
+    const leadingIndentation = markdownIndentationColumns(content);
+    const continuesListParagraph =
+      paragraph
+      && listDepth === 0
+      && paragraphListDepth !== null
+      && paragraphListIndentation !== null
+      && leadingIndentation >= paragraphListIndentation;
+    if (continuesListParagraph) {
+      listDepth = paragraphListDepth;
+      listContainerDepth = paragraphListDepth;
+    }
     if (fenced && fenceListDepth !== null) {
       const leadingWhitespace = content.match(/^[ \t]*/)?.[0] || '';
       const indentation = leadingWhitespace.replace(/\t/g, '    ').length;
@@ -879,7 +898,7 @@ function stripMarkdownCode(value: string): string {
     const isSetextUnderline =
       lineIndex > 0
       && isSetextHeadingText(previousLine)
-      && /^\s{0,3}=+\s*$/.test(content);
+      && /^\s{0,3}(?:=+|-+)\s*$/.test(content);
     const isTableDelimiterLine = isValidTableDelimiterLine(content, previousLine);
     const isGithubAlertLine = /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(content);
     const isDirectiveBlockLine = /^\s{0,3}:::(?:message|details)(?:\s|$)/i.test(content);
@@ -896,6 +915,11 @@ function stripMarkdownCode(value: string): string {
     paragraph = !isBlockLine;
     paragraphBlockquoteDepth = blockquoteDepth;
     paragraphListDepth = listDepth;
+    if (listDepth > 0) {
+      paragraphListIndentation = listItemIndentation || paragraphListIndentation;
+    } else {
+      paragraphListIndentation = null;
+    }
     return content;
   });
 
@@ -955,19 +979,31 @@ function isValidTableDelimiterLine(value: string, previousLine: string): boolean
   return headerCells !== undefined && headerCells === delimiterCells;
 }
 
-function parseReplyNumbers(value: unknown, bodyMarkdown: string): number[] {
+function parseReplyNumbers(
+  value: unknown,
+  bodyMarkdown: string,
+  budget: ReplyTargetBudget,
+): number[] {
+  if (budget.used >= budget.limit) return [];
   const replies = new Set<number>();
+  const addReply = (number: number | undefined): boolean => {
+    if (number === undefined || replies.has(number)) return true;
+    if (budget.used >= budget.limit) return false;
+    replies.add(number);
+    budget.used += 1;
+    return true;
+  };
   for (const item of list(value, MAX_THREAD_REPLIES)) {
     const number = positiveInteger(item);
-    if (number !== undefined) replies.add(number);
-    if (replies.size >= MAX_THREAD_REPLIES) return [...replies];
+    if (!addReply(number)) return [...replies];
+    if (replies.size >= MAX_THREAD_REPLIES || budget.used >= budget.limit) return [...replies];
   }
 
   const visibleBody = decodeVisibleReplyMarkers(stripMarkdownCode(bodyMarkdown));
   for (const match of visibleBody.matchAll(/(?:>>|＞＞)\s*(\d{1,7})\b/g)) {
     const number = positiveInteger(match[1]);
-    if (number !== undefined) replies.add(number);
-    if (replies.size >= MAX_THREAD_REPLIES) break;
+    if (!addReply(number)) return [...replies];
+    if (replies.size >= MAX_THREAD_REPLIES || budget.used >= budget.limit) break;
   }
   return [...replies];
 }
@@ -1047,6 +1083,7 @@ export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread 
   const posts: KnowledgeThreadPost[] = [];
   let aggregateBodyBytes = 0;
   let aggregateMetadataBytes = 0;
+  const replyTargetBudget: ReplyTargetBudget = { used: 0, limit: MAX_THREAD_REPLY_TARGETS };
   for (const [index, value] of rawPostValues.entries()) {
     const source = record(value);
     const rawBodyMarkdown = typeof value === 'string'
@@ -1075,7 +1112,11 @@ export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread 
       id,
       postedAt,
       bodyMarkdown,
-      replyTo: parseReplyNumbers(source?.reply_to ?? source?.replyTo ?? source?.references, bodyMarkdown),
+      replyTo: parseReplyNumbers(
+        source?.reply_to ?? source?.replyTo ?? source?.references,
+        bodyMarkdown,
+        replyTargetBudget,
+      ),
     });
   }
 
