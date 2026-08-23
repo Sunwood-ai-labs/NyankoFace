@@ -193,7 +193,7 @@ const SANITIZED_RAW_TEXT_HTML_TAGS = new Set([
 
 const HTML_BLOCK_TYPE_1_TAGS = new Set(['pre', 'script', 'style', 'textarea']);
 
-const HTML_BLOCK_LINE_PATTERN = /^\s{0,3}(?:<!--|<\?|<!\[CDATA\[|<\/?(?:address|article|aside|blockquote|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|nav|ol|p|pre|script|section|style|summary|table|tbody|td|tfoot|th|thead|title|tr|ul)(?:\s|\/?>))/i;
+const HTML_BLOCK_LINE_PATTERN = /^\s{0,3}(?:<!--|<\?|<!\[CDATA\[|<![A-Z]|<\/?(?:address|article|aside|blockquote|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|nav|ol|p|pre|script|section|style|summary|table|tbody|td|tfoot|th|thead|title|tr|ul)(?:\s|\/?>))/i;
 const HTML_BLOCK_TAG_PATTERN = /^\s{0,3}<\s*(\/?)\s*(address|article|aside|blockquote|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|nav|ol|p|pre|script|section|style|summary|table|tbody|td|tfoot|th|thead|title|tr|ul)\b[^>]*>/i;
 
 function findHtmlTagEnd(value: string, start: number): number {
@@ -587,7 +587,11 @@ function stripMarkdownLinkDestinations(value: string, depth = 0): string {
           || (isImage && referenceDefinitions.has(imageLabel))
         )
       ) {
-        if (!isImage) visible += value.slice(index, labelEnd + 1);
+        if (!isImage) {
+          visible += depth >= MAX_MARKDOWN_LINK_LABEL_DEPTH
+            ? value.slice(index, labelEnd + 1)
+            : stripMarkdownLinkDestinations(value.slice(index, labelEnd + 1), depth + 1);
+        }
         index = referenceEnd >= 0 ? referenceEnd + 1 : labelEnd + 1;
         continue;
       }
@@ -782,7 +786,7 @@ function stripMarkdownCode(value: string): string {
   let htmlBlockDepth = 0;
   let htmlBlockType1Tag = '';
   let htmlBlockComment = false;
-  let htmlBlockEndSequence: '?>' | ']]>' | null = null;
+  let htmlBlockEndSequence: '>' | '?>' | ']]>' | null = null;
   let paragraph = false;
   let paragraphBlockquoteDepth: number | null = null;
   let paragraphListDepth: number | null = null;
@@ -879,6 +883,11 @@ function stripMarkdownCode(value: string): string {
         const cdataStart = content.indexOf('<![CDATA[');
         const cdataEnd = content.indexOf(']]>', cdataStart + 9);
         htmlBlockEndSequence = cdataEnd < 0 ? ']]>' : null;
+        htmlBlockDepth = htmlBlockEndSequence === null ? 0 : 1;
+      } else if (/^\s{0,3}<![A-Z]/.test(content)) {
+        const declarationStart = content.indexOf('<!');
+        const declarationEnd = content.indexOf('>', declarationStart + 2);
+        htmlBlockEndSequence = declarationEnd < 0 ? '>' : null;
         htmlBlockDepth = htmlBlockEndSequence === null ? 0 : 1;
       } else if (
         htmlBlockType1Tag

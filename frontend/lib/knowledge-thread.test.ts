@@ -687,6 +687,16 @@ test('does not infer replies from nested image labels in links', () => {
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
 
+test('does not infer replies from nested image labels in reference links', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '[![diagram >>1](image.png)][target]\n\n[target]: /url',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
 test('does not infer replies from autolink closing brackets', () => {
   const thread = parseKnowledgeThread({
     format: 'thread',
@@ -930,6 +940,16 @@ test('preserves replies after overlong reference labels', () => {
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
 
+test('does not infer replies after a declaration HTML block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<!DOCTYPE html>\n    \\>\\>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
 test('does not infer replies after a closed HTML comment block', () => {
   const thread = parseKnowledgeThread({
     format: 'thread',
