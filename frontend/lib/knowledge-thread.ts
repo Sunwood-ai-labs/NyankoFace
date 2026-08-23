@@ -829,10 +829,18 @@ function stripMarkdownCode(value: string): string {
   let pairingFenceBlockquoteDepth: number | null = null;
   let pairingFenceListDepth: number | null = null;
   let pairingFenceListIndentation: number | null = null;
-  let pairingHtmlBlockDepth = 0;
-  let pairingHtmlBlockType1Tag = '';
-  let pairingHtmlBlockComment = false;
-  let pairingHtmlBlockEndSequence: '>' | '?>' | ']]>' | null = null;
+  let pairingHtmlActive = false;
+  let pairingHtmlType1Tag = '';
+  let pairingHtmlComment = false;
+  let pairingHtmlEndSequence: '>' | '?>' | ']]>' | null = null;
+  const resetPairingFence = (): void => {
+    pairingFenced = false;
+    pairingFenceCharacter = '';
+    pairingFenceLength = 0;
+    pairingFenceBlockquoteDepth = null;
+    pairingFenceListDepth = null;
+    pairingFenceListIndentation = null;
+  };
 
   // Pair directive boundaries with the same fenced, HTML, and container scopes
   // used by the Markdown visibility scan below.
@@ -879,12 +887,7 @@ function stripMarkdownCode(value: string): string {
         || pairingFenceListDepth !== listContainerDepth
       )
     ) {
-      pairingFenced = false;
-      pairingFenceCharacter = '';
-      pairingFenceLength = 0;
-      pairingFenceBlockquoteDepth = null;
-      pairingFenceListDepth = null;
-      pairingFenceListIndentation = null;
+      resetPairingFence();
     }
 
     const isHtmlBlockLine = HTML_BLOCK_LINE_PATTERN.test(content);
@@ -892,64 +895,61 @@ function stripMarkdownCode(value: string): string {
     if (
       !pairingFenced
       && (
-        pairingHtmlBlockDepth > 0
-        || pairingHtmlBlockType1Tag
-        || pairingHtmlBlockComment
-        || pairingHtmlBlockEndSequence !== null
+        pairingHtmlActive
+        || pairingHtmlType1Tag
+        || pairingHtmlComment
+        || pairingHtmlEndSequence !== null
         || isHtmlBlockLine
       )
     ) {
       if (/^\s*$/.test(content)) {
-        pairingHtmlBlockDepth = 0;
-        pairingHtmlBlockType1Tag = '';
-        pairingHtmlBlockComment = false;
-        pairingHtmlBlockEndSequence = null;
-      } else if (pairingHtmlBlockComment) {
+        pairingHtmlActive = false;
+        pairingHtmlType1Tag = '';
+        pairingHtmlComment = false;
+        pairingHtmlEndSequence = null;
+      } else if (pairingHtmlComment) {
         if (content.includes('-->')) {
-          pairingHtmlBlockDepth = 0;
-          pairingHtmlBlockComment = false;
+          pairingHtmlActive = false;
+          pairingHtmlComment = false;
         }
-      } else if (pairingHtmlBlockEndSequence !== null) {
-        if (content.includes(pairingHtmlBlockEndSequence)) {
-          pairingHtmlBlockDepth = 0;
-          pairingHtmlBlockEndSequence = null;
+      } else if (pairingHtmlEndSequence !== null) {
+        if (content.includes(pairingHtmlEndSequence)) {
+          pairingHtmlActive = false;
+          pairingHtmlEndSequence = null;
         }
       } else if (/^\s{0,3}<\?/.test(content)) {
         const processingStart = content.indexOf('<?');
         const processingEnd = content.indexOf('?>', processingStart + 2);
-        pairingHtmlBlockEndSequence = processingEnd < 0 ? '?>' : null;
-        pairingHtmlBlockDepth = pairingHtmlBlockEndSequence === null ? 0 : 1;
+        pairingHtmlEndSequence = processingEnd < 0 ? '?>' : null;
+        pairingHtmlActive = pairingHtmlEndSequence !== null;
       } else if (/^\s{0,3}<!\[CDATA\[/.test(content)) {
         const cdataStart = content.indexOf('<![CDATA[');
         const cdataEnd = content.indexOf(']]>', cdataStart + 9);
-        pairingHtmlBlockEndSequence = cdataEnd < 0 ? ']]>' : null;
-        pairingHtmlBlockDepth = pairingHtmlBlockEndSequence === null ? 0 : 1;
+        pairingHtmlEndSequence = cdataEnd < 0 ? ']]>' : null;
+        pairingHtmlActive = pairingHtmlEndSequence !== null;
       } else if (/^\s{0,3}<![A-Z]/.test(content)) {
         const declarationStart = content.indexOf('<!');
         const declarationEnd = content.indexOf('>', declarationStart + 2);
-        pairingHtmlBlockEndSequence = declarationEnd < 0 ? '>' : null;
-        pairingHtmlBlockDepth = pairingHtmlBlockEndSequence === null ? 0 : 1;
+        pairingHtmlEndSequence = declarationEnd < 0 ? '>' : null;
+        pairingHtmlActive = pairingHtmlEndSequence !== null;
       } else if (
-        pairingHtmlBlockType1Tag
-        && new RegExp(
-          '<\\s*/\\s*' + pairingHtmlBlockType1Tag + '\\s*>',
-          'i',
-        ).test(content)
+        pairingHtmlType1Tag
+        && new RegExp('<\\s*/\\s*' + pairingHtmlType1Tag + '\\s*>', 'i').test(content)
       ) {
-        pairingHtmlBlockDepth = 0;
-        pairingHtmlBlockType1Tag = '';
+        pairingHtmlActive = false;
+        pairingHtmlType1Tag = '';
       } else if (
-        pairingHtmlBlockType1Tag
+        pairingHtmlType1Tag
         && htmlBlockTag?.[1]
-        && htmlBlockTag[2].toLowerCase() === pairingHtmlBlockType1Tag
+        && htmlBlockTag[2].toLowerCase() === pairingHtmlType1Tag
       ) {
-        pairingHtmlBlockDepth = 0;
-        pairingHtmlBlockType1Tag = '';
+        pairingHtmlActive = false;
+        pairingHtmlType1Tag = '';
       } else if (/^\s{0,3}<!--/.test(content)) {
         const commentStart = content.indexOf('<!--');
         const commentEnd = content.indexOf('-->', commentStart + 4);
-        pairingHtmlBlockComment = commentEnd < 0;
-        pairingHtmlBlockDepth = pairingHtmlBlockComment ? 1 : 0;
+        pairingHtmlComment = commentEnd < 0;
+        pairingHtmlActive = pairingHtmlComment;
       } else if (htmlBlockTag && !htmlBlockTag[1] && !/\/\s*>$/.test(htmlBlockTag[0])) {
         const tagName = htmlBlockTag[2].toLowerCase();
         const hasInlineEndTag = new RegExp(
@@ -957,475 +957,16 @@ function stripMarkdownCode(value: string): string {
           'i',
         ).test(content.slice(htmlBlockTag[0].length));
         if (HTML_BLOCK_TYPE_1_TAGS.has(tagName) && !hasInlineEndTag) {
-          pairingHtmlBlockType1Tag = tagName;
-          pairingHtmlBlockDepth = 1;
+          pairingHtmlType1Tag = tagName;
+          pairingHtmlActive = true;
         } else {
-          pairingHtmlBlockDepth += 1;
+          pairingHtmlActive = true;
         }
       }
       continue;
     }
 
-    const fence = content.match(new RegExp('^\\s{0,3}(\\x60{3,}|~{3,})([^\\r\\n]*)  const visibleLines = lines.map((line, lineIndex) => {
-    let content = line;
-    let blockquoteDepth = 0;
-    let listDepth = 0;
-    let listItemIndentation = 0;
-    let removedContainer = true;
-    while (removedContainer) {
-      removedContainer = false;
-      const asciiReplyMarker = content.match(/^\s*>>\s*\d{1,7}\b/);
-      const blockquote = content.match(/^ {0,3}>[ \t]?/);
-      if (asciiReplyMarker) break;
-      if (blockquote) {
-        blockquoteDepth += 1;
-        content = content.slice(blockquote[0].length);
-        removedContainer = true;
-        continue;
-      }
-      const listItem = !fenced && content.match(/^(\s{0,3}(?:[-+*]|\d{1,9}[.)]))([ \t]+)/);
-      if (listItem) {
-        const padding = listItem[2];
-        const consumedPadding = padding.length > 4 ? padding.slice(0, 1) : padding;
-        const consumedLength = listItem[1].length + consumedPadding.length;
-        listDepth += 1;
-        listItemIndentation += consumedLength;
-        content = content.slice(consumedLength);
-        removedContainer = true;
-        continue;
-      }
-    }
-
-    let listContainerDepth = listDepth;
-    const leadingIndentation = markdownIndentationColumns(content);
-    if (
-      paragraph
-      && listDepth === 0
-      && paragraphListDepth !== null
-      && paragraphListIndentation !== null
-      && leadingIndentation >= paragraphListIndentation
-    ) {
-      listDepth = paragraphListDepth;
-      listContainerDepth = paragraphListDepth;
-    }
-    if (fenced && fenceListDepth !== null) {
-      const leadingWhitespace = content.match(/^[ \t]*/)?.[0] || '';
-      const indentation = leadingWhitespace.replace(/\t/g, '    ').length;
-      const requiredIndentation = fenceListIndentation ?? fenceListDepth * 2;
-      listContainerDepth = indentation >= requiredIndentation ? fenceListDepth : 0;
-    }
-
-    if (
-      fenced
-      && (
-        fenceContainerDepth !== blockquoteDepth
-        || fenceListDepth !== listContainerDepth
-      )
-    ) {
-      fenced = false;
-      fenceCharacter = '';
-      fenceLength = 0;
-      fenceContainerDepth = null;
-      fenceListDepth = null;
-      fenceListIndentation = null;
-    }
-
-    const isHtmlBlockLine = HTML_BLOCK_LINE_PATTERN.test(content);
-    const htmlBlockTag = HTML_BLOCK_TAG_PATTERN.exec(content);
-    if (!fenced && (htmlBlockDepth > 0 || htmlBlockType1Tag || htmlBlockComment || htmlBlockEndSequence !== null || isHtmlBlockLine)) {
-      if (/^\s*$/.test(content)) {
-        htmlBlockDepth = 0;
-        htmlBlockType1Tag = '';
-        htmlBlockComment = false;
-        htmlBlockEndSequence = null;
-      } else if (htmlBlockComment) {
-        if (content.includes('-->')) {
-          htmlBlockDepth = 0;
-          htmlBlockComment = false;
-        }
-      } else if (htmlBlockEndSequence !== null) {
-        if (content.includes(htmlBlockEndSequence)) {
-          htmlBlockDepth = 0;
-          htmlBlockEndSequence = null;
-        }
-      } else if (/^\s{0,3}<\?/.test(content)) {
-        const processingStart = content.indexOf('<?');
-        const processingEnd = content.indexOf('?>', processingStart + 2);
-        htmlBlockEndSequence = processingEnd < 0 ? '?>' : null;
-        htmlBlockDepth = htmlBlockEndSequence === null ? 0 : 1;
-      } else if (/^\s{0,3}<!\[CDATA\[/.test(content)) {
-        const cdataStart = content.indexOf('<![CDATA[');
-        const cdataEnd = content.indexOf(']]>', cdataStart + 9);
-        htmlBlockEndSequence = cdataEnd < 0 ? ']]>' : null;
-        htmlBlockDepth = htmlBlockEndSequence === null ? 0 : 1;
-      } else if (/^\s{0,3}<![A-Z]/.test(content)) {
-        const declarationStart = content.indexOf('<!');
-        const declarationEnd = content.indexOf('>', declarationStart + 2);
-        htmlBlockEndSequence = declarationEnd < 0 ? '>' : null;
-        htmlBlockDepth = htmlBlockEndSequence === null ? 0 : 1;
-      } else if (
-        htmlBlockType1Tag
-        && new RegExp(
-          '<\\s*/\\s*' + htmlBlockType1Tag + '\\s*>',
-          'i',
-        ).test(content)
-      ) {
-        htmlBlockDepth = 0;
-        htmlBlockType1Tag = '';
-      } else if (
-        htmlBlockType1Tag
-        && htmlBlockTag?.[1]
-        && htmlBlockTag[2].toLowerCase() === htmlBlockType1Tag
-      ) {
-        htmlBlockDepth = 0;
-        htmlBlockType1Tag = '';
-      } else if (/^\s{0,3}<!--/.test(content)) {
-        const commentStart = content.indexOf('<!--');
-        const commentEnd = content.indexOf('-->', commentStart + 4);
-        htmlBlockComment = commentEnd < 0;
-        htmlBlockDepth = htmlBlockComment ? 1 : 0;
-      } else if (htmlBlockTag && !htmlBlockTag[1] && !/\/\s*>$/.test(htmlBlockTag[0])) {
-        const tagName = htmlBlockTag[2].toLowerCase();
-        const hasInlineEndTag = new RegExp(
-          '<\\s*/\\s*' + tagName + '\\s*>',
-          'i',
-        ).test(content.slice(htmlBlockTag[0].length));
-        if (HTML_BLOCK_TYPE_1_TAGS.has(tagName) && !hasInlineEndTag) {
-          htmlBlockType1Tag = tagName;
-          htmlBlockDepth = 1;
-        } else {
-          htmlBlockDepth += 1;
-        }
-      }
-      paragraph = false;
-      return content;
-    }
-
-    const isDirectiveBlockLine = directiveOpeningPattern.test(content);
-    const directiveHasCloser = isDirectiveBlockLine && directiveHasCloserByLine[lineIndex];
-    const isDirectiveBlockCloser = /^\s{0,3}:::\s*$/.test(content);
-    if (!fenced && directiveHasCloser) {
-      directiveBlockDepth += 1;
-      paragraph = false;
-      return content;
-    }
-    if (!fenced && directiveBlockDepth > 0 && isDirectiveBlockCloser) {
-      directiveBlockDepth -= 1;
-      paragraph = false;
-      return content;
-    }
-
-    const fence = content.match(/^\s{0,3}(`{3,}|~{3,})([^\r\n]*)$/);
-    if (fence) {
-      const marker = fence[1];
-      if (!fenced) {
-        if (marker[0] === '`' && fence[2].includes('`')) return content;
-        fenced = true;
-        fenceCharacter = marker[0];
-        fenceLength = marker.length;
-        fenceContainerDepth = blockquoteDepth;
-        fenceListDepth = listContainerDepth;
-        fenceListIndentation = listItemIndentation;
-      } else if (
-        marker[0] === fenceCharacter
-        && marker.length >= fenceLength
-        && /^\s*$/.test(fence[2])
-      ) {
-        fenced = false;
-        fenceContainerDepth = null;
-        fenceListDepth = null;
-        fenceListIndentation = null;
-      }
-      paragraph = false;
-      return '';
-    }
-    if (fenced) return '';
-    if (/^\s*$/.test(content)) {
-      paragraph = false;
-      return '';
-    }
-    if (
-      paragraph
-      && (
-        paragraphBlockquoteDepth !== blockquoteDepth
-        || paragraphListDepth !== listDepth
-      )
-    ) {
-      paragraph = false;
-    }
-    if (hasFourColumnIndentation(content) && !paragraph) return '';
-    const previousLine = lines[lineIndex - 1] || '';
-    const isSetextUnderline =
-      lineIndex > 0
-      && isSetextHeadingText(previousLine)
-      && /^\s{0,3}(?:=+|-+)\s*$/.test(content);
-    const isTableDelimiterLine = isValidTableDelimiterLine(content, previousLine);
-    const isGithubAlertLine = blockquoteDepth > 0 && /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(content);
-
-    const isReferenceDefinitionLine = !paragraph && isMarkdownReferenceDefinitionLine(content);
-    const isBlockLine =
-      /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(content)
-      || THEMATIC_BREAK_LINE_PATTERN.test(content)
-      || isSetextUnderline
-      || isHtmlBlockLine
-      || isTableDelimiterLine
-      || isGithubAlertLine
-      || isDirectiveBlockLine
-      || isReferenceDefinitionLine;
-    paragraph = !isBlockLine;
-    paragraphBlockquoteDepth = blockquoteDepth;
-    paragraphListDepth = listDepth;
-    if (listDepth > 0) {
-      paragraphListIndentation = listItemIndentation || paragraphListIndentation;
-    } else {
-      paragraphListIndentation = null;
-    }
-    return content;
-  });
-
-  // Remove inline code spans after joining lines so a valid multiline span
-  // cannot leak a reply marker into the visible-text scan.
-  const withoutCode = stripHiddenHtml(stripMarkdownCodeSpans(visibleLines.join('\n')));
-  return stripHtmlTags(stripMarkdownLinkDestinations(withoutCode));
-}
-function decodeVisibleReplyMarkers(value: string): string {
-  return value
-    .replace(/\\>/g, '>')
-    .replace(/&(?:gt|#0*62|#x0*3e|#0*65310|#x0*ff1e);/gi, '>')
-    .replace(/&#(?:x[0-9a-f]+|[0-9]+);/gi, (entity) => {
-      const hexadecimal = /^&#x/i.test(entity);
-      const digits = entity.slice(hexadecimal ? 3 : 2, -1);
-      const codePoint = Number.parseInt(digits, hexadecimal ? 16 : 10);
-      const decoded = codePoint >= 0 && codePoint <= 0x10ffff
-        ? String.fromCodePoint(codePoint)
-        : entity;
-      const isWhitespace = decoded.length === 1 && decoded.trim() === '';
-      return (codePoint >= 0x30 && codePoint <= 0x39) || isWhitespace
-        ? decoded
-        : entity;
-    })
-    .replace(/&(nbsp|tab|newline|ensp|emsp|thinsp|hairsp|nnbsp|mediumspace|ideographicspace);/gi, (entity, name: string) => {
-      const namedWhitespace: Record<string, string> = {
-        tab: '\u0009',
-        newline: '\u000a',
-        nbsp: '\u00a0',
-        ensp: '\u2002',
-        emsp: '\u2003',
-        thinsp: '\u2009',
-        hairsp: '\u200a',
-        nnbsp: '\u202f',
-        mediumspace: '\u205f',
-        ideographicspace: '\u3000',
-      };
-      return namedWhitespace[name.toLowerCase()] || entity;
-    });
-}
-
-function countMarkdownTableCells(value: string): number | undefined {
-  const trimmed = value.trim();
-  if (!trimmed.includes('|')) return undefined;
-  const start = trimmed.startsWith('|') ? 1 : 0;
-  const end = trimmed.endsWith('|') ? trimmed.length - 1 : trimmed.length;
-  let count = 1;
-  let escaped = false;
-  for (let index = start; index < end; index += 1) {
-    if (escaped) {
-      escaped = false;
-    } else if (trimmed[index] === '\\') {
-      escaped = true;
-    } else if (trimmed[index] === '|') {
-      count += 1;
-    }
-  }
-  return count;
-}
-
-function isSetextHeadingText(value: string): boolean {
-  const normalized = value.replace(/^\s{0,3}(?:>\s?)+/, '');
-  if (!normalized.trim()) return false;
-  return !(
-    /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(normalized)
-    || /^\s{0,3}(?:\x60{3,}|~{3,})/.test(normalized)
-    || THEMATIC_BREAK_LINE_PATTERN.test(normalized)
-    || /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(normalized)
-    || /^\s{0,3}:::(?:message|details)(?:\s|$)/i.test(normalized)
-    || /^\s{0,3}:::\s*$/.test(normalized)
-    || isMarkdownReferenceDefinitionLine(normalized)
-    || HTML_BLOCK_LINE_PATTERN.test(normalized)
-    || /^\s{0,3}(?:[-+*]|1[.)])[ \t]+/.test(normalized)
-  );
-}
-
-function isValidTableDelimiterLine(value: string, previousLine: string): boolean {
-  if (!/^\s{0,3}\|?(?:\s*:?-+:?\s*\|)+\s*$/.test(value)) return false;
-  if (!isSetextHeadingText(previousLine)) return false;
-  const headerCells = countMarkdownTableCells(previousLine);
-  const delimiterCells = countMarkdownTableCells(value);
-  return headerCells !== undefined && headerCells === delimiterCells;
-}
-
-function parseReplyNumbers(
-  value: unknown,
-  bodyMarkdown: string,
-  budget: ReplyTargetBudget,
-): number[] {
-  if (budget.used >= budget.limit) return [];
-  const replies = new Set<number>();
-  const addReply = (number: number | undefined): boolean => {
-    if (number === undefined || replies.has(number)) return true;
-    if (budget.used >= budget.limit) return false;
-    replies.add(number);
-    budget.used += 1;
-    return true;
-  };
-  for (const item of list(value, MAX_THREAD_REPLIES)) {
-    const number = positiveInteger(item);
-    if (!addReply(number)) return [...replies];
-    if (replies.size >= MAX_THREAD_REPLIES || budget.used >= budget.limit) return [...replies];
-  }
-
-  const visibleBody = decodeVisibleReplyMarkers(stripMarkdownCode(bodyMarkdown));
-  for (const match of visibleBody.matchAll(/(?:>>|＞＞)\s*(\d{1,7})\b/g)) {
-    const number = positiveInteger(match[1]);
-    if (!addReply(number)) return [...replies];
-    if (replies.size >= MAX_THREAD_REPLIES || budget.used >= budget.limit) break;
-  }
-  return [...replies];
-}
-
-function normalizeSource(value: unknown): KnowledgeThreadSource | undefined {
-  if (typeof value === 'string') {
-    const url = boundedStringValue(value);
-    return url && safeKnowledgeHref(url) ? { label: url, url } : undefined;
-  }
-  const source = record(value);
-  if (!source) return undefined;
-  const url = boundedStringValue(source.url ?? source.href);
-  if (!url || !safeKnowledgeHref(url)) return undefined;
-  return {
-    label: boundedStringValue(source.label ?? source.title ?? source.name) || url,
-    url,
-  };
-}
-
-function normalizeSources(value: unknown, budget: ByteBudget): KnowledgeThreadSource[] {
-  if (!Array.isArray(value)) return [];
-  const sources: KnowledgeThreadSource[] = [];
-  for (const item of value.slice(0, MAX_THREAD_SOURCES)) {
-    const source = normalizeSource(item);
-    if (!source) continue;
-    const sourceBytes = utf8ByteLength(source.label) + utf8ByteLength(source.url);
-    if (budget.used + sourceBytes > budget.limit) {
-      if (budget.used >= budget.limit) break;
-      continue;
-    }
-    budget.used += sourceBytes;
-    sources.push(source);
-  }
-  return sources;
-}
-
-export function safeKnowledgeHref(value: string): string | null {
-  try {
-    const parsed = new URL(value);
-    return ['http:', 'https:', 'mailto:'].includes(parsed.protocol) ? value : null;
-  } catch {
-    return null;
-  }
-}
-
-export function isThreadKnowledge(frontmatter: Frontmatter): boolean {
-  const format = boundedStringValue(frontmatter.format ?? frontmatter.knowledge_format)?.toLowerCase();
-  if (format === 'thread') return true;
-  return Array.isArray(frontmatter.thread_posts)
-    || Array.isArray(record(frontmatter.thread)?.posts);
-}
-
-export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread | null {
-  const metadata = record(frontmatter.thread);
-  if (!isThreadKnowledge(frontmatter)) return null;
-
-  const rawPosts = threadPostsValue(frontmatter, metadata);
-  const nextFreeNumbers = new Map<number, number>();
-  const findNextFreeNumber = (start: number): number => {
-    let candidate = Math.max(1, Math.min(start, MAX_POST_NUMBER + 1));
-    const traversed: number[] = [];
-    while (nextFreeNumbers.has(candidate)) {
-      traversed.push(candidate);
-      candidate = nextFreeNumbers.get(candidate) as number;
-    }
-    for (const traversedNumber of traversed) nextFreeNumbers.set(traversedNumber, candidate);
-    return candidate;
-  };
-  const allocatePostNumber = (requested: number): number => {
-    let number = findNextFreeNumber(requested);
-    if (number > MAX_POST_NUMBER) number = findNextFreeNumber(1);
-    if (number > MAX_POST_NUMBER) return MAX_POST_NUMBER;
-    nextFreeNumbers.set(number, findNextFreeNumber(number + 1));
-    return number;
-  };
-  const rawPostValues = Array.isArray(rawPosts) ? rawPosts.slice(0, MAX_THREAD_POSTS) : [];
-  const posts: KnowledgeThreadPost[] = [];
-  let aggregateBodyBytes = 0;
-  let aggregateMetadataBytes = 0;
-  const replyTargetBudget: ReplyTargetBudget = { used: 0, limit: MAX_THREAD_REPLY_TARGETS };
-  for (const [index, value] of rawPostValues.entries()) {
-    const source = record(value);
-    const rawBodyMarkdown = typeof value === 'string'
-      ? value
-      : rawMarkdownBodyValue(source?.body ?? source?.content ?? source?.markdown);
-    const bodyMarkdown = trimSurroundingBlankLines(
-      truncateUtf8(rawBodyMarkdown, MAX_THREAD_POST_BODY_BYTES),
-    );
-    const bodyBytes = utf8ByteLength(bodyMarkdown);
-    if (aggregateBodyBytes + bodyBytes > MAX_THREAD_BODY_BYTES) break;
-    const name = boundedStringValue(source?.name ?? source?.author ?? source?.display_name) || '名無しさん';
-    const role = boundedStringValue(source?.role);
-    const id = boundedStringValue(source?.id ?? source?.user_id);
-    const postedAt = boundedStringValue(source?.posted_at ?? source?.postedAt ?? source?.date);
-    const metadataBytes = [name, role, id, postedAt]
-      .reduce((total, field) => total + utf8ByteLength(field || ''), 0);
-    if (aggregateMetadataBytes + metadataBytes > MAX_THREAD_POST_METADATA_BYTES) break;
-    aggregateBodyBytes += bodyBytes;
-    aggregateMetadataBytes += metadataBytes;
-    const requestedNumber = positiveInteger(source?.number ?? source?.no ?? source?.index) || index + 1;
-    const number = allocatePostNumber(requestedNumber);
-    posts.push({
-      number,
-      name,
-      role,
-      id,
-      postedAt,
-      bodyMarkdown,
-      replyTo: parseReplyNumbers(
-        source?.reply_to ?? source?.replyTo ?? source?.references,
-        bodyMarkdown,
-        replyTargetBudget,
-      ),
-    });
-  }
-
-  const metadataBudget: ByteBudget = { used: 0, limit: MAX_THREAD_METADATA_BYTES };
-  const sourceValues = metadata?.sources ?? frontmatter.sources ?? frontmatter.references;
-  const part = takeMetadataString(metadata?.part ?? frontmatter.thread_part ?? frontmatter.part, metadataBudget);
-  const theme = takeMetadataString(metadata?.theme ?? frontmatter.thread_theme ?? frontmatter.theme, metadataBudget);
-  const rules = normalizeMetadataList(
-    metadata?.rules ?? frontmatter.thread_rules ?? frontmatter.rules,
-    MAX_THREAD_RULES,
-    metadataBudget,
-  );
-  const sources = normalizeSources(sourceValues, metadataBudget);
-  return {
-    metadata: {
-      part,
-      theme,
-      rules,
-      sources,
-    },
-    posts,
-  };
-}
-));
+    const fence = content.match(new RegExp('^\\s{0,3}(\\x60{3,}|~{3,})([^\\r\\n]*)$'));
     if (pairingFenced) {
       if (
         fence
@@ -1433,12 +974,7 @@ export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread 
         && fence[1].length >= pairingFenceLength
         && /^\s*$/.test(fence[2])
       ) {
-        pairingFenced = false;
-        pairingFenceCharacter = '';
-        pairingFenceLength = 0;
-        pairingFenceBlockquoteDepth = null;
-        pairingFenceListDepth = null;
-        pairingFenceListIndentation = null;
+        resetPairingFence();
       }
       continue;
     }
