@@ -784,13 +784,13 @@ function stripMarkdownCode(value: string): string {
 
     let listContainerDepth = listDepth;
     const leadingIndentation = markdownIndentationColumns(content);
-    const continuesListParagraph =
+    if (
       paragraph
       && listDepth === 0
       && paragraphListDepth !== null
       && paragraphListIndentation !== null
-      && leadingIndentation >= paragraphListIndentation;
-    if (continuesListParagraph) {
+      && leadingIndentation >= paragraphListIndentation
+    ) {
       listDepth = paragraphListDepth;
       listContainerDepth = paragraphListDepth;
     }
