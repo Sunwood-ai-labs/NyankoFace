@@ -1028,3 +1028,10 @@ test('decodes numeric whitespace entities before reply scans', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1, 2]);
 });
+test('does not infer replies from tab-indented blockquote-like code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '\\t> >>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});

@@ -804,7 +804,7 @@ function stripMarkdownCode(value: string): string {
     while (removedContainer) {
       removedContainer = false;
       const asciiReplyMarker = content.match(/^\s*>>\s*\d{1,7}\b/);
-      const blockquote = content.match(/^\s{0,3}>[ \t]?/);
+      const blockquote = content.match(/^ {0,3}>[ \t]?/);
       if (asciiReplyMarker) break;
       if (blockquote) {
         blockquoteDepth += 1;
