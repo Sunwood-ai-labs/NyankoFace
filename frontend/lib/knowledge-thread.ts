@@ -1429,7 +1429,7 @@ export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread 
     if (pairingFenced) {
       if (
         fence
-        && fence[1][0] === '\x60'
+        && fence[1][0] === pairingFenceCharacter
         && fence[1].length >= pairingFenceLength
         && /^\s*$/.test(fence[2])
       ) {
