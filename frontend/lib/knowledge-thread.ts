@@ -49,11 +49,6 @@ function trimSurroundingBlankLines(value: string): string {
     .replace(/(?:\r?\n[ \t]*)+$/, '');
 }
 
-function markdownBodyValue(value: unknown): string {
-  if (typeof value === 'string') return trimSurroundingBlankLines(value);
-  if (typeof value === 'number') return trimSurroundingBlankLines(String(value));
-  return '';
-}
 function rawMarkdownBodyValue(value: unknown): string {
   if (typeof value === 'string') return value;
   if (typeof value === 'number') return String(value);
