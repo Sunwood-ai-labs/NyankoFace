@@ -85,10 +85,21 @@ function boundedStringValue(
 }
 function list(value: unknown, limit = Number.MAX_SAFE_INTEGER): string[] {
   if (Array.isArray(value)) {
-    return value
-      .slice(0, limit)
-      .map((item) => boundedStringValue(item, MAX_THREAD_REPLY_LIST_BYTES))
-      .filter((item): item is string => Boolean(item));
+    const values: string[] = [];
+    let usedBytes = 0;
+    let consumed = 0;
+    for (const item of value) {
+      if (consumed >= limit || usedBytes >= MAX_THREAD_REPLY_LIST_BYTES) break;
+      consumed += 1;
+      const remainingBytes = MAX_THREAD_REPLY_LIST_BYTES - usedBytes;
+      const normalized = boundedStringValue(item, remainingBytes);
+      if (!normalized) continue;
+      const itemBytes = utf8ByteLength(normalized);
+      if (itemBytes > remainingBytes) break;
+      usedBytes += itemBytes;
+      values.push(normalized);
+    }
+    return values;
   }
   const single = boundedStringValue(value, MAX_THREAD_REPLY_LIST_BYTES);
   if (!single) return [];
@@ -701,6 +712,20 @@ function stripMarkdownCodeSpans(value: string): string {
   }
   return visible;
 }
+function hasFourColumnIndentation(value: string): boolean {
+  let column = 0;
+  for (const character of value) {
+    if (character === ' ') {
+      column += 1;
+    } else if (character === '\t') {
+      column += 4 - (column % 4);
+    } else {
+      break;
+    }
+    if (column >= 4) return true;
+  }
+  return false;
+}
 function stripMarkdownCode(value: string): string {
   let fenced = false;
   let fenceCharacter = '';
@@ -835,7 +860,7 @@ function stripMarkdownCode(value: string): string {
     ) {
       paragraph = false;
     }
-    if (/^(?: {4,}|\t)/.test(content) && !paragraph) return '';
+    if (hasFourColumnIndentation(content) && !paragraph) return '';
     const previousLine = lines[lineIndex - 1] || '';
     const isSetextUnderline =
       lineIndex > 0

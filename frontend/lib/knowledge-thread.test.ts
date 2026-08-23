@@ -809,3 +809,23 @@ test('keeps visible replies after backticks inside raw HTML attributes', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+
+test('bounds array reply lists before normalizing every item', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      reply_to: ['1'.repeat(16_384), '2'],
+      body: '本文',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies from mixed space-tab indented code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ' \t>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
