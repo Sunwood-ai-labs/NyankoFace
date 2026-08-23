@@ -1024,8 +1024,13 @@ function decodeVisibleReplyMarkers(value: string): string {
       const hexadecimal = /^&#x/i.test(entity);
       const digits = entity.slice(hexadecimal ? 3 : 2, -1);
       const codePoint = Number.parseInt(digits, hexadecimal ? 16 : 10);
-      return codePoint >= 0x30 && codePoint <= 0x39
-        ? String.fromCharCode(codePoint)
+      const decoded = codePoint >= 0 && codePoint <= 0x10ffff
+        ? String.fromCodePoint(codePoint)
+        : entity;
+      return (codePoint >= 0x30 && codePoint <= 0x39) || /^
+\
+s$/u.test(decoded)
+        ? decoded
         : entity;
     });
 }

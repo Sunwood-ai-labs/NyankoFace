@@ -1021,3 +1021,10 @@ test('preserves replies after a noninterrupting ordered line before Setext under
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+test('decodes numeric whitespace entities before reply scans', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '&gt;&gt;&#10;1 &gt;&gt;&#xA;2' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1, 2]);
+});
