@@ -902,3 +902,41 @@ test('preserves replies after whitespace-invalid URI autolinks', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+
+test('bounds nested Markdown link label processing', () => {
+  const body = '['.repeat(6_000) + 'x' + '] (u)'.repeat(6_000);
+  assert.doesNotThrow(() => parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body }],
+  }));
+});
+
+test('preserves replies after angle-invalid bare link destinations', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[guide](foo<bar>>1)' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('preserves replies after overlong reference labels', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '[' + 'a'.repeat(1_000) + ']: /url\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('does not infer replies after a closed HTML comment block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<!--\n-->\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});

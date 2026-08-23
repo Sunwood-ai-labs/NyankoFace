@@ -128,6 +128,7 @@ const MAX_THREAD_POST_METADATA_FIELD_BYTES = MAX_THREAD_METADATA_FIELD_BYTES;
 const MAX_THREAD_POST_METADATA_BYTES = MAX_THREAD_METADATA_BYTES;
 const MAX_THREAD_REPLY_LIST_BYTES = 16 * 1024;
 const MAX_THREAD_REPLY_TARGETS = 8_192;
+const MAX_MARKDOWN_LINK_LABEL_DEPTH = 32;
 const MAX_THREAD_INTEGER_TEXT_BYTES = 32;
 const MAX_THREAD_RULES = 256;
 const MAX_THREAD_SOURCES = 256;
@@ -387,6 +388,10 @@ function findMarkdownDelimiterEnds(value: string, open: string, close: string): 
 function normalizeMarkdownReferenceLabel(value: string): string {
   return value.replace(/\\(.)/g, '$1').replace(/\s+/g, ' ').trim().toLowerCase();
 }
+function hasVisibleMarkdownReferenceLabel(value: string): boolean {
+  const normalizedLabel = normalizeMarkdownReferenceLabel(value);
+  return Array.from(normalizedLabel).length <= 999 && /\S/.test(normalizedLabel);
+}
 
 function isValidInlineLinkContent(value: string): boolean {
   let index = 0;
@@ -415,7 +420,7 @@ function isValidInlineLinkContent(value: string): boolean {
     }
     if (!closed) return false;
   } else {
-    while (index < value.length && !/[\s\x00-\x1f]/.test(value[index])) index += 1;
+    while (index < value.length && !/[\s<>]/.test(value[index])) index += 1;
   }
 
   skipWhitespace();
@@ -509,16 +514,18 @@ function isEscapedMarkdownCharacter(value: string, index: number): boolean {
 
 const MARKDOWN_REFERENCE_DEFINITION_LINE_PATTERN = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<[^>\r\n]+>|(?:[^\s\r\n()]|\([^()\r\n]*\))+)(?:[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?[ \t]*$/;
 function isMarkdownReferenceDefinitionLine(value: string): boolean {
-  return MARKDOWN_REFERENCE_DEFINITION_LINE_PATTERN.test(value);
+  const match = MARKDOWN_REFERENCE_DEFINITION_LINE_PATTERN.exec(value);
+  return match !== null && hasVisibleMarkdownReferenceLabel(match[1]);
 }
 
-function stripMarkdownLinkDestinations(value: string): string {
+function stripMarkdownLinkDestinations(value: string, depth = 0): string {
   let visible = '';
   const bracketEnds = findMarkdownDelimiterEnds(value, '[', ']');
   const parenthesisEnds = findMarkdownLinkDelimiterEnds(value);
   const referenceDefinitionPattern = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:\r?\n[ \t]+)?(?:<[^>\r\n]+>|(?:[^\s\r\n()]|\([^()\r\n]*\))+)(?:[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?(?:\r?\n[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?[ \t]*$/gm;
   const referenceDefinitions = new Set(
     [...value.matchAll(referenceDefinitionPattern)]
+      .filter((match) => hasVisibleMarkdownReferenceLabel(match[1]))
       .map((match) => normalizeMarkdownReferenceLabel(match[1])),
   );
   let index = 0;
@@ -540,7 +547,9 @@ function stripMarkdownLinkDestinations(value: string): string {
           && isValidInlineLinkContent(value.slice(labelEnd + 2, destinationEnd))
         ) {
           if (!isImage) {
-            visible += stripMarkdownLinkDestinations(value.slice(index, labelEnd + 1));
+            visible += depth >= MAX_MARKDOWN_LINK_LABEL_DEPTH
+              ? value.slice(index, labelEnd + 1)
+              : stripMarkdownLinkDestinations(value.slice(index, labelEnd + 1), depth + 1);
           }
           index = destinationEnd + 1;
           continue;
@@ -570,7 +579,9 @@ function stripMarkdownLinkDestinations(value: string): string {
     visible += value[index];
     index += 1;
   }
-  return visible.replace(/^[ \t]{0,3}\[(?:\\.|[^\[\]\\])+\]:[ \t]*(?:\r?\n[ \t]+)?(?:<[^>\r\n]+>|(?:[^\s\r\n()]|\([^()\r\n]*\))+)(?:[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?(?:\r?\n[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?[ \t]*$/gm, '');
+  return visible.replace(referenceDefinitionPattern, (match, label) =>
+    hasVisibleMarkdownReferenceLabel(label) ? '' : match,
+  );
 }
 function stripHtmlTags(value: string): string {
   const visible: string[] = [];
@@ -754,6 +765,7 @@ function stripMarkdownCode(value: string): string {
   let fenceListIndentation: number | null = null;
   let htmlBlockDepth = 0;
   let htmlBlockType1Tag = '';
+  let htmlBlockComment = false;
   let paragraph = false;
   let paragraphBlockquoteDepth: number | null = null;
   let paragraphListDepth: number | null = null;
@@ -829,6 +841,12 @@ function stripMarkdownCode(value: string): string {
       if (/^\s*$/.test(content)) {
         htmlBlockDepth = 0;
         htmlBlockType1Tag = '';
+        htmlBlockComment = false;
+      } else if (htmlBlockComment) {
+        if (content.includes('-->')) {
+          htmlBlockDepth = 0;
+          htmlBlockComment = false;
+        }
       } else if (
         htmlBlockType1Tag
         && new RegExp(
@@ -845,6 +863,11 @@ function stripMarkdownCode(value: string): string {
       ) {
         htmlBlockDepth = 0;
         htmlBlockType1Tag = '';
+      } else if (/^\s{0,3}<!--/.test(content)) {
+        const commentStart = content.indexOf('<!--');
+        const commentEnd = content.indexOf('-->', commentStart + 4);
+        htmlBlockComment = commentEnd < 0;
+        htmlBlockDepth = htmlBlockComment ? 1 : 0;
       } else if (htmlBlockTag && !htmlBlockTag[1] && !/\/\s*>$/.test(htmlBlockTag[0])) {
         const tagName = htmlBlockTag[2].toLowerCase();
         const hasInlineEndTag = new RegExp(
