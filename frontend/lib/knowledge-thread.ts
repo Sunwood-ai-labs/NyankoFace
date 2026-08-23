@@ -939,7 +939,9 @@ function stripMarkdownCode(value: string): string {
       directiveBlockDepth -= 1;
       paragraph = false;
       return content;
-    }    const fence = content.match(/^\s{0,3}(`{3,}|~{3,})([^\r\n]*)$/);
+    }
+
+    const fence = content.match(/^\s{0,3}(`{3,}|~{3,})([^\r\n]*)$/);
     if (fence) {
       const marker = fence[1];
       if (!fenced) {
