@@ -621,11 +621,18 @@ function stripHtmlTags(value: string): string {
     }
 
     const autolinkContent = value.slice(index + 1, tagEnd);
+    const uriSchemePrefix = /^[A-Za-z][A-Za-z0-9+.-]{1,31}:/.test(autolinkContent);
+    const invalidUriWhitespace = uriSchemePrefix && /[\x00-\x20\x7f]/.test(autolinkContent);
     if (
       /^[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\x00-\x20\x7f]*$/.test(autolinkContent)
       || /^[^\s<>@]+@[^\s<>@]+$/.test(autolinkContent)
     ) {
       visible.push(autolinkContent);
+      index = tagEnd + 1;
+      continue;
+    }
+    if (invalidUriWhitespace) {
+      visible.push(value.slice(index, tagEnd + 1));
       index = tagEnd + 1;
       continue;
     }
