@@ -786,6 +786,7 @@ function stripMarkdownCode(value: string): string {
   let htmlBlockDepth = 0;
   let htmlBlockType1Tag = '';
   let htmlBlockComment = false;
+  let directiveBlockDepth = 0;
   let htmlBlockEndSequence: '>' | '?>' | ']]>' | null = null;
   let paragraph = false;
   let paragraphBlockquoteDepth: number | null = null;
@@ -927,7 +928,18 @@ function stripMarkdownCode(value: string): string {
       return content;
     }
 
-    const fence = content.match(/^\s{0,3}(`{3,}|~{3,})([^\r\n]*)$/);
+    const isDirectiveBlockLine = /^\s{0,3}:::(?:message|details)(?:\s|$)/i.test(content);
+    const isDirectiveBlockCloser = /^\s{0,3}:::\s*$/.test(content);
+    if (!fenced && isDirectiveBlockLine) {
+      directiveBlockDepth += 1;
+      paragraph = false;
+      return content;
+    }
+    if (!fenced && directiveBlockDepth > 0 && isDirectiveBlockCloser) {
+      directiveBlockDepth -= 1;
+      paragraph = false;
+      return content;
+    }    const fence = content.match(/^\s{0,3}(`{3,}|~{3,})([^\r\n]*)$/);
     if (fence) {
       const marker = fence[1];
       if (!fenced) {
@@ -973,7 +985,7 @@ function stripMarkdownCode(value: string): string {
       && /^\s{0,3}(?:=+|-+)\s*$/.test(content);
     const isTableDelimiterLine = isValidTableDelimiterLine(content, previousLine);
     const isGithubAlertLine = /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(content);
-    const isDirectiveBlockLine = /^\s{0,3}:::(?:message|details)(?:\s|$)/i.test(content);
+
     const isReferenceDefinitionLine = isMarkdownReferenceDefinitionLine(content);
     const isBlockLine =
       /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(content)

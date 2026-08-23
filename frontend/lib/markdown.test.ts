@@ -63,6 +63,11 @@ test('sanitizes raw HTML while preserving safe repository content and relative U
   assert.match(bodyHtml, /rel="nofollow noreferrer"/);
 });
 
+test('does not allow Markdown to shadow reserved thread post anchors', () => {
+  const { bodyHtml } = parseReadme('<span id="thread-post-2">shadow</span>\n\n<span id="custom-anchor">safe</span>');
+  assert.doesNotMatch(bodyHtml, /id="thread-post-2"/);
+  assert.match(bodyHtml, /id="custom-anchor"/);
+});
 test('keeps Mermaid source available for the client renderer and styles inline code separately', () => {
   const { bodyHtml } = parseReadme('Use `npm run build`.\n\n```mermaid\ngraph TD; A-->B\n```');
   assert.match(bodyHtml, /<code>npm run build<\/code>/);

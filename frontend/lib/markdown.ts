@@ -1158,6 +1158,12 @@ function sanitizeRenderedMarkdown(html: string): string {
     allowProtocolRelative: false,
     enforceHtmlBoundary: true,
     transformTags: {
+      '*': (tagName, attribs) => {
+        if (!/^thread-post-\d+$/.test(attribs.id || '')) return { tagName, attribs };
+        const safeAttribs = { ...attribs };
+        delete safeAttribs.id;
+        return { tagName, attribs: safeAttribs };
+      },
       a: sanitizeHtml.simpleTransform('a', { rel: 'nofollow noreferrer' }, true),
     },
   });

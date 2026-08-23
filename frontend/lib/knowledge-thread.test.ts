@@ -950,6 +950,16 @@ test('does not infer replies after a declaration HTML block', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
+test('does not infer replies after a closed Zenn directive', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: ':::message\ntext\n:::\n    \\>\\>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
 test('does not infer replies after a closed HTML comment block', () => {
   const thread = parseKnowledgeThread({
     format: 'thread',
