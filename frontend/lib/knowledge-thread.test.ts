@@ -492,6 +492,14 @@ test('does not infer replies from indented code after an HTML block', () => {
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
 
+test('recognizes replies in raw HTML block text', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<div>\n\`answer >>1\`\n</div>' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
 
 test('bounds thread rules and sources', () => {
   const thread = parseKnowledgeThread({
