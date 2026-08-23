@@ -1140,6 +1140,9 @@ function sanitizeMarkdownTag(tagName: string, attribs: Record<string, string>) {
   if (/^thread-post-\d+$/.test(safeAttribs.id || '')) {
     delete safeAttribs.id;
   }
+  if (/^thread-post-\d+$/.test(safeAttribs.name || '')) {
+    delete safeAttribs.name;
+  }
   return { tagName, attribs: safeAttribs };
 }
 function sanitizeRenderedMarkdown(html: string): string {
