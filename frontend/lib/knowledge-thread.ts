@@ -692,43 +692,67 @@ function findRawHtmlTokenEndForCodeSpans(value: string, start: number): number {
 
 function stripMarkdownCodeSpans(value: string): string {
   const delimiter = String.fromCharCode(96);
-  const runs: Array<{ start: number; end: number; length: number; escaped: boolean; hasClosing: boolean }> = [];
-  let consecutiveBackslashes = 0;
+  const collectRuns = (skipRawHtml: (index: number) => boolean) => {
+    const runs: Array<{ start: number; end: number; length: number; escaped: boolean; hasClosing: boolean }> = [];
+    let consecutiveBackslashes = 0;
 
-  for (let index = 0; index < value.length; index += 1) {
-    const rawHtmlEnd = value[index] === '<'
-      ? findRawHtmlTokenEndForCodeSpans(value, index)
-      : -1;
-    if (rawHtmlEnd >= index) {
+    for (let index = 0; index < value.length; index += 1) {
+      const rawHtmlEnd = value[index] === '<' && skipRawHtml(index)
+        ? findRawHtmlTokenEndForCodeSpans(value, index)
+        : -1;
+      if (rawHtmlEnd >= index) {
+        consecutiveBackslashes = 0;
+        index = rawHtmlEnd;
+        continue;
+      }
+      if (value[index] !== delimiter) {
+        consecutiveBackslashes = value[index] === '\\' ? consecutiveBackslashes + 1 : 0;
+        continue;
+      }
+
+      const start = index;
+      while (index < value.length && value[index] === delimiter) index += 1;
+      runs.push({
+        start,
+        end: index,
+        length: index - start,
+        escaped: consecutiveBackslashes % 2 === 1,
+        hasClosing: false,
+      });
       consecutiveBackslashes = 0;
-      index = rawHtmlEnd;
-      continue;
+      index -= 1;
     }
-    if (value[index] !== delimiter) {
-      consecutiveBackslashes = value[index] === '\\' ? consecutiveBackslashes + 1 : 0;
-      continue;
-    }
+    return runs;
+  };
 
-    const start = index;
-    while (index < value.length && value[index] === delimiter) index += 1;
-    runs.push({
-      start,
-      end: index,
-      length: index - start,
-      escaped: consecutiveBackslashes % 2 === 1,
-      hasClosing: false,
-    });
-    consecutiveBackslashes = 0;
-    index -= 1;
+  const annotateClosingRuns = (candidateRuns: Array<{ start: number; end: number; length: number; escaped: boolean; hasClosing: boolean }>) => {
+    const futureRuns = new Map<number, number>();
+    for (let index = candidateRuns.length - 1; index >= 0; index -= 1) {
+      const run = candidateRuns[index];
+      run.hasClosing = (futureRuns.get(run.length) || 0) > 0;
+      futureRuns.set(run.length, (futureRuns.get(run.length) || 0) + 1);
+    }
+    return candidateRuns;
+  };
+
+  const baselineRuns = annotateClosingRuns(collectRuns(() => true));
+  const baselineActiveBefore = new Int32Array(value.length + 1);
+  let baselineActiveLength = 0;
+  let baselineRunIndex = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    baselineActiveBefore[index] = baselineActiveLength;
+    const run = baselineRuns[baselineRunIndex];
+    if (!run || run.start !== index) continue;
+    if (baselineActiveLength > 0) {
+      if (run.length === baselineActiveLength) baselineActiveLength = 0;
+    } else if (!run.escaped && run.hasClosing) {
+      baselineActiveLength = run.length;
+    }
+    baselineRunIndex += 1;
+    index = run.end - 1;
   }
 
-  const futureRuns = new Map<number, number>();
-  for (let index = runs.length - 1; index >= 0; index -= 1) {
-    const run = runs[index];
-    run.hasClosing = (futureRuns.get(run.length) || 0) > 0;
-    futureRuns.set(run.length, (futureRuns.get(run.length) || 0) + 1);
-  }
-
+  const runs = annotateClosingRuns(collectRuns((index) => baselineActiveBefore[index] > 0));
   const hiddenRanges: Array<[number, number]> = [];
   let activeStart = -1;
   let activeLength = 0;

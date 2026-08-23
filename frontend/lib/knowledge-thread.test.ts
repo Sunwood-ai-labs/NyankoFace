@@ -1056,3 +1056,13 @@ test('preserves replies after a paragraph-contained reference definition', () =>
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+test('keeps visible replies after a code span opener before tag-like text', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: String.fromCharCode(96) + '<span title=' + String.fromCharCode(34) + String.fromCharCode(96) + String.fromCharCode(34) + '>visible >>1' + String.fromCharCode(96),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
