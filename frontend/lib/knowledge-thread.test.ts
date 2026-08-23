@@ -940,3 +940,25 @@ test('does not infer replies after a closed HTML comment block', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
+
+test('does not infer replies after a closed processing-instruction HTML block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<?job\n?>\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('does not infer replies after a closed CDATA HTML block', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<![CDATA[\n]]>\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});

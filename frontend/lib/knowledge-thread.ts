@@ -782,6 +782,7 @@ function stripMarkdownCode(value: string): string {
   let htmlBlockDepth = 0;
   let htmlBlockType1Tag = '';
   let htmlBlockComment = false;
+  let htmlBlockEndSequence: '?>' | ']]>' | null = null;
   let paragraph = false;
   let paragraphBlockquoteDepth: number | null = null;
   let paragraphListDepth: number | null = null;
@@ -853,16 +854,32 @@ function stripMarkdownCode(value: string): string {
 
     const isHtmlBlockLine = HTML_BLOCK_LINE_PATTERN.test(content);
     const htmlBlockTag = HTML_BLOCK_TAG_PATTERN.exec(content);
-    if (!fenced && (htmlBlockDepth > 0 || htmlBlockType1Tag || isHtmlBlockLine)) {
+    if (!fenced && (htmlBlockDepth > 0 || htmlBlockType1Tag || htmlBlockComment || htmlBlockEndSequence !== null || isHtmlBlockLine)) {
       if (/^\s*$/.test(content)) {
         htmlBlockDepth = 0;
         htmlBlockType1Tag = '';
         htmlBlockComment = false;
+        htmlBlockEndSequence = null;
       } else if (htmlBlockComment) {
         if (content.includes('-->')) {
           htmlBlockDepth = 0;
           htmlBlockComment = false;
         }
+      } else if (htmlBlockEndSequence !== null) {
+        if (content.includes(htmlBlockEndSequence)) {
+          htmlBlockDepth = 0;
+          htmlBlockEndSequence = null;
+        }
+      } else if (/^\s{0,3}<\?/.test(content)) {
+        const processingStart = content.indexOf('<?');
+        const processingEnd = content.indexOf('?>', processingStart + 2);
+        htmlBlockEndSequence = processingEnd < 0 ? '?>' : null;
+        htmlBlockDepth = htmlBlockEndSequence === null ? 0 : 1;
+      } else if (/^\s{0,3}<!\[CDATA\[/.test(content)) {
+        const cdataStart = content.indexOf('<![CDATA[');
+        const cdataEnd = content.indexOf(']]>', cdataStart + 9);
+        htmlBlockEndSequence = cdataEnd < 0 ? ']]>' : null;
+        htmlBlockDepth = htmlBlockEndSequence === null ? 0 : 1;
       } else if (
         htmlBlockType1Tag
         && new RegExp(
