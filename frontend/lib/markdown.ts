@@ -1135,6 +1135,13 @@ function createMarkdownExtensions(locale: 'ja' | 'en', boundaryIndex: ZennBounda
   };
 }
 
+function sanitizeMarkdownTag(tagName: string, attribs: Record<string, string>) {
+  const safeAttribs = { ...attribs };
+  if (/^thread-post-\d+$/.test(safeAttribs.id || '')) {
+    delete safeAttribs.id;
+  }
+  return { tagName, attribs: safeAttribs };
+}
 function sanitizeRenderedMarkdown(html: string): string {
   return sanitizeHtml(html, {
     allowedTags: [
@@ -1164,7 +1171,11 @@ function sanitizeRenderedMarkdown(html: string): string {
         delete safeAttribs.id;
         return { tagName, attribs: safeAttribs };
       },
-      a: sanitizeHtml.simpleTransform('a', { rel: 'nofollow noreferrer' }, true),
+      a: (tagName, attribs) => {
+        const transformed = sanitizeMarkdownTag(tagName, attribs);
+        transformed.attribs.rel = 'nofollow noreferrer';
+        return transformed;
+      },
     },
   });
 }

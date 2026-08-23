@@ -64,7 +64,7 @@ test('sanitizes raw HTML while preserving safe repository content and relative U
 });
 
 test('does not allow Markdown to shadow reserved thread post anchors', () => {
-  const { bodyHtml } = parseReadme('<span id="thread-post-2">shadow</span>\n\n<span id="custom-anchor">safe</span>');
+  const { bodyHtml } = parseReadme('<span id="thread-post-2">shadow</span>\n\n<a id="thread-post-2" href="/shadow">shadow link</a>\n\n<span id="custom-anchor">safe</span>');
   assert.doesNotMatch(bodyHtml, /id="thread-post-2"/);
   assert.match(bodyHtml, /id="custom-anchor"/);
 });
