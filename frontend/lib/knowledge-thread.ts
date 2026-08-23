@@ -752,7 +752,7 @@ function stripMarkdownCodeSpans(value: string): string {
     index = run.end - 1;
   }
 
-  const runs = annotateClosingRuns(collectRuns((index) => baselineActiveBefore[index] > 0));
+  const runs = annotateClosingRuns(collectRuns((index) => baselineActiveBefore[index] === 0));
   const hiddenRanges: Array<[number, number]> = [];
   let activeStart = -1;
   let activeLength = 0;
