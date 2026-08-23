@@ -75,6 +75,13 @@ function truncateUtf8(value: string, maxBytes: number): string {
     : low;
   return value.slice(0, end);
 }
+function boundedStringValue(
+  value: unknown,
+  maxBytes = MAX_THREAD_POST_METADATA_FIELD_BYTES,
+): string | undefined {
+  const normalized = stringValue(value);
+  return normalized ? truncateUtf8(normalized, maxBytes) : undefined;
+}
 function list(value: unknown, limit = Number.MAX_SAFE_INTEGER): string[] {
   if (Array.isArray(value)) {
     return value
@@ -93,6 +100,8 @@ const MAX_THREAD_POSTS = 2_048;
 const MAX_THREAD_REPLIES = 256;
 const MAX_THREAD_POST_BODY_BYTES = 64 * 1024;
 const MAX_THREAD_BODY_BYTES = 1024 * 1024;
+const MAX_THREAD_POST_METADATA_FIELD_BYTES = 4 * 1024;
+const MAX_THREAD_POST_METADATA_BYTES = 256 * 1024;
 const MAX_THREAD_RULES = 256;
 const MAX_THREAD_SOURCES = 256;
 function positiveInteger(value: unknown): number | undefined {
@@ -904,6 +913,7 @@ export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread 
   const rawPostValues = Array.isArray(rawPosts) ? rawPosts.slice(0, MAX_THREAD_POSTS) : [];
   const posts: KnowledgeThreadPost[] = [];
   let aggregateBodyBytes = 0;
+  let aggregateMetadataBytes = 0;
   for (const [index, value] of rawPostValues.entries()) {
     const source = record(value);
     const rawBodyMarkdown = typeof value === 'string'
@@ -914,15 +924,23 @@ export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread 
     );
     const bodyBytes = utf8ByteLength(bodyMarkdown);
     if (aggregateBodyBytes + bodyBytes > MAX_THREAD_BODY_BYTES) break;
+    const name = boundedStringValue(source?.name ?? source?.author ?? source?.display_name) || '名無しさん';
+    const role = boundedStringValue(source?.role);
+    const id = boundedStringValue(source?.id ?? source?.user_id);
+    const postedAt = boundedStringValue(source?.posted_at ?? source?.postedAt ?? source?.date);
+    const metadataBytes = [name, role, id, postedAt]
+      .reduce((total, field) => total + utf8ByteLength(field || ''), 0);
+    if (aggregateMetadataBytes + metadataBytes > MAX_THREAD_POST_METADATA_BYTES) break;
     aggregateBodyBytes += bodyBytes;
+    aggregateMetadataBytes += metadataBytes;
     const requestedNumber = positiveInteger(source?.number ?? source?.no ?? source?.index) || index + 1;
     const number = allocatePostNumber(requestedNumber);
     posts.push({
       number,
-      name: stringValue(source?.name ?? source?.author ?? source?.display_name) || '名無しさん',
-      role: stringValue(source?.role),
-      id: stringValue(source?.id ?? source?.user_id),
-      postedAt: stringValue(source?.posted_at ?? source?.postedAt ?? source?.date),
+      name,
+      role,
+      id,
+      postedAt,
       bodyMarkdown,
       replyTo: parseReplyNumbers(source?.reply_to ?? source?.replyTo ?? source?.references, bodyMarkdown),
     });

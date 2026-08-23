@@ -717,3 +717,28 @@ test('bounds aggregate thread body bytes before scanning aliases', () => {
   assert.ok(totalBytes <= 1024 * 1024);
   assert.ok((thread?.posts.length || 0) < 2_048);
 });
+
+
+test('bounds each thread post metadata field and aggregate bytes', () => {
+  const sharedMetadata = 'あ'.repeat(100_000);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: Array.from({ length: 2_048 }, (_, index) => ({
+      number: index + 1,
+      name: sharedMetadata,
+      role: sharedMetadata,
+      id: sharedMetadata,
+      posted_at: sharedMetadata,
+      body: '本文',
+    })),
+  });
+  const posts = thread?.posts || [];
+  const metadataFields = posts.flatMap((post) => [post.name, post.role, post.id, post.postedAt]);
+  assert.ok(metadataFields.every((field) => !field || new TextEncoder().encode(field).length <= 4 * 1024));
+  const totalBytes = metadataFields.reduce(
+    (total, field) => total + (field ? new TextEncoder().encode(field).length : 0),
+    0,
+  );
+  assert.ok(totalBytes <= 256 * 1024);
+  assert.ok(posts.length < 2_048);
+});
