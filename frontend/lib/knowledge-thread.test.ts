@@ -829,3 +829,20 @@ test('does not infer replies from mixed space-tab indented code', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
+
+
+test('does not infer replies from link definition continuation code', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[ticket]: /url\n    >>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('decodes numeric entity reply markers', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '&gt;&gt;&#49;' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});

@@ -502,6 +502,11 @@ function isEscapedMarkdownCharacter(value: string, index: number): boolean {
   return backslashCount % 2 === 1;
 }
 
+const MARKDOWN_REFERENCE_DEFINITION_LINE_PATTERN = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\\]:[ \t]*(?:<[^>\r\n]+>|(?:[^\s\r\n()]|\([^()\r\n]*\))+)(?:[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?[ \t]*$/;
+function isMarkdownReferenceDefinitionLine(value: string): boolean {
+  return MARKDOWN_REFERENCE_DEFINITION_LINE_PATTERN.test(value);
+}
+
 function stripMarkdownLinkDestinations(value: string): string {
   let visible = '';
   const bracketEnds = findMarkdownDelimiterEnds(value, '[', ']');
@@ -869,6 +874,7 @@ function stripMarkdownCode(value: string): string {
     const isTableDelimiterLine = isValidTableDelimiterLine(content, previousLine);
     const isGithubAlertLine = /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(content);
     const isDirectiveBlockLine = /^\s{0,3}:::(?:message|details)(?:\s|$)/i.test(content);
+    const isReferenceDefinitionLine = isMarkdownReferenceDefinitionLine(content);
     const isBlockLine =
       /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(content)
       || /^\s{0,3}(?:(?:\*[\t ]*){3,}|(?:-[\t ]*){3,}|(?:_[\t ]*){3,})$/.test(content)
@@ -876,7 +882,8 @@ function stripMarkdownCode(value: string): string {
       || isHtmlBlockLine
       || isTableDelimiterLine
       || isGithubAlertLine
-      || isDirectiveBlockLine;
+      || isDirectiveBlockLine
+      || isReferenceDefinitionLine;
     paragraph = !isBlockLine;
     paragraphBlockquoteDepth = blockquoteDepth;
     paragraphListDepth = listDepth;
@@ -891,7 +898,15 @@ function stripMarkdownCode(value: string): string {
 function decodeVisibleReplyMarkers(value: string): string {
   return value
     .replace(/\\>/g, '>')
-    .replace(/&(?:gt|#0*62|#x0*3e|#0*65310|#x0*ff1e);/gi, '>');
+    .replace(/&(?:gt|#0*62|#x0*3e|#0*65310|#x0*ff1e);/gi, '>')
+    .replace(/&#(?:x[0-9a-f]+|[0-9]+);/gi, (entity) => {
+      const hexadecimal = /^&#x/i.test(entity);
+      const digits = entity.slice(hexadecimal ? 3 : 2, -1);
+      const codePoint = Number.parseInt(digits, hexadecimal ? 16 : 10);
+      return codePoint >= 0x30 && codePoint <= 0x39
+        ? String.fromCharCode(codePoint)
+        : entity;
+    });
 }
 
 function countMarkdownTableCells(value: string): number | undefined {
