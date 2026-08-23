@@ -1066,3 +1066,17 @@ test('keeps visible replies after a code span opener before tag-like text', () =
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+test('decodes named whitespace entities before reply scans', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '&gt;&gt;&nbsp;1 &gt;&gt;&Tab;2' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1, 2]);
+});
+test('preserves replies after an unclosed Zenn directive', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ':::message\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});

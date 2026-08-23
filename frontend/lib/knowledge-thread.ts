@@ -819,6 +819,20 @@ function stripMarkdownCode(value: string): string {
   let paragraphListDepth: number | null = null;
   let paragraphListIndentation: number | null = null;
   const lines = value.split(/\r?\n/);
+  const directiveOpeningPattern = /^\s{0,3}:::(?:message(?:[ \t]+alert)?|details(?:[ \t]+[^\r\n]*)?)[ \t]*$/i;
+  const directiveClosingPattern = /^\s{0,3}:::\s*$/;
+  const hasMatchingDirectiveCloser = (startIndex: number): boolean => {
+    let depth = 1;
+    for (let index = startIndex + 1; index < lines.length; index += 1) {
+      if (directiveOpeningPattern.test(lines[index])) {
+        depth += 1;
+      } else if (directiveClosingPattern.test(lines[index])) {
+        depth -= 1;
+        if (depth === 0) return true;
+      }
+    }
+    return false;
+  };
   const visibleLines = lines.map((line, lineIndex) => {
     let content = line;
     let blockquoteDepth = 0;
@@ -954,9 +968,10 @@ function stripMarkdownCode(value: string): string {
       return content;
     }
 
-    const isDirectiveBlockLine = /^\s{0,3}:::(?:message(?:[ \t]+alert)?|details(?:[ \t]+[^\r\n]*)?)[ \t]*$/i.test(content);
+    const isDirectiveBlockLine = directiveOpeningPattern.test(content);
+    const directiveHasCloser = isDirectiveBlockLine && hasMatchingDirectiveCloser(lineIndex);
     const isDirectiveBlockCloser = /^\s{0,3}:::\s*$/.test(content);
-    if (!fenced && isDirectiveBlockLine) {
+    if (!fenced && directiveHasCloser) {
       directiveBlockDepth += 1;
       paragraph = false;
       return content;
@@ -1055,6 +1070,21 @@ function decodeVisibleReplyMarkers(value: string): string {
       return (codePoint >= 0x30 && codePoint <= 0x39) || isWhitespace
         ? decoded
         : entity;
+    })
+    .replace(/&(nbsp|tab|newline|ensp|emsp|thinsp|hairsp|nnbsp|mediumspace|ideographicspace);/gi, (entity, name: string) => {
+      const namedWhitespace: Record<string, string> = {
+        tab: '\u0009',
+        newline: '\u000a',
+        nbsp: '\u00a0',
+        ensp: '\u2002',
+        emsp: '\u2003',
+        thinsp: '\u2009',
+        hairsp: '\u200a',
+        nnbsp: '\u202f',
+        mediumspace: '\u205f',
+        ideographicspace: '\u3000',
+      };
+      return namedWhitespace[name.toLowerCase()] || entity;
     });
 }
 
