@@ -1027,9 +1027,8 @@ function decodeVisibleReplyMarkers(value: string): string {
       const decoded = codePoint >= 0 && codePoint <= 0x10ffff
         ? String.fromCodePoint(codePoint)
         : entity;
-      return (codePoint >= 0x30 && codePoint <= 0x39) || /^
-\
-s$/u.test(decoded)
+      const isWhitespace = decoded.length === 1 && decoded.trim() === '';
+      return (codePoint >= 0x30 && codePoint <= 0x39) || isWhitespace
         ? decoded
         : entity;
     });
