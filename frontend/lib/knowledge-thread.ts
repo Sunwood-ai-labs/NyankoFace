@@ -54,6 +54,32 @@ function markdownBodyValue(value: unknown): string {
   if (typeof value === 'number') return trimSurroundingBlankLines(String(value));
   return '';
 }
+function rawMarkdownBodyValue(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  return '';
+}
+const utf8Encoder = new TextEncoder();
+function utf8ByteLength(value: string): number {
+  return utf8Encoder.encode(value).length;
+}
+function truncateUtf8(value: string, maxBytes: number): string {
+  if (value.length <= maxBytes && utf8ByteLength(value) <= maxBytes) return value;
+  let low = 0;
+  let high = Math.min(value.length, maxBytes) + 1;
+  while (low + 1 < high) {
+    const middle = Math.floor((low + high) / 2);
+    if (utf8ByteLength(value.slice(0, middle)) <= maxBytes) {
+      low = middle;
+    } else {
+      high = middle;
+    }
+  }
+  const end = low > 0 && value.charCodeAt(low - 1) >= 0xd800 && value.charCodeAt(low - 1) <= 0xdbff
+    ? low - 1
+    : low;
+  return value.slice(0, end);
+}
 function list(value: unknown, limit = Number.MAX_SAFE_INTEGER): string[] {
   if (Array.isArray(value)) {
     return value
@@ -70,6 +96,8 @@ function list(value: unknown, limit = Number.MAX_SAFE_INTEGER): string[] {
 const MAX_POST_NUMBER = 1_000_000;
 const MAX_THREAD_POSTS = 2_048;
 const MAX_THREAD_REPLIES = 256;
+const MAX_THREAD_POST_BODY_BYTES = 64 * 1024;
+const MAX_THREAD_BODY_BYTES = 1024 * 1024;
 const MAX_THREAD_RULES = 256;
 const MAX_THREAD_SOURCES = 256;
 function positiveInteger(value: unknown): number | undefined {
@@ -879,30 +907,31 @@ export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread 
     return number;
   };
   const rawPostValues = Array.isArray(rawPosts) ? rawPosts.slice(0, MAX_THREAD_POSTS) : [];
-  const posts = rawPostValues.map((value, index) => {
+  const posts: KnowledgeThreadPost[] = [];
+  let aggregateBodyBytes = 0;
+  for (const [index, value] of rawPostValues.entries()) {
     const source = record(value);
-    const bodyMarkdown = typeof value === 'string'
-      ? trimSurroundingBlankLines(value)
-      : markdownBodyValue(source?.body ?? source?.content ?? source?.markdown);
+    const rawBodyMarkdown = typeof value === 'string'
+      ? value
+      : rawMarkdownBodyValue(source?.body ?? source?.content ?? source?.markdown);
+    const bodyMarkdown = trimSurroundingBlankLines(
+      truncateUtf8(rawBodyMarkdown, MAX_THREAD_POST_BODY_BYTES),
+    );
+    const bodyBytes = utf8ByteLength(bodyMarkdown);
+    if (aggregateBodyBytes + bodyBytes > MAX_THREAD_BODY_BYTES) break;
+    aggregateBodyBytes += bodyBytes;
     const requestedNumber = positiveInteger(source?.number ?? source?.no ?? source?.index) || index + 1;
-    return {
-      source,
-      bodyMarkdown,
-      requestedNumber,
-    };
-  }).reduce<KnowledgeThreadPost[]>((normalized, item) => {
-    const number = allocatePostNumber(item.requestedNumber);
-    normalized.push({
+    const number = allocatePostNumber(requestedNumber);
+    posts.push({
       number,
-      name: stringValue(item.source?.name ?? item.source?.author ?? item.source?.display_name) || '名無しさん',
-      role: stringValue(item.source?.role),
-      id: stringValue(item.source?.id ?? item.source?.user_id),
-      postedAt: stringValue(item.source?.posted_at ?? item.source?.postedAt ?? item.source?.date),
-      bodyMarkdown: item.bodyMarkdown,
-      replyTo: parseReplyNumbers(item.source?.reply_to ?? item.source?.replyTo ?? item.source?.references, item.bodyMarkdown),
+      name: stringValue(source?.name ?? source?.author ?? source?.display_name) || '名無しさん',
+      role: stringValue(source?.role),
+      id: stringValue(source?.id ?? source?.user_id),
+      postedAt: stringValue(source?.posted_at ?? source?.postedAt ?? source?.date),
+      bodyMarkdown,
+      replyTo: parseReplyNumbers(source?.reply_to ?? source?.replyTo ?? source?.references, bodyMarkdown),
     });
-    return normalized;
-  }, []);
+  }
 
   const sourceValues = metadata?.sources ?? frontmatter.sources ?? frontmatter.references;
   return {

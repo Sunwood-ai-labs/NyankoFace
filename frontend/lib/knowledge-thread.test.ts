@@ -694,3 +694,26 @@ test('does not infer replies from autolink closing brackets', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
+
+
+test('bounds each thread post body by UTF-8 bytes', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: 'あ'.repeat(100_000) }],
+  });
+  assert.ok(new TextEncoder().encode(thread?.posts[0]?.bodyMarkdown || '').length <= 64 * 1024);
+});
+
+test('bounds aggregate thread body bytes before scanning aliases', () => {
+  const sharedPost = { number: 1, body: 'x'.repeat(70_000) };
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: Array.from({ length: 2_048 }, () => sharedPost),
+  });
+  const totalBytes = thread?.posts.reduce(
+    (total, post) => total + new TextEncoder().encode(post.bodyMarkdown).length,
+    0,
+  ) || 0;
+  assert.ok(totalBytes <= 1024 * 1024);
+  assert.ok((thread?.posts.length || 0) < 2_048);
+});
