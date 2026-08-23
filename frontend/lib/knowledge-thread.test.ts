@@ -904,7 +904,7 @@ test('preserves replies after whitespace-invalid URI autolinks', () => {
 });
 
 test('bounds nested Markdown link label processing', () => {
-  const body = '['.repeat(6_000) + 'x' + '] (u)'.repeat(6_000);
+  const body = '['.repeat(6_000) + 'x' + '](u)'.repeat(6_000);
   assert.doesNotThrow(() => parseKnowledgeThread({
     format: 'thread',
     posts: [{ number: 1, body }],
