@@ -420,7 +420,7 @@ function isValidInlineLinkContent(value: string): boolean {
     }
     if (!closed) return false;
   } else {
-    while (index < value.length && !/[\s<>]/.test(value[index])) index += 1;
+    while (index < value.length && !/[\s<]/.test(value[index])) index += 1;
   }
 
   skipWhitespace();
@@ -518,6 +518,17 @@ function isMarkdownReferenceDefinitionLine(value: string): boolean {
   return match !== null && hasVisibleMarkdownReferenceLabel(match[1]);
 }
 
+function escapeMarkdownHtmlTagOpeners(value: string): string {
+  let escaped = '';
+  let backslashes = 0;
+  for (const character of value) {
+    if (character === '<' && backslashes % 2 === 0) escaped += '\\';
+    escaped += character;
+    backslashes = character === '\\' ? backslashes + 1 : 0;
+  }
+  return escaped;
+}
+
 function stripMarkdownLinkDestinations(value: string, depth = 0): string {
   let visible = '';
   const bracketEnds = findMarkdownDelimiterEnds(value, '[', ']');
@@ -542,15 +553,20 @@ function stripMarkdownLinkDestinations(value: string, depth = 0): string {
       const labelEnd = bracketEnds.get(labelStart) ?? -1;
       if (labelEnd >= 0 && value[labelEnd + 1] === '(') {
         const destinationEnd = parenthesisEnds.get(labelEnd + 1) ?? -1;
-        if (
-          destinationEnd >= 0
-          && isValidInlineLinkContent(value.slice(labelEnd + 2, destinationEnd))
-        ) {
-          if (!isImage) {
-            visible += depth >= MAX_MARKDOWN_LINK_LABEL_DEPTH
-              ? value.slice(index, labelEnd + 1)
-              : stripMarkdownLinkDestinations(value.slice(index, labelEnd + 1), depth + 1);
+        if (destinationEnd >= 0) {
+          const destination = value.slice(labelEnd + 2, destinationEnd);
+          if (isValidInlineLinkContent(destination)) {
+            if (!isImage) {
+              visible += depth >= MAX_MARKDOWN_LINK_LABEL_DEPTH
+                ? value.slice(index, labelEnd + 1)
+                : stripMarkdownLinkDestinations(value.slice(index, labelEnd + 1), depth + 1);
+            }
+            index = destinationEnd + 1;
+            continue;
           }
+          visible += value.slice(index, labelEnd + 2)
+            + escapeMarkdownHtmlTagOpeners(destination)
+            + ')';
           index = destinationEnd + 1;
           continue;
         }
