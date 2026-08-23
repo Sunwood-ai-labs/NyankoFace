@@ -86,13 +86,23 @@ function list(value: unknown, limit = Number.MAX_SAFE_INTEGER): string[] {
   if (Array.isArray(value)) {
     return value
       .slice(0, limit)
-      .map(stringValue)
+      .map((item) => boundedStringValue(item, MAX_THREAD_REPLY_LIST_BYTES))
       .filter((item): item is string => Boolean(item));
   }
-  const single = stringValue(value);
-  return single
-    ? single.split(/\r?\n|,/).slice(0, limit).map((item) => item.trim()).filter(Boolean)
-    : [];
+  const single = boundedStringValue(value, MAX_THREAD_REPLY_LIST_BYTES);
+  if (!single) return [];
+  const values: string[] = [];
+  let start = 0;
+  for (let index = 0; index <= single.length && values.length < limit; index += 1) {
+    const atEnd = index === single.length;
+    const isSeparator = !atEnd && (single[index] === ',' || single[index] === '\r' || single[index] === '\n');
+    if (!atEnd && !isSeparator) continue;
+    const item = single.slice(start, index).trim();
+    if (item) values.push(item);
+    if (!atEnd && single[index] === '\r' && single[index + 1] === '\n') index += 1;
+    start = index + 1;
+  }
+  return values;
 }
 
 const MAX_POST_NUMBER = 1_000_000;
@@ -104,6 +114,7 @@ const MAX_THREAD_METADATA_FIELD_BYTES = 4 * 1024;
 const MAX_THREAD_METADATA_BYTES = 256 * 1024;
 const MAX_THREAD_POST_METADATA_FIELD_BYTES = MAX_THREAD_METADATA_FIELD_BYTES;
 const MAX_THREAD_POST_METADATA_BYTES = MAX_THREAD_METADATA_BYTES;
+const MAX_THREAD_REPLY_LIST_BYTES = 16 * 1024;
 const MAX_THREAD_RULES = 256;
 const MAX_THREAD_SOURCES = 256;
 type ByteBudget = {

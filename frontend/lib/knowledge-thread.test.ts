@@ -773,3 +773,15 @@ test('bounds thread-level metadata fields and aggregate bytes', () => {
   assert.ok(totalBytes <= 256 * 1024);
   assert.ok(thread.metadata.rules.length < 256 || thread.metadata.sources.length < 256);
 });
+
+test('bounds scalar reply lists before splitting', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      reply_to: Array.from({ length: 100_000 }, (_, index) => String(index + 1)).join(','),
+      body: '本文',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, Array.from({ length: 256 }, (_, index) => index + 1));
+});
