@@ -742,3 +742,34 @@ test('bounds each thread post metadata field and aggregate bytes', () => {
   assert.ok(totalBytes <= 256 * 1024);
   assert.ok(posts.length < 2_048);
 });
+
+test('bounds thread-level metadata fields and aggregate bytes', () => {
+  const sharedMetadata = 'あ'.repeat(100_000);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    thread: {
+      part: sharedMetadata,
+      theme: sharedMetadata,
+      rules: Array.from({ length: 256 }, () => sharedMetadata),
+      sources: Array.from({ length: 256 }, () => ({
+        label: sharedMetadata,
+        url: 'https://example.com/' + sharedMetadata,
+      })),
+    },
+    posts: [],
+  });
+  assert.ok(thread);
+  const metadataFields = [
+    thread.metadata.part,
+    thread.metadata.theme,
+    ...thread.metadata.rules,
+    ...thread.metadata.sources.flatMap((source) => [source.label, source.url]),
+  ];
+  assert.ok(metadataFields.every((field) => !field || new TextEncoder().encode(field).length <= 4 * 1024));
+  const totalBytes = metadataFields.reduce(
+    (total, field) => total + (field ? new TextEncoder().encode(field).length : 0),
+    0,
+  );
+  assert.ok(totalBytes <= 256 * 1024);
+  assert.ok(thread.metadata.rules.length < 256 || thread.metadata.sources.length < 256);
+});

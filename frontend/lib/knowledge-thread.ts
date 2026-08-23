@@ -77,7 +77,7 @@ function truncateUtf8(value: string, maxBytes: number): string {
 }
 function boundedStringValue(
   value: unknown,
-  maxBytes = MAX_THREAD_POST_METADATA_FIELD_BYTES,
+  maxBytes = MAX_THREAD_METADATA_FIELD_BYTES,
 ): string | undefined {
   const normalized = stringValue(value);
   return normalized ? truncateUtf8(normalized, maxBytes) : undefined;
@@ -100,10 +100,44 @@ const MAX_THREAD_POSTS = 2_048;
 const MAX_THREAD_REPLIES = 256;
 const MAX_THREAD_POST_BODY_BYTES = 64 * 1024;
 const MAX_THREAD_BODY_BYTES = 1024 * 1024;
-const MAX_THREAD_POST_METADATA_FIELD_BYTES = 4 * 1024;
-const MAX_THREAD_POST_METADATA_BYTES = 256 * 1024;
+const MAX_THREAD_METADATA_FIELD_BYTES = 4 * 1024;
+const MAX_THREAD_METADATA_BYTES = 256 * 1024;
+const MAX_THREAD_POST_METADATA_FIELD_BYTES = MAX_THREAD_METADATA_FIELD_BYTES;
+const MAX_THREAD_POST_METADATA_BYTES = MAX_THREAD_METADATA_BYTES;
 const MAX_THREAD_RULES = 256;
 const MAX_THREAD_SOURCES = 256;
+type ByteBudget = {
+  used: number;
+  limit: number;
+};
+
+function takeMetadataString(value: unknown, budget: ByteBudget): string | undefined {
+  const normalized = boundedStringValue(value);
+  if (!normalized) return undefined;
+  const bytes = utf8ByteLength(normalized);
+  if (budget.used + bytes > budget.limit) return undefined;
+  budget.used += bytes;
+  return normalized;
+}
+
+function normalizeMetadataList(value: unknown, limit: number, budget: ByteBudget): string[] {
+  const values = Array.isArray(value)
+    ? value.slice(0, limit)
+    : (() => {
+      const single = boundedStringValue(value);
+      return single ? single.split(/\r?\n|,/) : [];
+    })();
+  const normalized: string[] = [];
+  for (const item of values) {
+    const itemValue = takeMetadataString(item, budget);
+    if (itemValue) {
+      normalized.push(itemValue);
+    }
+    if (budget.used >= budget.limit) break;
+  }
+  return normalized;
+}
+
 function positiveInteger(value: unknown): number | undefined {
   const number = typeof value === 'number'
     ? value
@@ -853,22 +887,34 @@ function parseReplyNumbers(value: unknown, bodyMarkdown: string): number[] {
 
 function normalizeSource(value: unknown): KnowledgeThreadSource | undefined {
   if (typeof value === 'string') {
-    const url = value.trim();
+    const url = boundedStringValue(value);
     return url && safeKnowledgeHref(url) ? { label: url, url } : undefined;
   }
   const source = record(value);
   if (!source) return undefined;
-  const url = stringValue(source.url ?? source.href);
+  const url = boundedStringValue(source.url ?? source.href);
   if (!url || !safeKnowledgeHref(url)) return undefined;
   return {
-    label: stringValue(source.label ?? source.title ?? source.name) || url,
+    label: boundedStringValue(source.label ?? source.title ?? source.name) || url,
     url,
   };
 }
 
-function normalizeSources(value: unknown): KnowledgeThreadSource[] {
+function normalizeSources(value: unknown, budget: ByteBudget): KnowledgeThreadSource[] {
   if (!Array.isArray(value)) return [];
-  return value.slice(0, MAX_THREAD_SOURCES).map(normalizeSource).filter((item): item is KnowledgeThreadSource => Boolean(item));
+  const sources: KnowledgeThreadSource[] = [];
+  for (const item of value.slice(0, MAX_THREAD_SOURCES)) {
+    const source = normalizeSource(item);
+    if (!source) continue;
+    const sourceBytes = utf8ByteLength(source.label) + utf8ByteLength(source.url);
+    if (budget.used + sourceBytes > budget.limit) {
+      if (budget.used >= budget.limit) break;
+      continue;
+    }
+    budget.used += sourceBytes;
+    sources.push(source);
+  }
+  return sources;
 }
 
 export function safeKnowledgeHref(value: string): string | null {
@@ -946,13 +992,22 @@ export function parseKnowledgeThread(frontmatter: Frontmatter): KnowledgeThread 
     });
   }
 
+  const metadataBudget: ByteBudget = { used: 0, limit: MAX_THREAD_METADATA_BYTES };
   const sourceValues = metadata?.sources ?? frontmatter.sources ?? frontmatter.references;
+  const part = takeMetadataString(metadata?.part ?? frontmatter.thread_part ?? frontmatter.part, metadataBudget);
+  const theme = takeMetadataString(metadata?.theme ?? frontmatter.thread_theme ?? frontmatter.theme, metadataBudget);
+  const rules = normalizeMetadataList(
+    metadata?.rules ?? frontmatter.thread_rules ?? frontmatter.rules,
+    MAX_THREAD_RULES,
+    metadataBudget,
+  );
+  const sources = normalizeSources(sourceValues, metadataBudget);
   return {
     metadata: {
-      part: stringValue(metadata?.part ?? frontmatter.thread_part ?? frontmatter.part),
-      theme: stringValue(metadata?.theme ?? frontmatter.thread_theme ?? frontmatter.theme),
-      rules: list(metadata?.rules ?? frontmatter.thread_rules ?? frontmatter.rules).slice(0, MAX_THREAD_RULES),
-      sources: normalizeSources(sourceValues),
+      part,
+      theme,
+      rules,
+      sources,
     },
     posts,
   };
