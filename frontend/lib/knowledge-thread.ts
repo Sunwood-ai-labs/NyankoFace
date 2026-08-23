@@ -999,6 +999,7 @@ function stripMarkdownCode(value: string): string {
       }
     }
   }
+  const rawHtmlBlockLines = new Set<number>();
   const visibleLines = lines.map((line, lineIndex) => {
     let content = line;
     let blockquoteDepth = 0;
@@ -1066,6 +1067,7 @@ function stripMarkdownCode(value: string): string {
     const isHtmlBlockLine = HTML_BLOCK_LINE_PATTERN.test(content);
     const htmlBlockTag = HTML_BLOCK_TAG_PATTERN.exec(content);
     if (!fenced && (htmlBlockDepth > 0 || htmlBlockType1Tag || htmlBlockComment || htmlBlockEndSequence !== null || isHtmlBlockLine)) {
+      rawHtmlBlockLines.add(lineIndex);
       if (/^\s*$/.test(content)) {
         htmlBlockDepth = 0;
         htmlBlockType1Tag = '';
@@ -1218,7 +1220,18 @@ function stripMarkdownCode(value: string): string {
 
   // Remove inline code spans after joining lines so a valid multiline span
   // cannot leak a reply marker into the visible-text scan.
-  const withoutCode = stripHiddenHtml(stripMarkdownCodeSpans(visibleLines.join('\n')));
+  const protectedHtmlLines = new Map<string, string>();
+  const linesForInlineCleanup = visibleLines.map((line, lineIndex) => {
+    if (!rawHtmlBlockLines.has(lineIndex)) return line;
+    const token = `\\uE000knowledge-html-${lineIndex}\\uE001`;
+    protectedHtmlLines.set(token, line);
+    return token;
+  });
+  let withoutCode = stripMarkdownCodeSpans(linesForInlineCleanup.join('\n'));
+  for (const [token, line] of protectedHtmlLines) {
+    withoutCode = withoutCode.split(token).join(line);
+  }
+  withoutCode = stripHiddenHtml(withoutCode);
   return stripHtmlTags(stripMarkdownLinkDestinations(withoutCode));
 }
 function decodeVisibleReplyMarkers(value: string): string {
