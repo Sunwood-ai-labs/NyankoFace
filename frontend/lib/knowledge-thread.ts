@@ -1061,7 +1061,7 @@ function isSetextHeadingText(value: string): boolean {
     || /^\s{0,3}:::\s*$/.test(normalized)
     || isMarkdownReferenceDefinitionLine(normalized)
     || HTML_BLOCK_LINE_PATTERN.test(normalized)
-    || /^\s{0,3}(?:[-+*]|\d{1,9}[.)])[ \t]+/.test(normalized)
+    || /^\s{0,3}(?:[-+*]|1[.)])[ \t]+/.test(normalized)
   );
 }
 

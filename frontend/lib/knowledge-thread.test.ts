@@ -1014,3 +1014,10 @@ test('does not infer replies after a closed CDATA HTML block', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
+test('preserves replies after a noninterrupting ordered line before Setext underline', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: 'text\\n2. item\\n===\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
