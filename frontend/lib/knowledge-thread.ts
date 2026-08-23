@@ -600,7 +600,10 @@ function stripHtmlTags(value: string): string {
     }
 
     const autolinkContent = value.slice(index + 1, tagEnd);
-    if (/^[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\r\n]*$/.test(autolinkContent)) {
+    if (
+      /^[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\r\n]*$/.test(autolinkContent)
+      || /^[^\s<>@]+@[^\s<>@]+$/.test(autolinkContent)
+    ) {
       visible.push(autolinkContent);
       index = tagEnd + 1;
       continue;
@@ -614,12 +617,32 @@ function stripHtmlTags(value: string): string {
 
   return visible.join('');
 }
+function findRawHtmlTokenEndForCodeSpans(value: string, start: number): number {
+  if (value[start] !== '<' || isEscapedMarkdownCharacter(value, start)) return -1;
+  if (value.startsWith('<!--', start)) {
+    const end = value.indexOf('-->', start + 4);
+    return end >= 0 ? end + 2 : -1;
+  }
+  const rawEnd = findRawHtmlTokenEnd(value, start);
+  if (rawEnd >= start) return rawEnd;
+  const tagEnd = findHtmlTagEnd(value, start);
+  return tagEnd >= 0 && parseHtmlTag(value, start, tagEnd) ? tagEnd : -1;
+}
+
 function stripMarkdownCodeSpans(value: string): string {
   const delimiter = String.fromCharCode(96);
   const runs: Array<{ start: number; end: number; length: number; escaped: boolean; hasClosing: boolean }> = [];
   let consecutiveBackslashes = 0;
 
   for (let index = 0; index < value.length; index += 1) {
+    const rawHtmlEnd = value[index] === '<'
+      ? findRawHtmlTokenEndForCodeSpans(value, index)
+      : -1;
+    if (rawHtmlEnd >= index) {
+      consecutiveBackslashes = 0;
+      index = rawHtmlEnd;
+      continue;
+    }
     if (value[index] !== delimiter) {
       consecutiveBackslashes = value[index] === '\\' ? consecutiveBackslashes + 1 : 0;
       continue;

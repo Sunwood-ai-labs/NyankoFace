@@ -793,3 +793,19 @@ test('bounds oversized scalar post numbers before validation', () => {
   });
   assert.equal(thread?.posts[0]?.number, 1);
 });
+
+test('does not infer replies from email autolink delimiters', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<user@example.com>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
+test('keeps visible replies after backticks inside raw HTML attributes', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: "<span title=\"`\">visible >>1</span> `x`" }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
