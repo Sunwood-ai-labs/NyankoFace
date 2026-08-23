@@ -846,3 +846,15 @@ test('decodes numeric entity reply markers', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
+
+
+test('does not infer replies after inline type-1 HTML closing tags', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: '<script>\ntext </script>\n    >>1',
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});

@@ -805,6 +805,15 @@ function stripMarkdownCode(value: string): string {
         htmlBlockType1Tag = '';
       } else if (
         htmlBlockType1Tag
+        && new RegExp(
+          '<\\s*/\\s*' + htmlBlockType1Tag + '\\s*>',
+          'i',
+        ).test(content)
+      ) {
+        htmlBlockDepth = 0;
+        htmlBlockType1Tag = '';
+      } else if (
+        htmlBlockType1Tag
         && htmlBlockTag?.[1]
         && htmlBlockTag[2].toLowerCase() === htmlBlockType1Tag
       ) {
