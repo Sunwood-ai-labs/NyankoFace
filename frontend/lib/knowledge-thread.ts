@@ -930,7 +930,7 @@ function stripMarkdownCode(value: string): string {
       return content;
     }
 
-    const isDirectiveBlockLine = /^\s{0,3}:::(?:message|details)(?:\s|$)/i.test(content);
+    const isDirectiveBlockLine = /^\s{0,3}:::(?:message(?:[ \t]+alert)?|details(?:[ \t]+[^\r\n]*)?)[ \t]*$/i.test(content);
     const isDirectiveBlockCloser = /^\s{0,3}:::\s*$/.test(content);
     if (!fenced && isDirectiveBlockLine) {
       directiveBlockDepth += 1;
@@ -988,9 +988,9 @@ function stripMarkdownCode(value: string): string {
       && isSetextHeadingText(previousLine)
       && /^\s{0,3}(?:=+|-+)\s*$/.test(content);
     const isTableDelimiterLine = isValidTableDelimiterLine(content, previousLine);
-    const isGithubAlertLine = /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(content);
+    const isGithubAlertLine = blockquoteDepth > 0 && /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(content);
 
-    const isReferenceDefinitionLine = isMarkdownReferenceDefinitionLine(content);
+    const isReferenceDefinitionLine = !paragraph && isMarkdownReferenceDefinitionLine(content);
     const isBlockLine =
       /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(content)
       || THEMATIC_BREAK_LINE_PATTERN.test(content)

@@ -1035,3 +1035,24 @@ test('does not infer replies from tab-indented blockquote-like code', () => {
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
+test('preserves replies after an invalid Zenn message opener', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: ':::message typo\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('preserves replies after an unquoted GitHub alert marker', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '[!NOTE]\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+test('preserves replies after a paragraph-contained reference definition', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: 'text\\n[ticket]: /url\\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
