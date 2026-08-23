@@ -195,6 +195,8 @@ const HTML_BLOCK_TYPE_1_TAGS = new Set(['pre', 'script', 'style', 'textarea']);
 
 const HTML_BLOCK_LINE_PATTERN = /^\s{0,3}(?:<!--|<\?|<!\[CDATA\[|<![A-Z]|<\/?(?:address|article|aside|blockquote|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|nav|ol|p|pre|script|section|style|summary|table|tbody|td|tfoot|th|thead|title|tr|ul)(?:\s|\/?>))/i;
 const HTML_BLOCK_TAG_PATTERN = /^\s{0,3}<\s*(\/?)\s*(address|article|aside|blockquote|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|nav|ol|p|pre|script|section|style|summary|table|tbody|td|tfoot|th|thead|title|tr|ul)\b[^>]*>/i;
+const THEMATIC_BREAK_LINE_PATTERN = /^\s{0,3}(?:(?:\*[\t ]*){3,}|(?:-[\t ]*){3,}|(?:_[\t ]*){3,})$/;
+const MARKDOWN_EMAIL_AUTOLINK_PATTERN = /^[A-Za-z0-9.!#$%&'*+/=?^_\x60{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+(?![-_])/;
 
 function findHtmlTagEnd(value: string, start: number): number {
   let quote = '';
@@ -656,7 +658,7 @@ function stripHtmlTags(value: string): string {
     const invalidUriWhitespace = uriSchemePrefix && /[\x00-\x20\x7f]/.test(autolinkContent);
     if (
       /^[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\x00-\x20\x7f]*$/.test(autolinkContent)
-      || /^[^\s<>@]+@[^\s<>@]+$/.test(autolinkContent)
+      || MARKDOWN_EMAIL_AUTOLINK_PATTERN.test(autolinkContent)
     ) {
       visible.push(autolinkContent);
       index = tagEnd + 1;
@@ -991,7 +993,7 @@ function stripMarkdownCode(value: string): string {
     const isReferenceDefinitionLine = isMarkdownReferenceDefinitionLine(content);
     const isBlockLine =
       /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(content)
-      || /^\s{0,3}(?:(?:\*[\t ]*){3,}|(?:-[\t ]*){3,}|(?:_[\t ]*){3,})$/.test(content)
+      || THEMATIC_BREAK_LINE_PATTERN.test(content)
       || isSetextUnderline
       || isHtmlBlockLine
       || isTableDelimiterLine
@@ -1053,13 +1055,18 @@ function isSetextHeadingText(value: string): boolean {
   return !(
     /^\s{0,3}#{1,6}(?:[ \t]+|$)/.test(normalized)
     || /^\s{0,3}(?:\x60{3,}|~{3,})/.test(normalized)
-    || HTML_BLOCK_LINE_PATTERN.test(normalized)
+    || THEMATIC_BREAK_LINE_PATTERN.test(normalized)
+    || /^\s{0,3}\[!(?:NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/i.test(normalized)
+    || /^\s{0,3}:::(?:message|details)(?:\s|$)/i.test(normalized)
+    || /^\s{0,3}:::\s*$/.test(normalized)
+    || isMarkdownReferenceDefinitionLine(normalized)    || HTML_BLOCK_LINE_PATTERN.test(normalized)
     || /^\s{0,3}(?:[-+*]|\d{1,9}[.)])[ \t]+/.test(normalized)
   );
 }
 
 function isValidTableDelimiterLine(value: string, previousLine: string): boolean {
   if (!/^\s{0,3}\|?(?:\s*:?-+:?\s*\|)+\s*$/.test(value)) return false;
+  if (!isSetextHeadingText(previousLine)) return false;
   const headerCells = countMarkdownTableCells(previousLine);
   const delimiterCells = countMarkdownTableCells(value);
   return headerCells !== undefined && headerCells === delimiterCells;

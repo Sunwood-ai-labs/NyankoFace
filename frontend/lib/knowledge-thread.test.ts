@@ -679,6 +679,21 @@ test('keeps visible replies after a mismatched table delimiter', () => {
 });
 
 
+test('preserves replies after a thematic break before a Setext underline', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '---\n===\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
+
+test('preserves replies after a non-paragraph table header', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '# a | b\n|---|---|\n    \\>\\>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
+});
 test('does not infer replies from nested image labels in links', () => {
   const thread = parseKnowledgeThread({
     format: 'thread',
@@ -696,6 +711,13 @@ test('does not infer replies from nested image labels in reference links', () =>
     }],
   });
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+test('preserves replies after an invalid email autolink', () => {
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{ number: 1, body: '<a/@b>>1' }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, [1]);
 });
 test('does not infer replies from autolink closing brackets', () => {
   const thread = parseKnowledgeThread({
