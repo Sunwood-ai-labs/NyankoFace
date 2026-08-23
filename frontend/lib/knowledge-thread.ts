@@ -502,7 +502,7 @@ function isEscapedMarkdownCharacter(value: string, index: number): boolean {
   return backslashCount % 2 === 1;
 }
 
-const MARKDOWN_REFERENCE_DEFINITION_LINE_PATTERN = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\\]:[ \t]*(?:<[^>\r\n]+>|(?:[^\s\r\n()]|\([^()\r\n]*\))+)(?:[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?[ \t]*$/;
+const MARKDOWN_REFERENCE_DEFINITION_LINE_PATTERN = /^[ \t]{0,3}\[((?:\\.|[^\[\]\\])+)\]:[ \t]*(?:<[^>\r\n]+>|(?:[^\s\r\n()]|\([^()\r\n]*\))+)(?:[ \t]+(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^)]*\)))?[ \t]*$/;
 function isMarkdownReferenceDefinitionLine(value: string): boolean {
   return MARKDOWN_REFERENCE_DEFINITION_LINE_PATTERN.test(value);
 }
