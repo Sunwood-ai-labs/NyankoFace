@@ -580,6 +580,26 @@ test('does not infer replies from indented code after a directive block opener',
   assert.deepEqual(thread?.posts[0]?.replyTo, []);
 });
 
+test('ignores directive-looking lines inside fenced code', () => {
+  const tick = String.fromCharCode(96);
+  const thread = parseKnowledgeThread({
+    format: 'thread',
+    posts: [{
+      number: 1,
+      body: [
+        ':::message',
+        tick + tick + tick,
+        ':::message',
+        tick + tick + tick,
+        ':::',
+        '    \\>\\>1',
+        ':::',
+      ].join('\n'),
+    }],
+  });
+  assert.deepEqual(thread?.posts[0]?.replyTo, []);
+});
+
 test('preserves replies after unbalanced reference destinations', () => {
   const thread = parseKnowledgeThread({
     format: 'thread',
